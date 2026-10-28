@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { createApp, reactive, type App } from "vue";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../../store/useAuthStore";
+import { refreshAccessToken } from "../../../api/axios";
 
 interface VueAnalyticsHostProps {
   formId: string;
@@ -26,6 +27,11 @@ export default function VueAnalyticsHost({ formId }: VueAnalyticsHostProps) {
       formId,
       apiBaseUrl: import.meta.env.VITE_API_URL || "http://localhost:5001/api",
       locale: i18n.language,
+      // Явний міст автентифікації для Vue-remote: токен лише в пам'яті
+      // хоста (не в localStorage), тож remote бере його через ці функції.
+      // refreshAccessToken ділить один /auth/refresh із React-запитами.
+      getAccessToken: () => useAuthStore.getState().token,
+      refreshAccessToken,
     }),
   );
 

@@ -1,6 +1,22 @@
 import { AUTH_EXPIRED_EVENT } from "@surveycraft/shared-types";
 
-const AUTH_TOKEN_STORAGE_KEY = "token";
+/**
+ * Міст автентифікації з React-хостом. Access-токен живе лише в пам'яті
+ * хоста (не в localStorage), тому remote отримує його через ці функції,
+ * які хост передає пропами (див. AnalyticsApp.vue / VueAnalyticsHost.tsx).
+ * refreshAccessToken (необов'язковий) обмінює refresh-cookie на новий
+ * токен - так 401 через протухлий access-токен не розлогінює користувача.
+ */
+export type AuthBridge = {
+  getAccessToken: () => string | null;
+  refreshAccessToken?: () => Promise<string | null>;
+};
+
+let authBridge: AuthBridge | null = null;
+
+export const setAuthBridge = (bridge: AuthBridge | null) => {
+  authBridge = bridge;
+};
 
 export class ApiError extends Error {
   constructor(
@@ -12,14 +28,13 @@ export class ApiError extends Error {
   }
 }
 
-const request = async (
+const send = (
   apiBaseUrl: string,
   path: string,
-  options: RequestInit = {},
-): Promise<Response> => {
-  const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
-
-  const res = await fetch(`${apiBaseUrl}${path}`, {
+  options: RequestInit,
+  token: string | null,
+): Promise<Response> =>
+  fetch(`${apiBaseUrl}${path}`, {
     ...options,
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -27,16 +42,29 @@ const request = async (
     },
   });
 
+const request = async (
+  apiBaseUrl: string,
+  path: string,
+  options: RequestInit = {},
+): Promise<Response> => {
+  let res = await send(apiBaseUrl, path, options, authBridge?.getAccessToken() ?? null);
+
+  // Протухлий access-токен (15 хв): один раз просимо хост обміняти
+  // refresh-cookie на новий і повторюємо запит.
+  if (res.status === 401 && authBridge?.refreshAccessToken) {
+    const freshToken = await authBridge.refreshAccessToken();
+
+    if (freshToken) {
+      res = await send(apiBaseUrl, path, options, freshToken);
+    }
+  }
+
   if (!res.ok) {
     if (res.status === 401) {
-      // Токен протух. Vue сам НЕ вирішує, куди редіректити - single
-      // source of truth для logout лишається React-хост (ProtectedRoute
-      // реагує на Zustand-стан). Просте видалення localStorage-ключа тут
-      // недостатнє: Zustand-стор React читає localStorage лише ОДИН раз
-      // при ініціалізації (react-frontend/src/store/useAuthStore.ts), тож
-      // зміна localStorage ЗЗОВНІ (з Vue) сама по собі ніяк не долетить
-      // до React-стану без явного сигналу - CustomEvent це і є.
-      localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+      // Сесію не вдалося продовжити навіть після refresh. Vue сам НЕ
+      // вирішує, куди редіректити - single source of truth для logout
+      // лишається React-хост (ProtectedRoute реагує на Zustand-стан), тож
+      // повідомляємо йому CustomEvent-ом.
       window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
     }
     throw new ApiError(res.status, `Запит завершився помилкою ${res.status}`);

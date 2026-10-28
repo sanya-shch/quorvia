@@ -50,6 +50,36 @@ const requestNewAccessToken = (): Promise<string | null> => {
   return inFlightRefresh;
 };
 
+/**
+ * Обмінює refresh-cookie на новий access-токен і кладе його в стор.
+ * Спільний для axios-інтерцептора, відновлення сесії та Vue-remote
+ * (див. VueAnalyticsHost.tsx) - усі діляться ОДНИМ запитом (inFlightRefresh).
+ */
+export const refreshAccessToken = async (): Promise<string | null> => {
+  const newToken = await requestNewAccessToken();
+
+  if (newToken) {
+    useAuthStore.getState().setToken(newToken);
+  }
+
+  return newToken;
+};
+
+/**
+ * Викликається один раз при старті застосунку (ProtectedRoute): токен у
+ * пам'яті після перезавантаження сторінки порожній, тож пробуємо відновити
+ * сесію з httpOnly refresh-cookie. Невдача = користувач не залогінений.
+ */
+export const restoreSession = async (): Promise<string | null> => {
+  const token = await refreshAccessToken();
+
+  if (!token) {
+    useAuthStore.getState().clearAuth();
+  }
+
+  return token;
+};
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -67,10 +97,9 @@ api.interceptors.response.use(
     ) {
       originalRequest._retriedAfterRefresh = true;
 
-      const newToken = await requestNewAccessToken();
+      const newToken = await refreshAccessToken();
 
       if (newToken) {
-        useAuthStore.getState().setToken(newToken);
         originalRequest.headers = originalRequest.headers ?? {};
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);

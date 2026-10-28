@@ -15,11 +15,15 @@ import QuestionDetailPanel from "./components/QuestionDetailPanel.vue";
 import ResponsesList from "./components/ResponsesList.vue";
 import ResponseDetailView from "./components/ResponseDetailView.vue";
 import ExportMenu from "./components/ExportMenu.vue";
+import { setAuthBridge } from "./api/client";
 
 const props = defineProps<{
   formId: string;
   apiBaseUrl?: string;
   locale?: string;
+  // Міст автентифікації від React-хоста (токен лише в пам'яті хоста).
+  getAccessToken?: () => string | null;
+  refreshAccessToken?: () => Promise<string | null>;
 }>();
 
 const { t, locale } = useI18n();
@@ -37,6 +41,13 @@ watch(
 );
 
 const apiBaseUrl = props.apiBaseUrl || "http://localhost:5001/api";
+
+// Має виконатись ДО створення composables нижче - вони одразу роблять запити.
+setAuthBridge(
+  props.getAccessToken
+    ? { getAccessToken: props.getAccessToken, refreshAccessToken: props.refreshAccessToken }
+    : null,
+);
 
 const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = useFormAnalytics(
   apiBaseUrl,

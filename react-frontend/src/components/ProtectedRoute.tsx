@@ -1,16 +1,17 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { authApi } from "../api/auth";
 import { useAuthStore } from "../store/useAuthStore";
+import { restoreSession } from "../api/axios";
 
 interface ProtectedRouteProps {
   children: React.JSX.Element;
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { token, isAuthenticated, setAuth, clearAuth } = useAuthStore();
+  const { token, isAuthenticated, isInitialized, setAuth, clearAuth } = useAuthStore();
   const { t } = useTranslation();
 
   const {
@@ -39,11 +40,20 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     staleTime: 10 * 60 * 1000,
   });
 
-  if (!token || !isAuthenticated) {
+  // Токен лише в пам'яті: після перезавантаження сторінки він порожній, і
+  // спершу треба спробувати відновити сесію з refresh-cookie, а вже потім
+  // вирішувати, чи редіректити на /login.
+  useEffect(() => {
+    if (!isInitialized) {
+      void restoreSession();
+    }
+  }, [isInitialized]);
+
+  if (isInitialized && (!token || !isAuthenticated)) {
     return <Navigate to="/login" replace />;
   }
 
-  if (isLoading) {
+  if (!isInitialized || isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-2">
