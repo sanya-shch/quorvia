@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { Question } from "../../shared/types/questions.js";
 import { ErrorCode } from "@surveycraft/shared-types";
+import { compileSafePattern } from "../../shared/utils/safeRegex.js";
+import { MAX_ANSWER_STRING_LENGTH } from "../../shared/schemas/answers.js";
 
 export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set<string>) => {
   const shape: Record<string, z.ZodTypeAny> = {};
@@ -10,7 +12,10 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
 
     switch (q.type) {
       case "TEXT": {
-        schema = z.string().min(1, ErrorCode.VALIDATION_FIELD_REQUIRED);
+        schema = z
+          .string()
+          .min(1, ErrorCode.VALIDATION_FIELD_REQUIRED)
+          .max(MAX_ANSWER_STRING_LENGTH);
 
         if (q.config?.variant === "email") {
           schema = schema.email(ErrorCode.VALIDATION_EMAIL_INVALID);
@@ -25,7 +30,18 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
         }
 
         if (q.config?.pattern) {
-          schema = schema.regex(new RegExp(q.config.pattern), ErrorCode.VALIDATION_FORMAT_INVALID);
+          // RE2 (лінійний час) замість new RegExp - захист від ReDoS, див.
+          // safeRegex.ts. Якщо старий (до цієї зміни) шаблон в БД не
+          // компілюється в RE2, перевірку формату пропускаємо, а не
+          // валимо відправку 500-ю.
+          const pattern = compileSafePattern(q.config.pattern);
+
+          if (pattern) {
+            schema = schema.refine(
+              (value: string) => pattern.test(value),
+              ErrorCode.VALIDATION_FORMAT_INVALID,
+            );
+          }
         }
 
         break;

@@ -205,3 +205,30 @@ describe("buildResponseSchema — загальне", () => {
     expect(schema.safeParse({}).success).toBe(true);
   });
 });
+
+describe("buildResponseSchema: pattern (RE2, захист від ReDoS)", () => {
+  const textQuestion = (pattern: string) => [
+    { id: "q1", type: "TEXT", required: true, config: { pattern } },
+  ];
+
+  it("перевіряє формат за шаблоном", () => {
+    const schema = buildResponseSchema(textQuestion("^\\d{3}$"));
+
+    expect(schema.safeParse({ q1: "123" }).success).toBe(true);
+    expect(schema.safeParse({ q1: "12a" }).success).toBe(false);
+  });
+
+  it("катастрофічний шаблон не блокує виконання", () => {
+    const schema = buildResponseSchema(textQuestion("^(a+)+$"));
+    const started = Date.now();
+
+    expect(schema.safeParse({ q1: "a".repeat(5_000) + "b" }).success).toBe(false);
+    expect(Date.now() - started).toBeLessThan(500);
+  });
+
+  it("шаблон, що не компілюється в RE2, пропускається, а не кидає 500", () => {
+    const schema = buildResponseSchema(textQuestion("(?=a)b"));
+
+    expect(schema.safeParse({ q1: "anything" }).success).toBe(true);
+  });
+});

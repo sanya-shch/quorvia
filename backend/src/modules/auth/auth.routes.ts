@@ -6,6 +6,7 @@ import { validate } from "../../shared/middleware/validate.js";
 import { loginSchema, registerSchema } from "./auth.schema.js";
 import { asyncHandler } from "../../shared/utils/asyncHandler.js";
 import { ErrorCode } from "@surveycraft/shared-types";
+import { refreshLimiter } from "../../shared/middleware/rateLimiters.js";
 
 const router = Router();
 
@@ -24,7 +25,7 @@ const authRateLimiter = rateLimit({
 
 router.post("/register", authRateLimiter, validate(registerSchema), asyncHandler(register));
 router.post("/login", authRateLimiter, validate(loginSchema), asyncHandler(login));
-router.post("/refresh", asyncHandler(refresh));
+router.post("/refresh", refreshLimiter, asyncHandler(refresh));
 router.get("/me", authMiddleware, asyncHandler(getMeHandler));
 router.post("/logout", asyncHandler(logout));
 

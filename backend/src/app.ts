@@ -11,6 +11,7 @@ import analyticsRoutes from "./modules/analytics/analytics.routes.js";
 import exportRoutes from "./modules/export/export.routes.js";
 
 import { errorHandler } from "./shared/middleware/errorHandler.js";
+import { apiLimiter } from "./shared/middleware/rateLimiters.js";
 
 const app = express();
 
@@ -26,6 +27,8 @@ app.use(
     optionsSuccessStatus: 200,
   }),
 );
+
+app.use("/api", apiLimiter);
 
 app.use(express.json());
 app.use(cookieParser());

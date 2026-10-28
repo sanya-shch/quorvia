@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { ErrorCode } from "@surveycraft/shared-types";
+import { compileSafePattern, MAX_PATTERN_LENGTH } from "../../shared/utils/safeRegex.js";
 
 export const createFormSchema = z.object({
   title: z.string().min(3),
@@ -29,7 +31,13 @@ const configSchema = z.object({
   variant: z.enum(["input", "textarea", "email", "name"]).optional(),
   minLength: z.number().optional(),
   maxLength: z.number().optional(),
-  pattern: z.string().optional(),
+  // Шаблон має компілюватись у RE2 (без lookahead/backreferences) - інакше
+  // його не можна безпечно виконувати на сервері (ReDoS, див. safeRegex.ts).
+  pattern: z
+    .string()
+    .max(MAX_PATTERN_LENGTH)
+    .refine((value) => compileSafePattern(value) !== null, ErrorCode.VALIDATION_FORMAT_INVALID)
+    .optional(),
 });
 
 const optionSchema = z.object({

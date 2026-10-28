@@ -6,7 +6,7 @@ const bcrypt = (await import("bcrypt")).default;
 const { ErrorCode } = await import("@surveycraft/shared-types");
 const { generateAccessToken, generateRefreshToken, hashRefreshToken } =
   await import("../../shared/utils/jwt.js");
-const { loginHandler, refreshAccessToken, registerUser, revokeRefreshToken } =
+const { cleanupRefreshTokens, loginHandler, refreshAccessToken, registerUser, revokeRefreshToken } =
   await import("./auth.service.js");
 
 vi.mock("../../prisma/prisma.js", () => ({
@@ -17,6 +17,7 @@ vi.mock("../../prisma/prisma.js", () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn(),
+      deleteMany: vi.fn(),
     },
   },
 }));
@@ -189,6 +190,47 @@ describe("refreshAccessToken", () => {
     expect(prisma.refreshToken.update).not.toHaveBeenCalled();
   });
 
+  it("свіжа гонка (відкликано щойно) - 401, але сесії користувача НЕ вбиваємо", async () => {
+    (prisma.refreshToken.findUnique as any).mockResolvedValue({
+      id: "rt-1",
+      userId: "user-1",
+      revokedAt: new Date(Date.now() - 1_000),
+      expiresAt: REFRESH_EXPIRES_AT,
+    });
+
+    await expect(refreshAccessToken("some-token")).rejects.toMatchObject({ statusCode: 401 });
+    expect(prisma.refreshToken.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("reuse detection: давно відкликаний токен пред'явлено знову - відкликає ВСІ токени користувача", async () => {
+    (prisma.refreshToken.findUnique as any).mockResolvedValue({
+      id: "rt-1",
+      userId: "user-1",
+      revokedAt: new Date(Date.now() - 60_000),
+      expiresAt: REFRESH_EXPIRES_AT,
+    });
+
+    await expect(refreshAccessToken("stolen-token")).rejects.toMatchObject({ statusCode: 401 });
+    expect(prisma.refreshToken.updateMany).toHaveBeenCalledWith({
+      where: { userId: "user-1", revokedAt: null },
+      data: { revokedAt: expect.any(Date) },
+    });
+    expect(prisma.refreshToken.create).not.toHaveBeenCalled();
+  });
+
+  it("програє гонку: updateMany зачепив 0 рядків - 401 і нова пара не видається", async () => {
+    (prisma.refreshToken.findUnique as any).mockResolvedValue({
+      id: "rt-1",
+      userId: "user-1",
+      revokedAt: null,
+      expiresAt: REFRESH_EXPIRES_AT,
+    });
+    (prisma.refreshToken.updateMany as any).mockResolvedValue({ count: 0 });
+
+    await expect(refreshAccessToken("some-token")).rejects.toMatchObject({ statusCode: 401 });
+    expect(prisma.refreshToken.create).not.toHaveBeenCalled();
+  });
+
   it("кидає 401 для протухлого токена", async () => {
     (prisma.refreshToken.findUnique as any).mockResolvedValue({
       id: "rt-1",
@@ -208,11 +250,13 @@ describe("refreshAccessToken", () => {
       expiresAt: REFRESH_EXPIRES_AT,
     });
 
+    (prisma.refreshToken.updateMany as any).mockResolvedValue({ count: 1 });
+
     const result = await refreshAccessToken("old-raw-token");
 
     expect(hashRefreshToken).toHaveBeenCalledWith("old-raw-token");
-    expect(prisma.refreshToken.update).toHaveBeenCalledWith({
-      where: { id: "rt-1" },
+    expect(prisma.refreshToken.updateMany).toHaveBeenCalledWith({
+      where: { id: "rt-1", revokedAt: null },
       data: { revokedAt: expect.any(Date) },
     });
     expect(prisma.refreshToken.create).toHaveBeenCalledWith({
@@ -244,6 +288,21 @@ describe("revokeRefreshToken", () => {
     expect(prisma.refreshToken.updateMany).toHaveBeenCalledWith({
       where: { tokenHash: "hashed-raw-token", revokedAt: null },
       data: { revokedAt: expect.any(Date) },
+    });
+  });
+});
+
+describe("cleanupRefreshTokens", () => {
+  it("видаляє токени, прострочені або відкликані понад 7 днів тому", async () => {
+    (prisma.refreshToken.deleteMany as any).mockResolvedValue({ count: 3 });
+    const now = new Date("2026-10-28T00:00:00.000Z");
+
+    const removed = await cleanupRefreshTokens(now);
+
+    const threshold = new Date("2026-10-21T00:00:00.000Z");
+    expect(removed).toBe(3);
+    expect(prisma.refreshToken.deleteMany).toHaveBeenCalledWith({
+      where: { OR: [{ expiresAt: { lt: threshold } }, { revokedAt: { lt: threshold } }] },
     });
   });
 });

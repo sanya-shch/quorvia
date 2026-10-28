@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { exportToCsv } from "./csv.exporter.js";
+import { exportToCsv, neutralizeFormula } from "./csv.exporter.js";
 import { buildExportData } from "./testFixtures.js";
 
 const parseCsv = (buffer: Buffer) => {
@@ -72,5 +72,30 @@ describe("exportToCsv", () => {
     const rows = parseCsv(file.buffer);
 
     expect(rows).toHaveLength(1);
+  });
+});
+
+describe("neutralizeFormula (CSV injection)", () => {
+  it.each(["=1+1", "+1+1", "-1+1", "@SUM(A1)", "\tcmd", "\rcmd", `=HYPERLINK("http://evil","x")`])(
+    "додає апостроф перед %j",
+    (value) => {
+      expect(neutralizeFormula(value)).toBe(`'${value}`);
+    },
+  );
+
+  it.each(["звичайний текст", "5", "-5", "-3.14", "a=b", "", "Олександр"])(
+    "не чіпає безпечне значення %j",
+    (value) => {
+      expect(neutralizeFormula(value)).toBe(value);
+    },
+  );
+
+  it("нейтралізує формулу в готовому CSV-файлі", async () => {
+    const data = buildExportData();
+    data.responses[0].answers = { ...(data.responses[0].answers as object), [data.questions[0].id]: "=2+2" };
+
+    const file = await exportToCsv(data);
+
+    expect(file.buffer.toString("utf-8")).toContain("'=2+2");
   });
 });

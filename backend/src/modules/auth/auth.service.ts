@@ -96,10 +96,25 @@ export const loginHandler = async (email: string, password: string) => {
 };
 
 /**
- * Обмін refresh-токена на нову пару. Ротація: щойно прочитаний
- * refresh-токен одразу відкликається (revokedAt), перш ніж видати новий -
- * той самий сирий токен не можна "переграти" повторно, навіть якщо його
- * десь перехопили.
+ * Вікно, у межах якого повторне використання вже відкликаного токена
+ * вважається "гонкою" легітимного клієнта (дві вкладки одночасно оновили
+ * сесію), а не крадіжкою. Поза цим вікном - див. refreshAccessToken.
+ */
+const REFRESH_REUSE_GRACE_MS = 10_000;
+
+/**
+ * Обмін refresh-токена на нову пару.
+ *
+ * Ротація: використаний токен відкликається, перш ніж видати новий.
+ * Відкликання АТОМАРНЕ (updateMany з умовою revokedAt: null і перевіркою
+ * count): раніше було findUnique -> update, і два паралельні запити з
+ * одним токеном обидва проходили перевірку та отримували по валідній
+ * парі. Тепер переможе рівно один.
+ *
+ * Reuse detection: якщо приходить токен, який ВЖЕ відкликано (і це не
+ * гонка в межах REFRESH_REUSE_GRACE_MS), значить його або вкрали, або
+ * клієнт зберіг старий - у будь-якому разі відкликаємо ВСІ активні
+ * токени користувача, і сесію доведеться відкрити заново логіном.
  */
 export const refreshAccessToken = async (refreshToken: string | undefined) => {
   if (!refreshToken) {
@@ -109,14 +124,33 @@ export const refreshAccessToken = async (refreshToken: string | undefined) => {
   const tokenHash = hashRefreshToken(refreshToken);
   const stored = await prisma.refreshToken.findUnique({ where: { tokenHash } });
 
-  if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
+  if (!stored) {
     throw new AppError(ErrorCode.AUTH_REFRESH_TOKEN_INVALID, 401);
   }
 
-  await prisma.refreshToken.update({
-    where: { id: stored.id },
+  if (stored.revokedAt) {
+    if (Date.now() - stored.revokedAt.getTime() > REFRESH_REUSE_GRACE_MS) {
+      await prisma.refreshToken.updateMany({
+        where: { userId: stored.userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+    }
+
+    throw new AppError(ErrorCode.AUTH_REFRESH_TOKEN_INVALID, 401);
+  }
+
+  if (stored.expiresAt < new Date()) {
+    throw new AppError(ErrorCode.AUTH_REFRESH_TOKEN_INVALID, 401);
+  }
+
+  const { count } = await prisma.refreshToken.updateMany({
+    where: { id: stored.id, revokedAt: null },
     data: { revokedAt: new Date() },
   });
+
+  if (count !== 1) {
+    throw new AppError(ErrorCode.AUTH_REFRESH_TOKEN_INVALID, 401);
+  }
 
   return issueTokenPair(stored.userId);
 };
@@ -138,4 +172,24 @@ export const revokeRefreshToken = async (refreshToken: string | undefined) => {
     where: { tokenHash, revokedAt: null },
     data: { revokedAt: new Date() },
   });
+};
+
+const REFRESH_TOKEN_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Видаляє токени, що прострочені або відкликані понад тиждень тому
+ * (тиждень лишається для розслідувань/reuse detection). Без цього таблиця
+ * RefreshToken росте безкінечно - по рядку на кожен login і кожне
+ * оновлення access-токена. Викликається періодично з worker.ts.
+ */
+export const cleanupRefreshTokens = async (now = new Date()) => {
+  const threshold = new Date(now.getTime() - REFRESH_TOKEN_RETENTION_MS);
+
+  const { count } = await prisma.refreshToken.deleteMany({
+    where: {
+      OR: [{ expiresAt: { lt: threshold } }, { revokedAt: { lt: threshold } }],
+    },
+  });
+
+  return count;
 };
