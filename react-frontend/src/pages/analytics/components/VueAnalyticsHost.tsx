@@ -51,7 +51,12 @@ export default function VueAnalyticsHost({ formId }: VueAnalyticsHostProps) {
       if (cancelled || !containerRef.current) return;
 
       const app = createApp(mod.default, vueProps.current);
-      app.use(i18nMod.createAnalyticsI18n(vueProps.current.locale));
+      // Федерація може віддати модуль як { createAnalyticsI18n } або обгорнутим
+      // у { default: { createAnalyticsI18n } } (див. vue-analytics/src/i18n).
+      const { createAnalyticsI18n } = (
+        "createAnalyticsI18n" in i18nMod ? i18nMod : (i18nMod as { default: typeof i18nMod }).default
+      ) as typeof i18nMod;
+      app.use(createAnalyticsI18n(vueProps.current.locale));
       app.mount(containerRef.current);
       appRef.current = app;
     })().catch((err) => {

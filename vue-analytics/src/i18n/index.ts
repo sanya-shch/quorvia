@@ -25,3 +25,9 @@ export const createAnalyticsI18n = (initialLocale?: string) =>
     fallbackLocale: DEFAULT_LOCALE,
     messages: { en, uk },
   });
+
+// Default-експорт потрібен для Module Federation: @originjs/vite-plugin-federation
+// обгортає remote-модуль БЕЗ default-експорту в { default: модуль }, і хост
+// не бачить іменований createAnalyticsI18n на самому namespace. З default-
+// експортом модуль віддається як є (і іменований, і default доступні).
+export default { createAnalyticsI18n };
