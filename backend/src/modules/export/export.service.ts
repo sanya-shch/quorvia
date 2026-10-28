@@ -7,6 +7,16 @@ import { exportQueue } from "./export.queue.js";
 import { ExportJobDto, ExportQueueJobData } from "./export.types.js";
 import { ExportFormat } from "@prisma/client";
 
+/**
+ * Скільки експортів одного користувача може одночасно стояти в черзі/
+ * виконуватись. Разом із rate limit на ендпоінті не дає одному акаунту
+ * забити чергу BullMQ і воркер важкими PDF/Excel. Завдання старші за
+ * ACTIVE_JOB_WINDOW_MS не рахуються - інакше "зависле" PENDING (наприклад,
+ * воркер був вимкнений) блокувало б користувача назавжди.
+ */
+export const MAX_ACTIVE_EXPORTS_PER_USER = 3;
+const ACTIVE_JOB_WINDOW_MS = 15 * 60 * 1000;
+
 export const EXPORTS_DIR = path.join(process.cwd(), "uploads", "exports");
 
 const toDto = (job: {
@@ -51,6 +61,18 @@ export const createExportJob = async (
   format: ExportFormat,
 ): Promise<ExportJobDto> => {
   await assertFormOwnership(formId, userId);
+
+  const activeJobs = await prisma.exportJob.count({
+    where: {
+      userId,
+      status: { in: ["PENDING", "PROCESSING"] },
+      createdAt: { gt: new Date(Date.now() - ACTIVE_JOB_WINDOW_MS) },
+    },
+  });
+
+  if (activeJobs >= MAX_ACTIVE_EXPORTS_PER_USER) {
+    throw new AppError(ErrorCode.RATE_LIMITED, 429);
+  }
 
   const job = await prisma.exportJob.create({
     data: {

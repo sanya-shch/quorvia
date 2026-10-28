@@ -25,10 +25,11 @@ vi.mock("../../shared/queue/redisConnection.js", () => ({
   redisConnection: {},
 }));
 
+const { UnrecoverableError } = await import("bullmq");
 const { prisma } = await import("../../prisma/prisma.js");
 const { exportersByFormat } = await import("./exporters/index.js");
 const fs = await import("node:fs/promises");
-const { processExportJob } = await import("./export.worker.js");
+const { MAX_EXPORT_RESPONSES, processExportJob } = await import("./export.worker.js");
 
 const EXPORT_JOB_ID = "export-job-1";
 
@@ -122,7 +123,7 @@ describe("processExportJob", () => {
     expect(exportersByFormat.CSV).not.toHaveBeenCalled();
   });
 
-  it("error path: виставляє FAILED з текстом помилки і прокидає помилку далі (для retry BullMQ)", async () => {
+  it("error path: виставляє FAILED зі стабільним кодом (без сирого тексту помилки) і прокидає помилку далі (для retry BullMQ)", async () => {
     (prisma.exportJob.findUnique as any).mockResolvedValue(pendingExportJob);
     (prisma.form.findUniqueOrThrow as any).mockRejectedValue(new Error("Form not found in DB"));
 
@@ -131,18 +132,36 @@ describe("processExportJob", () => {
     const finalUpdate = (prisma.exportJob.update as any).mock.calls.at(-1)[0];
     expect(finalUpdate.data).toEqual({
       status: "FAILED",
-      error: "Form not found in DB",
+      error: "EXPORT_FAILED",
     });
     expect(fs.writeFile).not.toHaveBeenCalled();
   });
 
-  it("error path: невідома (не-Error) помилка все одно записує читабельний error і ретрайиться", async () => {
+  it("error path: невідома (не-Error) помилка все одно записує код помилки і ретрайиться", async () => {
     (prisma.exportJob.findUnique as any).mockResolvedValue(pendingExportJob);
     (prisma.form.findUniqueOrThrow as any).mockRejectedValue("boom");
 
     await expect(processExportJob(makeJob())).rejects.toBe("boom");
 
     const finalUpdate = (prisma.exportJob.update as any).mock.calls.at(-1)[0];
-    expect(finalUpdate.data.error).toBe("Unknown export error");
+    expect(finalUpdate.data.error).toBe("EXPORT_FAILED");
+  });
+
+  it("забагато відповідей: FAILED з кодом EXPORT_TOO_LARGE, експортер не викликається, ретрай не потрібен", async () => {
+    (prisma.exportJob.findUnique as any).mockResolvedValue(pendingExportJob);
+    (prisma.form.findUniqueOrThrow as any).mockResolvedValue({
+      id: "form-1",
+      title: "Форма",
+      description: null,
+      questions: [],
+      responses: Array.from({ length: MAX_EXPORT_RESPONSES + 1 }, (_, i) => ({ id: `r${i}` })),
+    });
+
+    await expect(processExportJob(makeJob())).rejects.toBeInstanceOf(UnrecoverableError);
+
+    const finalUpdate = (prisma.exportJob.update as any).mock.calls.at(-1)[0];
+    expect(finalUpdate.data).toEqual({ status: "FAILED", error: "EXPORT_TOO_LARGE" });
+    expect(exportersByFormat.CSV).not.toHaveBeenCalled();
+    expect(fs.writeFile).not.toHaveBeenCalled();
   });
 });

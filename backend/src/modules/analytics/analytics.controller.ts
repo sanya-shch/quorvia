@@ -1,3 +1,4 @@
+import { parsePagination } from "../../shared/utils/pagination.js";
 import { Request, Response, NextFunction } from "express";
 import {
   getFormAnalytics,
@@ -67,8 +68,7 @@ export const getResponsesHandler = asyncHandler(
     const { formId } = req.params;
     const userId = (res.locals as AuthLocals).userId;
 
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
+    const { page, limit } = parsePagination(req.query);
 
     const data = await getResponses(formId, userId, page, limit);
 

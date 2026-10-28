@@ -9,6 +9,23 @@ import {
 import { AppError } from "../../shared/middleware/errorHandler.js";
 import { ErrorCode } from "@surveycraft/shared-types";
 
+/**
+ * Cost-фактор bcrypt: 12 раундів (~250 мс на сучасному CPU) - сучасний
+ * мінімум; 10 було дефолтом із туторіалів 2010-х. Старі хеші (cost 10)
+ * лишаються валідними - bcrypt зберігає cost усередині самого хеша.
+ */
+export const BCRYPT_COST = 12;
+
+/**
+ * Хеш-пустушка для вирівнювання часу відповіді: якщо користувача з таким
+ * email немає, ми все одно виконуємо bcrypt.compare, інакше відповідь на
+ * неіснуючий email помітно швидша за відповідь на невірний пароль, і за
+ * часом можна визначати, які email зареєстровані. Рахується один раз,
+ * ліниво (щоб не гальмувати імпорт модуля і тести).
+ */
+let dummyHashPromise: Promise<string> | undefined;
+const getDummyHash = () => (dummyHashPromise ??= bcrypt.hash("dummy-password-for-timing", BCRYPT_COST));
+
 type TokenPair = {
   accessToken: string;
   refreshToken: string;
@@ -41,7 +58,7 @@ const issueTokenPair = async (userId: string): Promise<TokenPair> => {
 };
 
 export const registerUser = async (email: string, password: string) => {
-  const hashed = await bcrypt.hash(password, 10);
+  const hashed = await bcrypt.hash(password, BCRYPT_COST);
 
   let user;
   try {
@@ -75,6 +92,7 @@ export const loginHandler = async (email: string, password: string) => {
   });
 
   if (!user) {
+    await bcrypt.compare(password, await getDummyHash());
     throw new AppError(ErrorCode.AUTH_INVALID_CREDENTIALS, 401);
   }
 

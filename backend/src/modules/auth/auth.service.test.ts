@@ -6,7 +6,7 @@ const bcrypt = (await import("bcrypt")).default;
 const { ErrorCode } = await import("@surveycraft/shared-types");
 const { generateAccessToken, generateRefreshToken, hashRefreshToken } =
   await import("../../shared/utils/jwt.js");
-const { cleanupRefreshTokens, loginHandler, refreshAccessToken, registerUser, revokeRefreshToken } =
+const { BCRYPT_COST, cleanupRefreshTokens, loginHandler, refreshAccessToken, registerUser, revokeRefreshToken } =
   await import("./auth.service.js");
 
 vi.mock("../../prisma/prisma.js", () => ({
@@ -71,7 +71,7 @@ describe("registerUser", () => {
 
     const result = await registerUser("a@b.com", "plain-password");
 
-    expect(bcrypt.hash).toHaveBeenCalledWith("plain-password", 10);
+    expect(bcrypt.hash).toHaveBeenCalledWith("plain-password", BCRYPT_COST);
     expect(prisma.user.create).toHaveBeenCalledWith({
       data: { email: "a@b.com", password: "hashed-pw" },
     });
@@ -128,7 +128,10 @@ describe("loginHandler", () => {
       statusCode: 401,
       message: ErrorCode.AUTH_INVALID_CREDENTIALS,
     });
-    expect(bcrypt.compare).not.toHaveBeenCalled();
+    // Виконується фіктивний compare - вирівнює час відповіді з випадком
+    // "email є, пароль невірний" (захист від user enumeration за таймінгом).
+    expect(bcrypt.compare).toHaveBeenCalledTimes(1);
+    expect((bcrypt.compare as any).mock.calls[0][0]).toBe("pw");
   });
 
   it("кидає 401, якщо пароль не збігається (не витікає, чи існує email)", async () => {

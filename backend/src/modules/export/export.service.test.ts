@@ -8,6 +8,7 @@ vi.mock("../../prisma/prisma.js", () => ({
       create: vi.fn(),
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      count: vi.fn(),
     },
   },
 }));
@@ -24,7 +25,13 @@ vi.mock("node:fs/promises", () => {
 const { prisma } = await import("../../prisma/prisma.js");
 const { exportQueue } = await import("./export.queue.js");
 const fs = await import("node:fs/promises");
-const { createExportJob, listExportJobs, getExportJob, getExportFileForDownload } =
+const {
+  MAX_ACTIVE_EXPORTS_PER_USER,
+  createExportJob,
+  listExportJobs,
+  getExportJob,
+  getExportFileForDownload,
+} =
   await import("./export.service.js");
 
 const OWNER_ID = "user-owner";
@@ -61,8 +68,37 @@ describe("createExportJob", () => {
     expect(prisma.exportJob.create).not.toHaveBeenCalled();
   });
 
+  it("відхиляє новий експорт (429), якщо в користувача вже забагато активних", async () => {
+    (prisma.form.findUnique as any).mockResolvedValue(mockForm());
+    (prisma.exportJob.count as any).mockResolvedValue(MAX_ACTIVE_EXPORTS_PER_USER);
+
+    await expect(createExportJob(FORM_ID, OWNER_ID, "CSV")).rejects.toMatchObject({
+      statusCode: 429,
+      message: "RATE_LIMITED",
+    });
+    expect(prisma.exportJob.create).not.toHaveBeenCalled();
+    expect(exportQueue.add).not.toHaveBeenCalled();
+  });
+
+  it("рахує лише активні (PENDING/PROCESSING) і недавні завдання цього користувача", async () => {
+    (prisma.form.findUnique as any).mockResolvedValue(mockForm());
+    (prisma.exportJob.create as any).mockResolvedValue({ id: "job-1" });
+    (prisma.exportJob.count as any).mockResolvedValue(0);
+
+    await createExportJob(FORM_ID, OWNER_ID, "CSV");
+
+    expect(prisma.exportJob.count).toHaveBeenCalledWith({
+      where: {
+        userId: OWNER_ID,
+        status: { in: ["PENDING", "PROCESSING"] },
+        createdAt: { gt: expect.any(Date) },
+      },
+    });
+  });
+
   it("створює ExportJob і ставить завдання в чергу з jobId = id job-у (ідемпотентність)", async () => {
     (prisma.form.findUnique as any).mockResolvedValue(mockForm());
+    (prisma.exportJob.count as any).mockResolvedValue(0);
     const createdJob = {
       id: "job-1",
       formId: FORM_ID,

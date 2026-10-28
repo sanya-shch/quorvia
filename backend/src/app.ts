@@ -11,9 +11,13 @@ import analyticsRoutes from "./modules/analytics/analytics.routes.js";
 import exportRoutes from "./modules/export/export.routes.js";
 
 import { errorHandler } from "./shared/middleware/errorHandler.js";
+import { parseTrustProxy } from "./config/env.js";
 import { apiLimiter } from "./shared/middleware/rateLimiters.js";
 
 const app = express();
+
+// Див. TRUST_PROXY у config/env.ts: потрібно для коректного req.ip за проксі.
+app.set("trust proxy", parseTrustProxy(process.env.TRUST_PROXY));
 
 app.use(helmet());
 

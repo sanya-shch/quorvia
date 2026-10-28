@@ -18,6 +18,22 @@ const menuRef = ref<HTMLElement | null>(null);
 const createError = ref(false);
 
 const FORMAT_LABELS: Record<ExportFormat, string> = { CSV: "CSV", EXCEL: "Excel", PDF: "PDF" };
+/**
+ * Бекенд віддає в job.error лише стабільний код (EXPORT_FAILED,
+ * EXPORT_TOO_LARGE), а не сирий текст помилки - тут він перекладається.
+ * Невідомий/старий текст у БД показувати користувачу не можна, тому для
+ * нього лишається загальний підпис статусу.
+ */
+const KNOWN_EXPORT_ERRORS = ["EXPORT_FAILED", "EXPORT_TOO_LARGE"];
+
+const historyStatusLabel = (job: ExportJobDto): string => {
+  if (job.status === "FAILED" && job.error && KNOWN_EXPORT_ERRORS.includes(job.error)) {
+    return t(`analytics.export.errors.${job.error}`);
+  }
+
+  return statusMeta.value[job.status].label;
+};
+
 const statusMeta = computed<Record<ExportJobDto["status"], { label: string; className: string }>>(() => ({
   PENDING: { label: t("analytics.export.status.pending"), className: "status-pending" },
   PROCESSING: { label: t("analytics.export.status.processing"), className: "status-processing" },
@@ -111,7 +127,7 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
             <div class="history-text">
               <p class="history-format">{{ FORMAT_LABELS[job.format] }}</p>
               <p class="history-status" :class="statusMeta[job.status].className">
-                {{ job.status === "FAILED" && job.error ? job.error : statusMeta[job.status].label }}
+                {{ historyStatusLabel(job) }}
               </p>
             </div>
           </div>

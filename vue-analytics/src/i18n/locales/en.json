@@ -87,6 +87,10 @@
         "processing": "Generating...",
         "completed": "Ready",
         "failed": "Failed"
+      },
+      "errors": {
+        "EXPORT_FAILED": "Export failed. Please try again",
+        "EXPORT_TOO_LARGE": "Too many responses to export"
       }
     }
   }

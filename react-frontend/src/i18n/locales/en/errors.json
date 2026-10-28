@@ -30,6 +30,7 @@
   "VALIDATION_PASSWORD_NO_LOWERCASE": "Password must contain at least one lowercase letter",
   "VALIDATION_PASSWORD_NO_UPPERCASE": "Password must contain at least one uppercase letter",
   "VALIDATION_PASSWORD_NO_DIGIT": "Password must contain at least one digit",
+  "VALIDATION_PASSWORD_TOO_LONG": "Password must be at most 72 bytes long",
   "VALIDATION_CONFIRM_PASSWORD_REQUIRED": "Please confirm your password",
   "VALIDATION_PASSWORDS_DO_NOT_MATCH": "Passwords don't match",
 

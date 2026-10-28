@@ -12,12 +12,17 @@ import {
 } from './form.controller.js';
 import { authMiddleware } from '../../shared/middleware/auth.js';
 import { validate } from '../../shared/middleware/validate.js';
-import { updateFormSchema } from './form.schema.js';
+import { createFormSchema, updateFormSchema } from './form.schema.js';
 import { asyncHandler } from '../../shared/utils/asyncHandler.js';
 
 const router = Router();
 
-router.post('/', authMiddleware, createFormHandler);
+router.post(
+  '/',
+  authMiddleware,
+  validate(createFormSchema),
+  asyncHandler(createFormHandler)
+);
 router.get('/', authMiddleware, asyncHandler(getUserFormsHandler));
 router.delete('/:formId', authMiddleware, asyncHandler(deleteFormHandler));
 router.get('/:formId/admin', authMiddleware, asyncHandler(getUserFormHandler));

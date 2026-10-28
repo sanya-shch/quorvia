@@ -3,6 +3,7 @@ import { authMiddleware } from "../../shared/middleware/auth.js";
 import { validate } from "../../shared/middleware/validate.js";
 import { asyncHandler } from "../../shared/utils/asyncHandler.js";
 import { createExportSchema } from "./export.schema.js";
+import { exportLimiter } from "../../shared/middleware/rateLimiters.js";
 import {
   createExportHandler,
   downloadExportHandler,
@@ -15,6 +16,7 @@ const router = Router();
 router.post(
   "/:formId/export",
   authMiddleware,
+  exportLimiter,
   validate(createExportSchema),
   asyncHandler(createExportHandler),
 );

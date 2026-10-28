@@ -85,3 +85,28 @@ describe("generateRefreshToken / hashRefreshToken", () => {
     expect(hashRefreshToken("abc")).not.toBe(hashRefreshToken("abd"));
   });
 });
+
+describe("фіксований алгоритм підпису (HS256)", () => {
+  it("токен підписується HS256", async () => {
+    const { generateAccessToken } = await import("./jwt.js");
+    const token = generateAccessToken({ userId: "user-1" });
+    const header = JSON.parse(Buffer.from(token.split(".")[0], "base64url").toString());
+
+    expect(header.alg).toBe("HS256");
+  });
+
+  it("verifyAccessToken відхиляє токен з іншим алгоритмом (HS512) навіть із правильним секретом", async () => {
+    const { verifyAccessToken } = await import("./jwt.js");
+    const forged = jwt.sign({ userId: "user-1" }, TEST_SECRET, { algorithm: "HS512" });
+
+    expect(() => verifyAccessToken(forged)).toThrow();
+  });
+
+  it('verifyAccessToken відхиляє непідписаний токен (alg: "none")', async () => {
+    const { verifyAccessToken } = await import("./jwt.js");
+    const encode = (o: object) => Buffer.from(JSON.stringify(o)).toString("base64url");
+    const unsigned = `${encode({ alg: "none", typ: "JWT" })}.${encode({ userId: "user-1" })}.`;
+
+    expect(() => verifyAccessToken(unsigned)).toThrow();
+  });
+});

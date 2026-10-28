@@ -29,7 +29,11 @@ const registerPasswordSchema = z
   .min(8, ErrorCode.VALIDATION_PASSWORD_TOO_SHORT)
   .regex(/[a-z]/, ErrorCode.VALIDATION_PASSWORD_NO_LOWERCASE)
   .regex(/[A-Z]/, ErrorCode.VALIDATION_PASSWORD_NO_UPPERCASE)
-  .regex(/[0-9]/, ErrorCode.VALIDATION_PASSWORD_NO_DIGIT);
+  .regex(/[0-9]/, ErrorCode.VALIDATION_PASSWORD_NO_DIGIT)
+  // bcrypt враховує лише перші 72 БАЙТИ (не символи) - див. бекенд.
+  .refine((value) => new TextEncoder().encode(value).length <= 72, {
+    message: ErrorCode.VALIDATION_PASSWORD_TOO_LONG,
+  });
 
 export const registerSchema = z
   .object({

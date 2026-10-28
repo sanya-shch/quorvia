@@ -30,6 +30,7 @@
   "VALIDATION_PASSWORD_NO_LOWERCASE": "Пароль має містити хоча б одну малу літеру",
   "VALIDATION_PASSWORD_NO_UPPERCASE": "Пароль має містити хоча б одну велику літеру",
   "VALIDATION_PASSWORD_NO_DIGIT": "Пароль має містити хоча б одну цифру",
+  "VALIDATION_PASSWORD_TOO_LONG": "Пароль має бути не довшим за 72 байти",
   "VALIDATION_CONFIRM_PASSWORD_REQUIRED": "Підтвердження пароля є обов'язковим",
   "VALIDATION_PASSWORDS_DO_NOT_MATCH": "Паролі не співпадають",
 

@@ -4,6 +4,11 @@ import { getJwtSecret } from "../../config/env.js";
 
 export type AccessTokenPayload = { userId: string };
 
+// Алгоритм зафіксовано явно і при підписі, і при перевірці: verify без
+// `algorithms` приймає те, що вказано в заголовку токена, - класична
+// причина атак підміною алгоритму.
+const JWT_ALGORITHM = "HS256";
+
 const ACCESS_TOKEN_TTL = "15m";
 export const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
 
@@ -18,14 +23,14 @@ const REFRESH_TOKEN_TTL_MS = REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000;
  * недоступний з JS.
  */
 export const generateAccessToken = (payload: AccessTokenPayload): string =>
-  jwt.sign(payload, getJwtSecret(), { expiresIn: ACCESS_TOKEN_TTL });
+  jwt.sign(payload, getJwtSecret(), { expiresIn: ACCESS_TOKEN_TTL, algorithm: JWT_ALGORITHM });
 
 // Збережено для зворотної сумісності з наявними викликами/тестами -
 // generateToken і generateAccessToken - одна й та сама функція.
 export const generateToken = generateAccessToken;
 
 export const verifyAccessToken = (token: string): AccessTokenPayload =>
-  jwt.verify(token, getJwtSecret()) as AccessTokenPayload;
+  jwt.verify(token, getJwtSecret(), { algorithms: [JWT_ALGORITHM] }) as AccessTokenPayload;
 
 /**
  * Refresh-токен НЕ є jwt - це непрозорий випадковий рядок. У БД
