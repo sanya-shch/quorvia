@@ -127,6 +127,22 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
     !q.id || !existingIds.has(q.id) ? { ...q, id: q.id ?? crypto.randomUUID() } : q,
   );
 
+  // Клієнт може передати власний id для НОВОГО питання (щоб умови інших
+  // питань могли на нього посилатись). Якщо такий id уже існує в БД (в
+  // іншій формі), запис упав би з unique-помилкою (500) і заодно
+  // підтвердив би існування чужого id - віддаємо контрольований 409.
+  const clientNewIds = incomingQuestions
+    .filter((q: any) => q.id && !existingIds.has(q.id))
+    .map((q: any) => q.id as string);
+
+  if (clientNewIds.length > 0) {
+    const taken = await prisma.question.count({ where: { id: { in: clientNewIds } } });
+
+    if (taken > 0) {
+      throw new AppError(ErrorCode.FORM_QUESTION_ID_CONFLICT, 409);
+    }
+  }
+
   const graphValidation = validateConditionGraph(
     withResolvedIds.map((q: any) => ({ id: q.id, order: q.order, condition: q.condition })),
   );

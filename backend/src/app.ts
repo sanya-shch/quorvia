@@ -23,11 +23,11 @@ app.use(helmet());
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
+    // CORS_ORIGIN може містити кілька origin через кому.
+    origin: (process.env.CORS_ORIGIN ?? "http://localhost:5173").split(",").map((o) => o.trim()),
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    exposedHeaders: ["Authorization"],
     optionsSuccessStatus: 200,
   }),
 );

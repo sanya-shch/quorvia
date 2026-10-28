@@ -25,6 +25,19 @@ export const errorHandler = (err: unknown, req: Request, res: Response, next: Ne
     });
   }
 
+  // Помилки body-parser (битий JSON, надто велике тіло) - це помилка
+  // КЛІЄНТА (400/413), а не збій сервера: не логуємо їх як 500 і не
+  // віддаємо загальний INTERNAL_SERVER_ERROR.
+  const bodyError = err as { type?: string };
+
+  if (bodyError?.type === "entity.parse.failed") {
+    return res.status(400).json({ message: ErrorCode.REQUEST_BODY_INVALID });
+  }
+
+  if (bodyError?.type === "entity.too.large") {
+    return res.status(413).json({ message: ErrorCode.REQUEST_TOO_LARGE });
+  }
+
   console.error(err);
 
   return res.status(500).json({

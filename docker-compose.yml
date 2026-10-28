@@ -9,7 +9,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-surveycraft}
       POSTGRES_DB: ${POSTGRES_DB:-surveycraft}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      # Лише loopback: без 127.0.0.1 Docker публікує порт на ВСІХ інтерфейсах
+      # (разом із дефолтним паролем це відкрита БД у спільній Wi-Fi мережі).
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -23,7 +25,7 @@ services:
     restart: unless-stopped
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s

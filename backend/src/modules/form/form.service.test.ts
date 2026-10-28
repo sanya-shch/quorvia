@@ -10,6 +10,7 @@ vi.mock("../../prisma/prisma.js", () => ({
       delete: vi.fn(),
       update: vi.fn(),
     },
+    question: { count: vi.fn() },
     $transaction: vi.fn(),
   },
 }));
@@ -40,6 +41,7 @@ const mockForm = (overrides: Record<string, unknown> = {}) => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  (prisma.question.count as any).mockResolvedValue(0);
 });
 
 describe("createForm", () => {
@@ -384,6 +386,33 @@ describe("updateForm", () => {
       updateForm(FORM_ID, OTHER_USER_ID, { title: "X", questions: [] }),
     ).rejects.toMatchObject({ statusCode: 403 });
     expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it("кидає 409, якщо клієнтський id нового питання вже зайнятий (напр. в іншій формі)", async () => {
+    (prisma.form.findUnique as any).mockResolvedValue(mockForm({ questions: existingQuestions }));
+    (prisma.question.count as any).mockResolvedValue(1);
+
+    await expect(
+      updateForm(FORM_ID, OWNER_ID, {
+        title: "Форма",
+        questions: [{ id: "foreign-id", text: "Нове", type: "TEXT", order: 0 }],
+      } as any),
+    ).rejects.toMatchObject({ statusCode: 409, message: ErrorCode.FORM_QUESTION_ID_CONFLICT });
+
+    expect(prisma.question.count).toHaveBeenCalledWith({ where: { id: { in: ["foreign-id"] } } });
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it("не звертається до БД за колізіями, якщо нових клієнтських id немає", async () => {
+    (prisma.form.findUnique as any).mockResolvedValue(mockForm({ questions: existingQuestions }));
+    setupTransactionMocks();
+
+    await updateForm(FORM_ID, OWNER_ID, {
+      title: "Форма",
+      questions: [{ id: "q-keep", text: "Лишається", type: "TEXT", order: 0 }],
+    } as any);
+
+    expect(prisma.question.count).not.toHaveBeenCalled();
   });
 
   it("видаляє питання, відсутні у вхідному наборі", async () => {

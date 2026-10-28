@@ -11,6 +11,7 @@
   "FORM_FORBIDDEN": "У вас немає доступу до цієї форми",
   "FORM_NOT_AVAILABLE": "Ця форма недоступна",
   "FORM_NOT_PUBLISHED": "Ця форма ще не опублікована",
+  "FORM_QUESTION_ID_CONFLICT": "Ідентифікатор питання конфліктує з іншою формою. Перезавантажте сторінку й спробуйте ще раз",
   "FORM_INVALID_CONDITIONS": "Некоректні умови показу питань",
 
   "EXPORT_JOB_NOT_FOUND": "Завдання експорту не знайдено",
@@ -39,6 +40,8 @@
   "VALIDATION_DATE_INVALID": "Некоректна дата",
   "VALIDATION_MUST_BE_ACCEPTED": "Це поле потрібно підтвердити",
 
+  "REQUEST_BODY_INVALID": "Не вдалося прочитати запит",
+  "REQUEST_TOO_LARGE": "Запит занадто великий",
   "RATE_LIMITED": "Забагато спроб. Спробуйте пізніше",
   "INTERNAL_SERVER_ERROR": "Щось пішло не так. Спробуйте ще раз",
   "UNKNOWN": "Сталася невідома помилка"

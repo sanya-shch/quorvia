@@ -85,3 +85,33 @@ describe("errorHandler", () => {
     consoleSpy.mockRestore();
   });
 });
+
+describe("errorHandler: помилки body-parser", () => {
+  const makeRes = () => {
+    const res: any = {};
+    res.status = vi.fn().mockReturnValue(res);
+    res.json = vi.fn().mockReturnValue(res);
+    return res;
+  };
+
+  it("битий JSON -> 400 REQUEST_BODY_INVALID без логування як 500", () => {
+    const res = makeRes();
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    errorHandler({ type: "entity.parse.failed" }, {} as any, res, vi.fn());
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: "REQUEST_BODY_INVALID" });
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it("надто велике тіло -> 413 REQUEST_TOO_LARGE", () => {
+    const res = makeRes();
+
+    errorHandler({ type: "entity.too.large" }, {} as any, res, vi.fn());
+
+    expect(res.status).toHaveBeenCalledWith(413);
+    expect(res.json).toHaveBeenCalledWith({ message: "REQUEST_TOO_LARGE" });
+  });
+});
