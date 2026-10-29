@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { AUTH_EXPIRED_EVENT } from "@surveycraft/shared-types";
+import { AUTH_EXPIRED_EVENT } from "@quorvia/shared-types";
 import { useAuthStore } from "./useAuthStore";
 
 /**

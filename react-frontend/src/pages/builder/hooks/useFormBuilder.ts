@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { type FormState, type Question, type QuestionType } from "../../../types/formBuilder";
-import { validateConditionGraph } from "@surveycraft/condition-engine";
-import { ErrorCode } from "@surveycraft/shared-types";
+import { validateConditionGraph } from "@quorvia/condition-engine";
+import { ErrorCode } from "@quorvia/shared-types";
 
 const INITIAL_STATE: FormState = {
   title: "",

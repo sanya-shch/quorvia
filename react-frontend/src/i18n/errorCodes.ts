@@ -43,7 +43,7 @@ export const getFieldErrorMessage = (t: TFunction, fieldError: FieldError): stri
 
 /**
  * Для FORM_INVALID_CONDITIONS: errors - масив
- * { questionId, reason, detail } з @surveycraft/condition-engine.
+ * { questionId, reason, detail } з @quorvia/condition-engine.
  * `reason` - стабільний код (SELF_REFERENCE / UNKNOWN_QUESTION / CYCLE /
  * FORWARD_REFERENCE), `detail` - лише для логів/дебагу, НЕ для показу.
  */

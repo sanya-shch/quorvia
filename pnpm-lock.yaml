@@ -16,10 +16,10 @@ importers:
       '@prisma/client':
         specifier: ^7.8.0
         version: 7.9.1(prisma@7.9.1(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(magicast@0.5.4)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@6.0.3))(typescript@6.0.3)
-      '@surveycraft/condition-engine':
+      '@quorvia/condition-engine':
         specifier: workspace:*
         version: link:../packages/condition-engine
-      '@surveycraft/shared-types':
+      '@quorvia/shared-types':
         specifier: workspace:*
         version: link:../packages/shared-types
       bcrypt:
@@ -125,7 +125,7 @@ importers:
 
   packages/condition-engine:
     dependencies:
-      '@surveycraft/shared-types':
+      '@quorvia/shared-types':
         specifier: workspace:*
         version: link:../shared-types
     devDependencies:
@@ -143,10 +143,10 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.4.0
         version: 5.8.0(@standard-schema/spec@1.1.0)(ajv@8.20.0)(effect@3.20.0)(react-hook-form@7.85.0(react@19.2.8))(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3)
-      '@surveycraft/condition-engine':
+      '@quorvia/condition-engine':
         specifier: workspace:*
         version: link:../packages/condition-engine
-      '@surveycraft/shared-types':
+      '@quorvia/shared-types':
         specifier: workspace:*
         version: link:../packages/shared-types
       '@tailwindcss/vite':
@@ -258,10 +258,10 @@ importers:
 
   vue-analytics:
     dependencies:
-      '@surveycraft/condition-engine':
+      '@quorvia/condition-engine':
         specifier: workspace:*
         version: link:../packages/condition-engine
-      '@surveycraft/shared-types':
+      '@quorvia/shared-types':
         specifier: workspace:*
         version: link:../packages/shared-types
       vue:

@@ -7,7 +7,7 @@ import {
   hashRefreshToken,
 } from "../../shared/utils/jwt.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
-import { ErrorCode } from "@surveycraft/shared-types";
+import { ErrorCode } from "@quorvia/shared-types";
 
 /**
  * Cost-фактор bcrypt: 12 раундів (~250 мс на сучасному CPU) - сучасний
@@ -24,7 +24,8 @@ export const BCRYPT_COST = 12;
  * ліниво (щоб не гальмувати імпорт модуля і тести).
  */
 let dummyHashPromise: Promise<string> | undefined;
-const getDummyHash = () => (dummyHashPromise ??= bcrypt.hash("dummy-password-for-timing", BCRYPT_COST));
+const getDummyHash = () =>
+  (dummyHashPromise ??= bcrypt.hash("dummy-password-for-timing", BCRYPT_COST));
 
 type TokenPair = {
   accessToken: string;

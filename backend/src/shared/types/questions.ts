@@ -1,16 +1,11 @@
 // import { Question as PrismaQuestion } from '@prisma/client';
 
-import type { ConditionGroup } from '@surveycraft/shared-types';
+import type { ConditionGroup } from "@quorvia/shared-types";
 
 export type QuestionType =
-  | 'TEXT'
-  | 'CHOICE_SINGLE'
-  | 'CHOICE_MULTI'
-  | 'BOOLEAN'
-  | 'DATE'
-  | 'NUMBER';
+  "TEXT" | "CHOICE_SINGLE" | "CHOICE_MULTI" | "BOOLEAN" | "DATE" | "NUMBER";
 
-export type QuestionDisplayVariant = 'list' | 'tabs' | 'dropdown';
+export type QuestionDisplayVariant = "list" | "tabs" | "dropdown";
 
 export interface QuestionOption {
   id: string;
@@ -19,7 +14,7 @@ export interface QuestionOption {
 }
 
 export interface QuestionConfig {
-  variant?: 'input' | 'textarea' | 'email' | 'name';
+  variant?: "input" | "textarea" | "email" | "name";
   minLength?: number;
   maxLength?: number;
   pattern?: string;

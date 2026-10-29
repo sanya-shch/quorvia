@@ -1,5 +1,5 @@
 import { onUnmounted, ref, shallowRef } from "vue";
-import type { ExportFormat, ExportJobDto } from "@surveycraft/shared-types";
+import type { ExportFormat, ExportJobDto } from "@quorvia/shared-types";
 import { apiGet, apiPost, apiDownload, ApiError } from "../api/client";
 
 const ACTIVE_STATUSES = new Set<ExportJobDto["status"]>(["PENDING", "PROCESSING"]);

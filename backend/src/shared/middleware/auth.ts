@@ -1,7 +1,7 @@
 import { AppError } from "./errorHandler.js";
 import { Response, NextFunction, Request } from "express";
 import { verifyAccessToken } from "../utils/jwt.js";
-import { ErrorCode } from "@surveycraft/shared-types";
+import { ErrorCode } from "@quorvia/shared-types";
 
 export type AuthLocals = {
   userId: string;

@@ -5,7 +5,7 @@ import { authMiddleware } from "../../shared/middleware/auth.js";
 import { validate } from "../../shared/middleware/validate.js";
 import { loginSchema, registerSchema } from "./auth.schema.js";
 import { asyncHandler } from "../../shared/utils/asyncHandler.js";
-import { ErrorCode } from "@surveycraft/shared-types";
+import { ErrorCode } from "@quorvia/shared-types";
 import { refreshLimiter } from "../../shared/middleware/rateLimiters.js";
 
 const router = Router();

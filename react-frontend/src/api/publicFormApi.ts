@@ -1,6 +1,6 @@
 import { type Question } from "../types/formBuilder";
 import type { FormAnswers } from "../types/formViewer";
-import type { ResponseMode } from "@surveycraft/shared-types";
+import type { ResponseMode } from "@quorvia/shared-types";
 import { publicApi } from "./axios";
 
 export interface PublicFormFields {

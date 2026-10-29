@@ -1,5 +1,5 @@
 import { ref, shallowRef, watch } from "vue";
-import type { ResponseListDto } from "@surveycraft/shared-types";
+import type { ResponseListDto } from "@quorvia/shared-types";
 import { apiGet, ApiError } from "../api/client";
 
 const PAGE_SIZE = 10;

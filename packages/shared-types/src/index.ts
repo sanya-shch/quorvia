@@ -1,4 +1,4 @@
-export const AUTH_EXPIRED_EVENT = "surveycraft:auth-expired";
+export const AUTH_EXPIRED_EVENT = "quorvia:auth-expired";
 
 /**
  * Стабільні коди помилок API - те, що бекенд кладе у поле `message` JSON-

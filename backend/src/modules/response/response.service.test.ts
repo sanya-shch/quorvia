@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ErrorCode } from "@surveycraft/shared-types";
+import { ErrorCode } from "@quorvia/shared-types";
 
 vi.mock("../../prisma/prisma.js", () => ({
   prisma: {

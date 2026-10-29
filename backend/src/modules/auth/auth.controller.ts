@@ -17,7 +17,7 @@ import {
 } from "./auth.types.js";
 import { AuthLocals } from "../../shared/middleware/auth.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
-import { ErrorCode } from "@surveycraft/shared-types";
+import { ErrorCode } from "@quorvia/shared-types";
 import {
   clearRefreshTokenCookieOptions,
   REFRESH_TOKEN_COOKIE_NAME,

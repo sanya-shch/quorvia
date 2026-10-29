@@ -1,7 +1,7 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "@surveycraft/shared-types";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "@quorvia/shared-types";
 
 import enCommon from "./locales/en/common.json";
 import enErrors from "./locales/en/errors.json";
@@ -21,7 +21,7 @@ import ukBuilder from "./locales/uk/builder.json";
 import ukViewer from "./locales/uk/viewer.json";
 import ukAnalytics from "./locales/uk/analytics.json";
 
-export const I18N_LOCALSTORAGE_KEY = "surveycraft-language";
+export const I18N_LOCALSTORAGE_KEY = "quorvia-language";
 
 /**
  * Кожна фіча-область (auth, dashboard, builder, viewer, analytics) - свій

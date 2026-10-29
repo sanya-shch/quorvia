@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { ErrorCode } from "@surveycraft/shared-types";
+import { ErrorCode } from "@quorvia/shared-types";
 import { AppError, errorHandler } from "./errorHandler.js";
 
 const makeRes = () => {

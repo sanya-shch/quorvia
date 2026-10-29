@@ -1,8 +1,8 @@
 import { prisma } from "../../prisma/prisma.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
-import { ErrorCode } from "@surveycraft/shared-types";
+import { ErrorCode } from "@quorvia/shared-types";
 import { Answers } from "../response/response.types.js";
-import { resolveVisibleQuestionIds, type QuestionLike } from "@surveycraft/condition-engine";
+import { resolveVisibleQuestionIds, type QuestionLike } from "@quorvia/condition-engine";
 import { toJson } from "../../shared/utils/helpers.js";
 
 /**

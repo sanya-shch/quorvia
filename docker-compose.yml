@@ -1,13 +1,13 @@
-name: surveycraft
+name: quorvia
 
 services:
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-surveycraft}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-surveycraft}
-      POSTGRES_DB: ${POSTGRES_DB:-surveycraft}
+      POSTGRES_USER: ${POSTGRES_USER:-quorvia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quorvia}
+      POSTGRES_DB: ${POSTGRES_DB:-quorvia}
     ports:
       # Лише loopback: без 127.0.0.1 Docker публікує порт на ВСІХ інтерфейсах
       # (разом із дефолтним паролем це відкрита БД у спільній Wi-Fi мережі).
@@ -15,7 +15,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-surveycraft} -d ${POSTGRES_DB:-surveycraft}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-quorvia} -d ${POSTGRES_DB:-quorvia}"]
       interval: 5s
       timeout: 5s
       retries: 10

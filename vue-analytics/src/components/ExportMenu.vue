@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import type { ExportFormat, ExportJobDto } from "@surveycraft/shared-types";
+import type { ExportFormat, ExportJobDto } from "@quorvia/shared-types";
 import { useExportJobs } from "../composables/useExportJobs";
 
 const props = defineProps<{

@@ -2,7 +2,7 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { prisma } from "../../prisma/prisma.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
-import { ErrorCode } from "@surveycraft/shared-types";
+import { ErrorCode } from "@quorvia/shared-types";
 import { exportQueue } from "./export.queue.js";
 import { ExportJobDto, ExportQueueJobData } from "./export.types.js";
 import { ExportFormat } from "@prisma/client";

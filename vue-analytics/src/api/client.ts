@@ -1,4 +1,4 @@
-import { AUTH_EXPIRED_EVENT } from "@surveycraft/shared-types";
+import { AUTH_EXPIRED_EVENT } from "@quorvia/shared-types";
 
 /**
  * Міст автентифікації з React-хостом. Access-токен живе лише в пам'яті

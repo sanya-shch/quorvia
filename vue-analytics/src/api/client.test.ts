@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { AUTH_EXPIRED_EVENT } from "@surveycraft/shared-types";
+import { AUTH_EXPIRED_EVENT } from "@quorvia/shared-types";
 import { apiGet, apiPost, apiDownload, ApiError, setAuthBridge } from "./client";
 
 describe("apiGet", () => {
@@ -210,7 +210,11 @@ describe("міст автентифікації: refresh при 401", () => {
     setAuthBridge({ getAccessToken: () => "expired-token", refreshAccessToken: async () => null });
     globalThis.fetch = vi
       .fn()
-      .mockResolvedValue({ ok: false, status: 401, json: async () => ({}) }) as unknown as typeof fetch;
+      .mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: async () => ({}),
+      }) as unknown as typeof fetch;
     const listener = vi.fn();
     window.addEventListener(AUTH_EXPIRED_EVENT, listener);
 

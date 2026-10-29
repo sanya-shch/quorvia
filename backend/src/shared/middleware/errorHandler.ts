@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { ErrorCode } from "@surveycraft/shared-types";
+import { ErrorCode } from "@quorvia/shared-types";
 
 export class AppError<T = unknown> extends Error {
   statusCode: number;

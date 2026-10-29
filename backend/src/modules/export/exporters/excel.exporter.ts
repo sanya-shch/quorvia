@@ -4,7 +4,7 @@ import { AnswerValue, formatAnswer, slugifyFileName } from "./formatAnswer.js";
 
 export const exportToExcel: Exporter = async (data: ExportData): Promise<GeneratedFile> => {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "SurveyCraft";
+  workbook.creator = "Quorvia";
   workbook.created = new Date();
 
   const questions = [...data.questions].sort((a, b) => a.order - b.order);

@@ -13,7 +13,7 @@ const mockedApiGet = vi.mocked(apiGet);
 const mockedApiPost = vi.mocked(apiPost);
 const mockedApiDownload = vi.mocked(apiDownload);
 
-import type { ExportJobDto } from "@surveycraft/shared-types";
+import type { ExportJobDto } from "@quorvia/shared-types";
 
 const job = (overrides: Partial<Pick<ExportJobDto, "id" | "status">> = {}): ExportJobDto => ({
   id: "job-1",

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import type { FormFunnelDto } from "@surveycraft/shared-types";
+import type { FormFunnelDto } from "@quorvia/shared-types";
 
 const props = defineProps<{
   funnel: FormFunnelDto;

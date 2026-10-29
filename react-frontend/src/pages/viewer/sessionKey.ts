@@ -1,4 +1,4 @@
-const STORAGE_PREFIX = "surveycraft:attempt:";
+const STORAGE_PREFIX = "quorvia:attempt:";
 
 /**
  * Один sessionKey на (shareId, вкладка браузера) - sessionStorage

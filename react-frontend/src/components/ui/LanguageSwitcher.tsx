@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { SUPPORTED_LOCALES, type SupportedLocale } from "@surveycraft/shared-types";
+import { SUPPORTED_LOCALES, type SupportedLocale } from "@quorvia/shared-types";
 
 interface LanguageSwitcherProps {
   className?: string;

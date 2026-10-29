@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ErrorCode } from "@surveycraft/shared-types";
+import { ErrorCode } from "@quorvia/shared-types";
 
 /**
  * bcrypt мовчки обрізає пароль до перших 72 БАЙТІВ, тож довший пароль

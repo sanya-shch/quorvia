@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import type { QuestionPathEdge, QuestionPathNode } from "@surveycraft/shared-types";
+import type { QuestionPathEdge, QuestionPathNode } from "@quorvia/shared-types";
 
 const props = defineProps<{
   nodes: QuestionPathNode[];

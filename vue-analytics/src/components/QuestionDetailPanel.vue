@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import type { QuestionAnalyticsDto } from "@surveycraft/shared-types";
+import type { QuestionAnalyticsDto } from "@quorvia/shared-types";
 
 defineProps<{
   data: QuestionAnalyticsDto | null;

@@ -13,8 +13,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@surveycraft/condition-engine": "workspace:*",
-    "@surveycraft/shared-types": "workspace:*",
+    "@quorvia/condition-engine": "workspace:*",
+    "@quorvia/shared-types": "workspace:*",
     "@hello-pangea/dnd": "^18.0.1",
     "@hookform/resolvers": "^5.4.0",
     "@tailwindcss/vite": "^4.3.0",

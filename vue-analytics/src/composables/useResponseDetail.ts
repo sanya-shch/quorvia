@@ -1,5 +1,5 @@
 import { ref, shallowRef } from "vue";
-import type { ResponseDetailsDto } from "@surveycraft/shared-types";
+import type { ResponseDetailsDto } from "@quorvia/shared-types";
 import { apiGet, ApiError } from "../api/client";
 
 export const getResponseDetailErrorMessage = (e: unknown): string =>

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { type Question } from "../../types/formBuilder";
 import { type FormAnswers } from "../../types/formViewer";
 import { ErrorInfo } from "../../components/ui/ErrorInfo";
-import { resolveVisibleQuestionIds, type QuestionLike } from "@surveycraft/condition-engine";
+import { resolveVisibleQuestionIds, type QuestionLike } from "@quorvia/condition-engine";
 import QuestionField from "./components/QuestionField";
 import {
   getDefaultAnswer,

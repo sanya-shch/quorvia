@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import type { ResponseListDto } from "@surveycraft/shared-types";
+import type { ResponseListDto } from "@quorvia/shared-types";
 
 defineProps<{
   data: ResponseListDto | null;

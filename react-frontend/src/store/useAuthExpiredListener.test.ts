@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { act } from "react";
-import { AUTH_EXPIRED_EVENT } from "@surveycraft/shared-types";
+import { AUTH_EXPIRED_EVENT } from "@quorvia/shared-types";
 import { useAuthExpiredListener } from "./useAuthExpiredListener";
 import { useAuthStore } from "./useAuthStore";
 
@@ -16,7 +16,12 @@ describe("useAuthExpiredListener", () => {
   });
 
   afterEach(() => {
-    useAuthStore.setState({ user: null, token: null, isAuthenticated: false, isInitialized: false });
+    useAuthStore.setState({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isInitialized: false,
+    });
   });
 
   it("при AUTH_EXPIRED_EVENT викликає clearAuth() - скидає isAuthenticated і token у Zustand", () => {

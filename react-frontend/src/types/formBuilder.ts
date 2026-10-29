@@ -1,11 +1,11 @@
-import type { ConditionGroup, ResponseMode } from "@surveycraft/shared-types";
+import type { ConditionGroup, ResponseMode } from "@quorvia/shared-types";
 
 export type {
   ConditionGroup,
   ConditionOperator,
   ConditionRule,
   ResponseMode,
-} from "@surveycraft/shared-types";
+} from "@quorvia/shared-types";
 
 export type QuestionType =
   | "TEXT"

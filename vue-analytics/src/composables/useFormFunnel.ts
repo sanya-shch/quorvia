@@ -1,5 +1,5 @@
 import { ref, shallowRef } from "vue";
-import type { FormFunnelDto } from "@surveycraft/shared-types";
+import type { FormFunnelDto } from "@quorvia/shared-types";
 import { apiGet, ApiError } from "../api/client";
 
 export const getFunnelErrorMessage = (e: unknown): string =>

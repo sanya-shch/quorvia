@@ -3,11 +3,17 @@ const { Prisma } = await import("@prisma/client");
 
 const { prisma } = await import("../../prisma/prisma.js");
 const bcrypt = (await import("bcrypt")).default;
-const { ErrorCode } = await import("@surveycraft/shared-types");
+const { ErrorCode } = await import("@quorvia/shared-types");
 const { generateAccessToken, generateRefreshToken, hashRefreshToken } =
   await import("../../shared/utils/jwt.js");
-const { BCRYPT_COST, cleanupRefreshTokens, loginHandler, refreshAccessToken, registerUser, revokeRefreshToken } =
-  await import("./auth.service.js");
+const {
+  BCRYPT_COST,
+  cleanupRefreshTokens,
+  loginHandler,
+  refreshAccessToken,
+  registerUser,
+  revokeRefreshToken,
+} = await import("./auth.service.js");
 
 vi.mock("../../prisma/prisma.js", () => ({
   prisma: {

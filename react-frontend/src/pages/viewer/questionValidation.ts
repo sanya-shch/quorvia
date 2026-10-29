@@ -1,6 +1,6 @@
 import { type Question } from "../../types/formBuilder";
 import { type AnswerValue } from "../../types/formViewer";
-import { ErrorCode } from "@surveycraft/shared-types";
+import { ErrorCode } from "@quorvia/shared-types";
 
 /**
  * Результат валідації - НЕ готовий текст, а ключ перекладу i18next (+

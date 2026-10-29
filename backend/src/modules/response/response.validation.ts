@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Question } from "../../shared/types/questions.js";
-import { ErrorCode } from "@surveycraft/shared-types";
+import { ErrorCode } from "@quorvia/shared-types";
 import { compileSafePattern } from "../../shared/utils/safeRegex.js";
 import { MAX_ANSWER_STRING_LENGTH } from "../../shared/schemas/answers.js";
 

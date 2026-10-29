@@ -129,7 +129,7 @@ model ResponseAttempt {
 
   answers Json
   // Той самий сенс і те саме обчислення, що й Response.visibleQuestionIds
-  // (resolveVisibleQuestionIds з @surveycraft/condition-engine) - на
+  // (resolveVisibleQuestionIds з @quorvia/condition-engine) - на
   // основі цього поля funnel рахує "найдальше досягнуте питання" навіть
   // для покинутих проходжень, з урахуванням conditional branching.
   visibleQuestionIds Json?

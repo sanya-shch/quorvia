@@ -1,5 +1,5 @@
 import { ref, shallowRef } from "vue";
-import type { FormAnalyticsDto } from "@surveycraft/shared-types";
+import type { FormAnalyticsDto } from "@quorvia/shared-types";
 import { apiGet, ApiError } from "../api/client";
 
 export const getAnalyticsErrorMessage = (e: unknown): string => {

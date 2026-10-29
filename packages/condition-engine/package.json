@@ -1,5 +1,5 @@
 {
-  "name": "@surveycraft/condition-engine",
+  "name": "@quorvia/condition-engine",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,7 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@surveycraft/shared-types": "workspace:*"
+    "@quorvia/shared-types": "workspace:*"
   },
   "devDependencies": {
     "vitest": "^4.1.10"

@@ -14,4 +14,4 @@ export type {
   ResponseListDto,
   ResponseSummary,
   TextPreview,
-} from "@surveycraft/shared-types";
+} from "@quorvia/shared-types";

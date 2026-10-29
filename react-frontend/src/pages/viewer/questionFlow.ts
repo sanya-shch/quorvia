@@ -1,4 +1,4 @@
-import { evaluateCondition } from "@surveycraft/condition-engine";
+import { evaluateCondition } from "@quorvia/condition-engine";
 import type { Question } from "../../types/formBuilder";
 import type { FormAnswers } from "../../types/formViewer";
 

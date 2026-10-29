@@ -14,7 +14,7 @@ import type {
   ConditionOperator,
   ConditionRule,
   ConditionValue,
-} from "@surveycraft/shared-types";
+} from "@quorvia/shared-types";
 
 export type { ConditionGroup, ConditionOperator, ConditionRule, ConditionValue };
 

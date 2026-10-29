@@ -1,5 +1,5 @@
 import { ref, shallowRef } from "vue";
-import type { FormPathsDto } from "@surveycraft/shared-types";
+import type { FormPathsDto } from "@quorvia/shared-types";
 import { apiGet, ApiError } from "../api/client";
 
 export const getPathsErrorMessage = (e: unknown): string =>

@@ -22,7 +22,7 @@ describe("sortByOrder", () => {
   });
 });
 
-describe("getNextQuestion — інтеграція з @surveycraft/condition-engine", () => {
+describe("getNextQuestion — інтеграція з @quorvia/condition-engine", () => {
   it("без умов повертає перше питання, що йде після afterOrder", () => {
     const questions = [q({ id: "q1", order: 0 }), q({ id: "q2", order: 1 })];
     expect(getNextQuestion(questions, {}, -Infinity)?.id).toBe("q1");
