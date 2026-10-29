@@ -1,8 +1,19 @@
-# SurveyCraft
+# Quorvia
 
-SurveyCraft is a full-stack survey platform for building dynamic forms, collecting responses, and analyzing how users interact with conditional question flows.
+Quorvia is a full-stack survey platform for building dynamic forms, collecting responses, and analyzing how users interact with conditional question flows.
 
 The project focuses on implementing a non-trivial form engine rather than a simple CRUD application. Forms support conditional branching, multiple response modes, autosaved attempts, funnel analytics, asynchronous exports, and a React host integrated with a Vue 3 analytics micro-frontend.
+
+## Screenshots
+
+![Dashboard](/assets/Dashboard.png)
+![BuilderEmpty](/assets/BuilderEmpty.png)
+![Builder](/assets/Builder.png)
+![ViewerOneAtTime](/assets/ViewerOneAtTime.png)
+![ViewerAllInOne](/assets/ViewerAllInOne.png)
+![Dashboard2](/assets/Dashboard2.png)
+![Analytics](/assets/Analytics.png)
+![AnalyticsRaw](/assets/AnalyticsRaw.png)
 
 ## Highlights
 
@@ -22,13 +33,14 @@ The project focuses on implementing a non-trivial form engine rather than a simp
 - Dedicated framework-agnostic conditional logic engine
 - Unit and integration tests with Vitest
 - Docker-based local PostgreSQL and Redis infrastructure
+- Security hardening: ReDoS-safe validation (RE2), rate limiting, refresh-token rotation with reuse detection, CSV-injection protection (see [Security](#security))
 - pnpm monorepo
 
 ---
 
 ## Product Overview
 
-SurveyCraft consists of three main user flows.
+Quorvia consists of three main user flows.
 
 ### Form Builder
 
@@ -82,10 +94,10 @@ The funnel is calculated from autosaved `ResponseAttempt` records, allowing inco
 
 ## Architecture
 
-SurveyCraft is organized as a pnpm workspace containing multiple applications and shared domain packages.
+Quorvia is organized as a pnpm workspace containing multiple applications and shared domain packages.
 
 ```
-SurveyCraft/
+Quorvia/
 │
 ├── backend/
 │   └── Express + TypeScript + Prisma
@@ -216,11 +228,18 @@ Vue Analytics Remote
 Backend API
 ```
 
-The Vue application is intentionally isolated from the React runtime.
+The Vue application is isolated from the React runtime: it has its own state, its own components and talks to the backend directly.
 
 The React host mounts the Vue application when the analytics tab is activated and unmounts it when leaving the tab.
 
-There is no shared runtime state bridge between React and Vue. The Vue application owns its own analytics state and communicates directly with the backend.
+The only coupling is a small, explicit **auth bridge**. The access token lives in memory of the React host (it is not stored in `localStorage`), so the host passes two functions to the remote as props:
+
+- `getAccessToken()` - returns the current access token;
+- `refreshAccessToken()` - exchanges the httpOnly refresh cookie for a new token (it shares a single `/auth/refresh` request with the React side).
+
+When the backend answers `401`, the Vue API client asks the host for a fresh token and retries the request once. If the session cannot be restored, the client dispatches an `AUTH_EXPIRED` browser event and the React host performs the logout.
+
+Because a federated remote runs in the same page as the host, the remote's origin is a trusted code source - see [Security](#security) for the CSP that restricts it.
 
 **Why Module Federation?**
 
@@ -262,14 +281,14 @@ backend/src/
 ├── modules/
 │   ├── auth/
 │   ├── form/
-│   ├── question/
 │   ├── response/
 │   ├── attempt/
 │   ├── analytics/
 │   └── export/
 │
 ├── shared/
-│   ├── middleware/
+│   ├── middleware/   (auth, validation, error handling, rate limiters)
+│   ├── schemas/      (shared Zod schemas)
 │   ├── queue/
 │   └── utils/
 │
@@ -411,13 +430,47 @@ The backend remains the source of truth for:
 - response validation;
 - accepted answers.
 
+## Security
+
+This is a portfolio project, but it is built to be hardened the way a real survey platform would be. Public forms accept anonymous input, so the backend treats every request as untrusted.
+
+### What is implemented
+
+| Area | Measure |
+| --- | --- |
+| Authentication | bcrypt (cost 12); passwords limited to 72 bytes (bcrypt's real limit); emails normalized (trim + lowercase); constant-time-ish login (dummy hash when the user does not exist) |
+| Sessions | Short-lived access JWT (15 min, `HS256` pinned for sign *and* verify); opaque refresh token in an httpOnly, path-restricted cookie; only its SHA-256 hash is stored |
+| Refresh rotation | Atomic rotation (`updateMany ... WHERE revokedAt IS NULL`), so two parallel requests cannot both succeed; **reuse detection** revokes all of the user's tokens when an already-revoked token is replayed; hourly cleanup of expired/revoked tokens in the worker |
+| Browser storage | The access token is kept **in memory only**; after a page reload the session is restored silently from the refresh cookie |
+| Authorization | Every form/response/analytics/export endpoint checks ownership of the parent resource; child resources are verified to belong to the parent |
+| Input validation | Zod on every body; length/size limits on forms, questions, options and conditions; caps on `answers` (keys, string length, array size); bounded pagination (`limit <= 100`) |
+| ReDoS | User-defined regex patterns are compiled with **RE2** (linear time) both at save time and at validation time; patterns RE2 cannot run (lookahead, backreferences) are rejected |
+| Rate limiting | Per-IP: whole API, login/register, refresh; per-IP **and per form** for public submissions and autosave; per-user for export creation, plus a cap on concurrent exports |
+| Exports | CSV formula injection neutralized (`=`, `+`, `-`, `@`, tab, CR); responses capped per export; workers store a stable error code, never raw error text |
+| HTTP | `helmet`, explicit CORS allow-list (comma-separated `CORS_ORIGIN`), `trust proxy` configurable via `TRUST_PROXY`, malformed/oversized JSON answered with 400/413 |
+| Config | In production the API refuses to start with a short or example `JWT_SECRET` or a `localhost` `CORS_ORIGIN` |
+| Frontend | No `dangerouslySetInnerHTML` / `v-html`; production build ships a Content-Security-Policy `<meta>` that allows scripts only from the app and the Vue remote origin |
+| Supply chain | Dependabot, CodeQL, `pnpm audit` job, least-privilege `GITHUB_TOKEN` in CI |
+| Local infra | Postgres and Redis ports are published on `127.0.0.1` only |
+
+### Known gaps / deployment notes
+
+- **Rate-limit state is in memory.** With more than one backend instance each one counts separately; use `rate-limit-redis` (Redis is already part of the stack).
+- **Set `TRUST_PROXY`** (for example `1`) when running behind nginx, Render, Railway or similar. Without it every user shares the proxy's IP and therefore one rate limit.
+- **Same-site deployment.** The refresh cookie is `SameSite=Lax`. Serve the frontend and the API from the same site (e.g. `app.example.com` and `api.example.com`); on unrelated domains the browser will not send the cookie and sessions will end after 15 minutes.
+- **HTTP security headers for the frontend.** The CSP in the build is a `<meta>` tag, which cannot express `frame-ancestors`. Prefer sending a CSP header (plus `X-Content-Type-Options`, `Referrer-Policy`) from the static host. Set `VITE_DISABLE_CSP=true` to turn the meta tag off.
+- **The Vue remote is trusted code.** It runs inside the React page with access to the in-memory token. Host it under your control and keep `VITE_VUE_ANALYTICS_URL` pointing only to it.
+- **Export size limit.** Exports are limited to 20,000 responses because the worker builds files in memory; streaming exporters would remove the limit.
+- **Redis has no password** in the local Docker setup (it is bound to loopback). Use authentication and TLS for any shared environment.
+- Not implemented: email verification, password reset, account lockout, CAPTCHA/bot protection on public forms, audit log, GitHub Actions pinned to commit SHAs.
+
 ## Response Attempts and Funnel Analytics
 
 A regular `Response` only represents a completed submission.
 
 That is insufficient for meaningful funnel analytics because users can abandon a form before submitting it.
 
-SurveyCraft therefore separates:
+Quorvia therefore separates:
 
 ```
 ResponseAttempt
@@ -603,14 +656,13 @@ flowchart TD
 ## Project Structure
 
 ```
-SurveyCraft/
+Quorvia/
 │
 ├── backend/
 │   ├── src/
 │   │   ├── modules/
 │   │   │   ├── auth/
 │   │   │   ├── form/
-│   │   │   ├── question/
 │   │   │   ├── response/
 │   │   │   ├── attempt/
 │   │   │   ├── analytics/
@@ -642,10 +694,17 @@ SurveyCraft/
 │   ├── condition-engine/
 │   └── shared-types/
 │
+├── docs/
+│   └── API.md
+├── .github/            (CI, CodeQL, Dependabot)
 ├── docker-compose.yml
 ├── package.json
 └── pnpm-workspace.yaml
 ```
+
+## API
+
+A short reference of all endpoints is in [docs/API.md](docs/API.md).
 
 ## Technology Stack
 
@@ -691,7 +750,7 @@ Examples include:
 - cyclic dependencies.
 
 ```bash
-pnpm --filter @surveycraft/condition-engine test
+pnpm --filter @quorvia/condition-engine test
 ```
 
 ### Backend
@@ -732,7 +791,7 @@ The repository uses pnpm workspaces.
 
 ```bash
 git clone <repository-url>
-cd SurveyCraft
+cd Quorvia
 
 pnpm install
 ```
@@ -765,26 +824,34 @@ pnpm docker:down
 
 ### Environment Variables
 
-Create the backend environment file:
+Create the environment files from the templates (`.env.example` files are tracked in git):
 
 ```bash
+cp .env.example .env                    # used by docker-compose.yml
 cp backend/.env.example backend/.env
 ```
 
-The main variables are:
+Backend variables:
 
-```dotenv
-DATABASE_URL="postgresql://surveycraft:surveycraft@localhost:5433/surveycraft"
-REDIS_URL="redis://localhost:6379"
-JWT_SECRET="change-me-in-production"
-```
+| Variable | Required | Description |
+| --- | --- | --- |
+| `DATABASE_URL` | yes | PostgreSQL connection string |
+| `REDIS_URL` | yes | Redis connection string (BullMQ) |
+| `JWT_SECRET` | yes | Access-token signing secret. In production it must be at least 32 characters and must not be the example value (`openssl rand -base64 48`) |
+| `CORS_ORIGIN` | no | Allowed frontend origin(s), comma-separated. Default `http://localhost:5173`; must not be `localhost` in production |
+| `PORT` | no | API port, default `5001` |
+| `TRUST_PROXY` | no | Number of reverse proxies in front of the API (`1` for one proxy). Required for correct per-IP rate limiting behind a proxy |
+| `NODE_ENV` | no | `production` enables the stricter checks above and `Secure` cookies |
 
 The React application can optionally use:
 
 ```dotenv
 VITE_API_URL=http://localhost:5001/api
 VITE_VUE_ANALYTICS_URL=http://localhost:5174
+# VITE_DISABLE_CSP=true   # turns off the production CSP <meta> tag
 ```
+
+`VITE_API_URL` and `VITE_VUE_ANALYTICS_URL` are also used to build the production Content-Security-Policy, so set them at build time.
 
 ### Database
 
@@ -796,6 +863,8 @@ cd backend
 npx prisma migrate dev
 npx prisma generate
 ```
+
+> The `20261028000000_normalize_user_emails` migration lowercases existing user emails. If two accounts differ only by letter case it fails on the unique constraint - merge those accounts manually first.
 
 ### Start the Applications
 
@@ -874,7 +943,7 @@ Benefit: server cache management, invalidation, and UI state remain separate con
 
 ## Trade-offs and Limitations
 
-SurveyCraft intentionally prioritizes architectural demonstration and domain complexity over production infrastructure completeness.
+Quorvia intentionally prioritizes architectural demonstration and domain complexity over production infrastructure completeness.
 
 Some areas that would require additional work for a production deployment include:
 
@@ -882,7 +951,8 @@ Some areas that would require additional work for a production deployment includ
 - distributed file cleanup and retention policies;
 - production secrets management;
 - observability and centralized logging;
-- rate limiting;
+- shared (Redis-backed) rate limiting for multi-instance deployments;
+- the remaining items from [Known gaps](#known-gaps--deployment-notes);
 - horizontal worker scaling;
 - more advanced authorization policies;
 - production deployment configuration for the Vue remote;
@@ -890,19 +960,9 @@ Some areas that would require additional work for a production deployment includ
 
 These are deployment concerns rather than core architectural requirements of the project.
 
-## Screenshots
-
-![dashboard](/assets/dashboardScreenshot.png)
-![builder](/assets/builderScreenshot.png)
-![public](/assets/publicScreenshot.png)
-![public2](/assets/public2Screenshot.png)
-![dashboard2](/assets/dashboard2Screenshot.png)
-![analytics1](/assets/analytics1Screenshot.png)
-![analytics2](/assets/analytics2Screenshot.png)
-
 ## What This Project Demonstrates
 
-SurveyCraft was built to demonstrate end-to-end ownership of a non-trivial product feature across multiple layers of a modern web application.
+Quorvia was built to demonstrate end-to-end ownership of a non-trivial product feature across multiple layers of a modern web application.
 
 The most important engineering aspects are:
 

@@ -175,7 +175,7 @@ export default function QuestionStepper({
                   key={q.id || i}
                   className="flex items-center justify-between text-sm border-b border-slate-100 pb-2 last:border-0"
                 >
-                  <span className="text-xs text-slate-400 shrink-0">
+                  <span className="text-xs text-slate-400">
                     {q.text || t("viewer.questionFallback", { number: i + 1 })}
                     {" - "}
                     {answers[q.id!].toString()}
@@ -184,9 +184,9 @@ export default function QuestionStepper({
                   <button
                     type="button"
                     onClick={() => setCurrentIndex(i)}
-                    className="text-left text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer truncate pr-4"
+                    className="text-left text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer pl-4"
                   >
-                    <span className="text-xs shrink-0">{t("viewer.stepper.changeAnswer")}</span>
+                    <span className="text-xs">{t("viewer.stepper.changeAnswer")}</span>
                   </button>
                 </li>
               ))}
