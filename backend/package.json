@@ -52,6 +52,7 @@
     "@types/pg": "^8.20.0",
     "@types/supertest": "^7.2.1",
     "@vitest/coverage-v8": "^4.1.10",
+    "pglite-prisma-adapter": "0.7.2",
     "prettier": "^3.8.3",
     "prettier-plugin-prisma": "^5.0.0",
     "prisma": "^7.8.0",

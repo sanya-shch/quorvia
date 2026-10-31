@@ -2,6 +2,8 @@ import { prisma } from "../../prisma/prisma.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
 import { ErrorCode } from "@quorvia/shared-types";
 import { Answers } from "../response/response.types.js";
+import { paginate } from "../../shared/utils/paginate.js";
+import { analyticsConfig } from "./analytics.config.js";
 import {
   EnrichedAnswer,
   FormAnalyticsDto,
@@ -37,6 +39,42 @@ const resolveVisibleIdsForResponse = (
 
 type StoredOption = { id: string; text: string };
 
+/**
+ * Відповіді форми порціями (keyset-пагінація), а не одним findMany на всю
+ * таблицю: агрегації нижче інкрементальні, тож пам'ять обмежена розміром
+ * порції, а не кількістю відповідей. Порядок (createdAt, id) детермінований
+ * і обслуговується індексом (formId, createdAt, id).
+ */
+const responseBatches = (formId: string) =>
+  paginate(
+    (page) =>
+      prisma.response.findMany({
+        where: { formId },
+        select: { id: true, answers: true, visibleQuestionIds: true },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+        ...page,
+      }),
+    analyticsConfig.batchSize,
+  );
+
+/** Те саме для проходжень; порядок за (sessionKey, id) іде по унікальному індексу форми. */
+const attemptBatches = (formId: string) =>
+  paginate(
+    (page) =>
+      prisma.responseAttempt.findMany({
+        where: { formId },
+        select: {
+          id: true,
+          reachedQuestionIds: true,
+          visibleQuestionIds: true,
+          completedAt: true,
+        },
+        orderBy: [{ sessionKey: "asc" }, { id: "asc" }],
+        ...page,
+      }),
+    analyticsConfig.batchSize,
+  );
+
 type QuestionAccumulator = {
   type: string;
   shownCount: number;
@@ -63,12 +101,7 @@ export const getFormAnalytics = async (
   if (!form) throw new AppError(ErrorCode.FORM_NOT_FOUND, 404);
   if (form.userId !== userId) throw new AppError(ErrorCode.FORM_FORBIDDEN, 403);
 
-  const responses = await prisma.response.findMany({
-    where: { formId },
-    select: { answers: true, visibleQuestionIds: true },
-  });
-
-  const totalResponses = responses.length;
+  let totalResponses = 0;
 
   const allQuestionIds = form.questions.map((q) => q.id);
 
@@ -88,43 +121,50 @@ export const getFormAnalytics = async (
     });
   }
 
-  for (const response of responses) {
-    const visibleIds = resolveVisibleIdsForResponse(response, allQuestionIds);
-    const answers = response.answers as Answers;
+  for await (const batch of responseBatches(formId)) {
+    for (const response of batch) {
+      totalResponses++;
+      const visibleIds = resolveVisibleIdsForResponse(response, allQuestionIds);
+      const answers = response.answers as Answers;
 
-    for (const qId of visibleIds) {
-      const acc = accumulators.get(qId);
-      if (!acc) continue; // питання видалене з форми після цієї відповіді
+      for (const qId of visibleIds) {
+        const acc = accumulators.get(qId);
+        if (!acc) continue; // питання видалене з форми після цієї відповіді
 
-      acc.shownCount++;
+        acc.shownCount++;
 
-      const value = answers?.[qId];
-      if (value === undefined) continue; // показане, але пропущене (skippedCount)
+        const value = answers?.[qId];
+        if (value === undefined) continue; // показане, але пропущене (skippedCount)
 
-      acc.answeredCount++;
+        acc.answeredCount++;
 
-      if (acc.type === "TEXT" || acc.type === "DATE") {
-        const key = value as string;
-        acc.textCounts!.set(key, (acc.textCounts!.get(key) || 0) + 1);
-      } else if (acc.type === "NUMBER") {
-        const n = value as number;
-        acc.numberSum += n;
-        acc.numberCount += 1;
-        acc.numberMin = acc.numberMin === undefined ? n : Math.min(acc.numberMin, n);
-        acc.numberMax = acc.numberMax === undefined ? n : Math.max(acc.numberMax, n);
-      } else if (acc.type === "CHOICE_SINGLE") {
-        if (typeof value === "string") {
-          acc.choiceCounts!.set(value, (acc.choiceCounts!.get(value) || 0) + 1);
-        }
-      } else if (acc.type === "CHOICE_MULTI") {
-        if (Array.isArray(value)) {
-          for (const v of value) {
-            acc.choiceCounts!.set(v, (acc.choiceCounts!.get(v) || 0) + 1);
+        if (acc.type === "TEXT" || acc.type === "DATE") {
+          const key = value as string;
+          // Вільний текст має необмежену кількість різних значень: Map не
+          // може рости безкінечно (для надвеликих форм топ-5 стає наближеним).
+          if (acc.textCounts!.has(key) || acc.textCounts!.size < analyticsConfig.maxTrackedTextValues) {
+            acc.textCounts!.set(key, (acc.textCounts!.get(key) || 0) + 1);
           }
+        } else if (acc.type === "NUMBER") {
+          const n = value as number;
+          acc.numberSum += n;
+          acc.numberCount += 1;
+          acc.numberMin = acc.numberMin === undefined ? n : Math.min(acc.numberMin, n);
+          acc.numberMax = acc.numberMax === undefined ? n : Math.max(acc.numberMax, n);
+        } else if (acc.type === "CHOICE_SINGLE") {
+          if (typeof value === "string") {
+            acc.choiceCounts!.set(value, (acc.choiceCounts!.get(value) || 0) + 1);
+          }
+        } else if (acc.type === "CHOICE_MULTI") {
+          if (Array.isArray(value)) {
+            for (const v of value) {
+              acc.choiceCounts!.set(v, (acc.choiceCounts!.get(v) || 0) + 1);
+            }
+          }
+        } else if (acc.type === "BOOLEAN") {
+          if (value === true) acc.trueCount++;
+          else if (value === false) acc.falseCount++;
         }
-      } else if (acc.type === "BOOLEAN") {
-        if (value === true) acc.trueCount++;
-        else if (value === false) acc.falseCount++;
       }
     }
   }
@@ -202,46 +242,63 @@ export const getFormAnalytics = async (
 };
 
 /**
+ * Інкрементальний акумулятор переходів між видимими питаннями: відповіді
+ * подаються по одній (add), результат знімається в кінці (result). Завдяки
+ * цьому getFormPaths не тримає всі відповіді в пам'яті. orderedQuestions
+ * мають бути відсортовані за order.
+ */
+const createPathsAccumulator = (orderedQuestions: { id: string; text: string; order: number }[]) => {
+  const allQuestionIds = orderedQuestions.map((q) => q.id);
+  const shownCount: Record<string, number> = {};
+  const edgeCount = new Map<string, number>();
+  let totalResponses = 0;
+
+  return {
+    add(response: { answers: unknown; visibleQuestionIds: unknown }) {
+      totalResponses++;
+      const visibleIds = resolveVisibleIdsForResponse(response, allQuestionIds);
+      // Послідовність, у якій респондент фактично побачив питання - за order,
+      // з пропуском прихованих (не обов'язково сусідні за order).
+      const sequence = orderedQuestions.filter((q) => visibleIds.has(q.id));
+
+      let prevId: string | null = null;
+      for (const q of sequence) {
+        shownCount[q.id] = (shownCount[q.id] || 0) + 1;
+        const key = `${prevId ?? "__start__"}->${q.id}`;
+        edgeCount.set(key, (edgeCount.get(key) || 0) + 1);
+        prevId = q.id;
+      }
+    },
+
+    result(): FormPathsDto {
+      const nodes: QuestionPathNode[] = orderedQuestions.map((q) => ({
+        questionId: q.id,
+        text: q.text,
+        order: q.order,
+        shownCount: shownCount[q.id] || 0,
+      }));
+
+      const edges: QuestionPathEdge[] = Array.from(edgeCount.entries()).map(([key, count]) => {
+        const [from, to] = key.split("->");
+        return { fromQuestionId: from === "__start__" ? null : from, toQuestionId: to, count };
+      });
+
+      return { totalResponses, nodes, edges };
+    },
+  };
+};
+
+/**
  * Чиста функція агрегації переходів між видимими питаннями - винесена
- * окремо від getFormPaths, щоб тестувати без моку Prisma. orderedQuestions
- * мають бути відсортовані за order (getFormPaths це гарантує).
+ * окремо від getFormPaths, щоб тестувати без моку Prisma.
  */
 export const buildFormPaths = (
   orderedQuestions: { id: string; text: string; order: number }[],
   responses: { answers: unknown; visibleQuestionIds: unknown }[],
 ): FormPathsDto => {
-  const allQuestionIds = orderedQuestions.map((q) => q.id);
-  const shownCount: Record<string, number> = {};
-  const edgeCount = new Map<string, number>();
-
-  for (const response of responses) {
-    const visibleIds = resolveVisibleIdsForResponse(response, allQuestionIds);
-    // Послідовність, у якій респондент фактично побачив питання - за order,
-    // з пропуском прихованих (не обов'язково сусідні за order).
-    const sequence = orderedQuestions.filter((q) => visibleIds.has(q.id));
-
-    let prevId: string | null = null;
-    for (const q of sequence) {
-      shownCount[q.id] = (shownCount[q.id] || 0) + 1;
-      const key = `${prevId ?? "__start__"}->${q.id}`;
-      edgeCount.set(key, (edgeCount.get(key) || 0) + 1);
-      prevId = q.id;
-    }
-  }
-
-  const nodes: QuestionPathNode[] = orderedQuestions.map((q) => ({
-    questionId: q.id,
-    text: q.text,
-    order: q.order,
-    shownCount: shownCount[q.id] || 0,
-  }));
-
-  const edges: QuestionPathEdge[] = Array.from(edgeCount.entries()).map(([key, count]) => {
-    const [from, to] = key.split("->");
-    return { fromQuestionId: from === "__start__" ? null : from, toQuestionId: to, count };
-  });
-
-  return { totalResponses: responses.length, nodes, edges };
+  const acc = createPathsAccumulator(orderedQuestions);
+  for (const response of responses) acc.add(response);
+  return acc.result();
 };
 
 export const getFormPaths = async (formId: string, userId: string): Promise<FormPathsDto> => {
@@ -253,14 +310,14 @@ export const getFormPaths = async (formId: string, userId: string): Promise<Form
   if (!form) throw new AppError(ErrorCode.FORM_NOT_FOUND, 404);
   if (form.userId !== userId) throw new AppError(ErrorCode.FORM_FORBIDDEN, 403);
 
-  const responses = await prisma.response.findMany({
-    where: { formId },
-    select: { answers: true, visibleQuestionIds: true },
-  });
-
   const orderedQuestions = [...form.questions].sort((a, b) => a.order - b.order);
+  const acc = createPathsAccumulator(orderedQuestions);
 
-  return buildFormPaths(orderedQuestions, responses);
+  for await (const batch of responseBatches(formId)) {
+    for (const response of batch) acc.add(response);
+  }
+
+  return acc.result();
 };
 
 /**
@@ -276,41 +333,55 @@ export const getFormPaths = async (formId: string, userId: string): Promise<Form
  * відповіді. Для рядків, створених до появи reachedQuestionIds, лишається
  * fallback на visibleQuestionIds (старе, менш точне наближення).
  */
-export const buildFormFunnel = (
-  orderedQuestions: { id: string; text: string; order: number }[],
-  attempts: {
-    reachedQuestionIds?: unknown;
-    visibleQuestionIds: unknown;
-    completedAt: Date | null;
-  }[],
-): FormFunnelDto => {
+type FunnelAttempt = {
+  reachedQuestionIds?: unknown;
+  visibleQuestionIds: unknown;
+  completedAt: Date | null;
+};
+
+const createFunnelAccumulator = (orderedQuestions: { id: string; text: string; order: number }[]) => {
   const reachedCount: Record<string, number> = {};
-
-  for (const attempt of attempts) {
-    const source = attempt.reachedQuestionIds ?? attempt.visibleQuestionIds;
-    const reachedIds = Array.isArray(source) ? (source as string[]) : [];
-
-    for (const id of reachedIds) {
-      reachedCount[id] = (reachedCount[id] || 0) + 1;
-    }
-  }
-
-  const totalAttempts = attempts.length;
-  const totalCompletions = attempts.filter((a) => a.completedAt !== null).length;
-
-  const nodes: QuestionFunnelNode[] = orderedQuestions.map((q) => ({
-    questionId: q.id,
-    text: q.text,
-    order: q.order,
-    reachedCount: reachedCount[q.id] || 0,
-  }));
+  let totalAttempts = 0;
+  let totalCompletions = 0;
 
   return {
-    totalAttempts,
-    totalCompletions,
-    completionRate: totalAttempts > 0 ? totalCompletions / totalAttempts : 0,
-    nodes,
+    add(attempt: FunnelAttempt) {
+      totalAttempts++;
+      if (attempt.completedAt !== null) totalCompletions++;
+
+      const source = attempt.reachedQuestionIds ?? attempt.visibleQuestionIds;
+      const reachedIds = Array.isArray(source) ? (source as string[]) : [];
+
+      for (const id of reachedIds) {
+        reachedCount[id] = (reachedCount[id] || 0) + 1;
+      }
+    },
+
+    result(): FormFunnelDto {
+      const nodes: QuestionFunnelNode[] = orderedQuestions.map((q) => ({
+        questionId: q.id,
+        text: q.text,
+        order: q.order,
+        reachedCount: reachedCount[q.id] || 0,
+      }));
+
+      return {
+        totalAttempts,
+        totalCompletions,
+        completionRate: totalAttempts > 0 ? totalCompletions / totalAttempts : 0,
+        nodes,
+      };
+    },
   };
+};
+
+export const buildFormFunnel = (
+  orderedQuestions: { id: string; text: string; order: number }[],
+  attempts: FunnelAttempt[],
+): FormFunnelDto => {
+  const acc = createFunnelAccumulator(orderedQuestions);
+  for (const attempt of attempts) acc.add(attempt);
+  return acc.result();
 };
 
 export const getFormFunnel = async (formId: string, userId: string): Promise<FormFunnelDto> => {
@@ -322,14 +393,14 @@ export const getFormFunnel = async (formId: string, userId: string): Promise<For
   if (!form) throw new AppError(ErrorCode.FORM_NOT_FOUND, 404);
   if (form.userId !== userId) throw new AppError(ErrorCode.FORM_FORBIDDEN, 403);
 
-  const attempts = await prisma.responseAttempt.findMany({
-    where: { formId },
-    select: { reachedQuestionIds: true, visibleQuestionIds: true, completedAt: true },
-  });
-
   const orderedQuestions = [...form.questions].sort((a, b) => a.order - b.order);
+  const acc = createFunnelAccumulator(orderedQuestions);
 
-  return buildFormFunnel(orderedQuestions, attempts);
+  for await (const batch of attemptBatches(formId)) {
+    for (const attempt of batch) acc.add(attempt);
+  }
+
+  return acc.result();
 };
 
 export const getQuestionAnalytics = async (
@@ -349,117 +420,121 @@ export const getQuestionAnalytics = async (
 
   if (!question) throw new AppError(ErrorCode.ANALYTICS_QUESTION_NOT_FOUND, 404);
 
-  const responses = await prisma.response.findMany({
-    where: { formId },
-  });
+  if (!["TEXT", "DATE", "NUMBER", "CHOICE_SINGLE", "CHOICE_MULTI", "BOOLEAN"].includes(question.type)) {
+    throw new AppError(ErrorCode.ANALYTICS_UNSUPPORTED_TYPE, 400);
+  }
 
-  const values = responses
-    .map((r) => (r.answers as Answers)[questionId])
-    .filter((v) => v !== undefined);
+  // Map, а не plain object: користувацький текст на кшталт "constructor"
+  // чи "__proto__" збігається з вбудованими ключами Object.prototype і
+  // ламає підрахунок (counts[k] || 0 повертає функцію/прототип).
+  const textCounts = new Map<string, number>();
+  const textAnswers: string[] = [];
+  let textAnswersTruncated = false;
+  const numberCounts = new Map<number, number>();
+  let numberSum = 0;
+  let numberCount = 0;
+  let numberMin = Infinity;
+  let numberMax = -Infinity;
+  const choiceCounts = new Map<string, number>();
+  let trueCount = 0;
+  let falseCount = 0;
+  let totalAnswers = 0;
 
-  const totalAnswers = values.length;
+  for await (const batch of responseBatches(formId)) {
+    for (const response of batch) {
+      const value = (response.answers as Answers)[questionId];
+      if (value === undefined) continue;
+
+      totalAnswers++;
+
+      switch (question.type) {
+        case "TEXT":
+        case "DATE":
+          if (typeof value !== "string") break;
+          if (textCounts.has(value) || textCounts.size < analyticsConfig.maxTrackedTextValues) {
+            textCounts.set(value, (textCounts.get(value) ?? 0) + 1);
+          }
+          if (textAnswers.length < analyticsConfig.maxTextAnswers) textAnswers.push(value);
+          else textAnswersTruncated = true;
+          break;
+        case "NUMBER":
+          if (typeof value !== "number") break;
+          numberCounts.set(value, (numberCounts.get(value) ?? 0) + 1);
+          numberSum += value;
+          numberCount++;
+          // Не Math.min(...nums): spread мільйона аргументів падає з RangeError.
+          if (value < numberMin) numberMin = value;
+          if (value > numberMax) numberMax = value;
+          break;
+        case "CHOICE_SINGLE":
+        case "CHOICE_MULTI":
+          for (const v of Array.isArray(value) ? value : [value]) {
+            if (typeof v === "string" && v) choiceCounts.set(v, (choiceCounts.get(v) ?? 0) + 1);
+          }
+          break;
+        case "BOOLEAN":
+          if (value === true) trueCount++;
+          else if (value === false) falseCount++;
+          break;
+      }
+    }
+  }
+
+  const base = {
+    id: question.id,
+    text: question.text,
+    description: question.description,
+  };
 
   if (question.type === "TEXT" || question.type === "DATE") {
-    const map: Record<string, number> = {};
-
-    for (const val of values as string[]) {
-      map[val] = (map[val] || 0) + 1;
-    }
-
     return {
-      question: {
-        id: question.id,
-        text: question.text,
-        description: question.description,
-        type: question.type,
-      },
+      question: { ...base, type: question.type },
       totalAnswers,
-      distribution: Object.entries(map).map(([value, count]) => ({
-        value,
-        count,
-      })),
-      answers: values as string[],
+      // Топ за частотою: для вільного тексту повний розподіл - це десятки
+      // тисяч унікальних рядків, які ні відобразити, ні прочитати.
+      distribution: Array.from(textCounts, ([value, count]) => ({ value, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, analyticsConfig.maxTextDistribution),
+      answers: textAnswers,
+      answersTruncated: textAnswersTruncated,
     };
   }
 
   if (question.type === "NUMBER") {
-    const nums = values as number[];
-
-    const map: Record<number, number> = {};
-    for (const n of nums) {
-      map[n] = (map[n] || 0) + 1;
-    }
-
     return {
-      question: {
-        id: question.id,
-        text: question.text,
-        description: question.description,
-        type: "NUMBER",
-      },
+      question: { ...base, type: "NUMBER" },
       totalAnswers,
       stats: {
-        avg: nums.reduce((a, b) => a + b, 0) / nums.length || 0,
-        min: Math.min(...nums),
-        max: Math.max(...nums),
+        avg: numberCount > 0 ? numberSum / numberCount : 0,
+        min: numberCount > 0 ? numberMin : 0,
+        max: numberCount > 0 ? numberMax : 0,
       },
-      distribution: Object.entries(map).map(([value, count]) => ({
-        value: Number(value),
-        count,
-      })),
+      distribution: Array.from(numberCounts, ([value, count]) => ({ value, count })).sort(
+        (a, b) => a.value - b.value,
+      ),
     };
   }
 
   if (question.type === "CHOICE_SINGLE" || question.type === "CHOICE_MULTI") {
-    const map: Record<string, number> = {};
-
-    for (const val of values) {
-      if (Array.isArray(val)) {
-        for (const v of val) {
-          map[v] = (map[v] || 0) + 1;
-        }
-      } else if (typeof val === "string" && val) {
-        map[val] = (map[val] || 0) + 1;
-      }
-    }
-
-    const options = (question.options ?? []) as { id: string; text: string }[];
-
-    const distribution = options.map((opt) => ({
-      optionId: opt.id,
-      text: opt.text,
-      count: map[opt.id] || 0,
-    }));
+    const options = (question.options ?? []) as StoredOption[];
 
     return {
-      question: {
-        id: question.id,
-        text: question.text,
-        description: question.description,
-        type: question.type,
-      },
+      question: { ...base, type: question.type },
       totalAnswers,
-      distribution,
+      distribution: options.map((opt) => ({
+        optionId: opt.id,
+        text: opt.text,
+        count: choiceCounts.get(opt.id) ?? 0,
+      })),
     };
   }
 
-  if (question.type === "BOOLEAN") {
-    const bools = values as boolean[];
-
-    return {
-      question: {
-        id: question.id,
-        text: question.text,
-        description: question.description,
-        type: "BOOLEAN",
-      },
-      totalAnswers,
-      trueCount: bools.filter(Boolean).length,
-      falseCount: bools.filter((v) => !v).length,
-    };
-  }
-
-  throw new AppError(ErrorCode.ANALYTICS_UNSUPPORTED_TYPE, 400);
+  return {
+    question: { ...base, type: "BOOLEAN" },
+    totalAnswers,
+    trueCount,
+    falseCount,
+  };
 };
 
 export const getResponses = async (
@@ -483,7 +558,7 @@ export const getResponses = async (
     }),
     prisma.response.findMany({
       where: { formId },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       skip,
       take: limit,
       select: {

@@ -97,6 +97,8 @@ export type QuestionAnalyticsDto =
       totalAnswers: number;
       distribution: { value: string; count: number }[];
       answers: string[];
+      /** true, якщо відповідей більше за ліміт і список `answers` обрізано (totalAnswers - повна кількість). */
+      answersTruncated?: boolean;
     }
   | {
       question: {

@@ -100,7 +100,10 @@ model Response {
 
   createdAt DateTime @default(now())
 
-  @@index([formId])
+  // Покриває і сторінковий список (ORDER BY createdAt DESC), і keyset-обхід
+  // аналітики (ORDER BY createdAt, id) в межах форми; префікс formId замінює
+  // окремий індекс по formId.
+  @@index([formId, createdAt, id])
 }
 
 /**
@@ -151,7 +154,8 @@ model ResponseAttempt {
   completedAt DateTime?
 
   @@unique([formId, sessionKey])
-  @@index([formId])
+  // @@index([formId]) прибрано: його повністю покриває унікальний індекс
+  // (formId, sessionKey), який також обслуговує keyset-обхід funnel.
 }
 
 enum ExportFormat {

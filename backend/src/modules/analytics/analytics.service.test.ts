@@ -616,7 +616,9 @@ describe("getFormFunnel", () => {
 
     expect(prisma.responseAttempt.findMany).toHaveBeenCalledWith({
       where: { formId: FORM_ID },
-      select: { reachedQuestionIds: true, visibleQuestionIds: true, completedAt: true },
+      select: { id: true, reachedQuestionIds: true, visibleQuestionIds: true, completedAt: true },
+      orderBy: [{ sessionKey: "asc" }, { id: "asc" }],
+      take: 2000,
     });
     expect(result.totalAttempts).toBe(1);
     expect(result.totalCompletions).toBe(0);
