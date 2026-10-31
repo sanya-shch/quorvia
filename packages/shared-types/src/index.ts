@@ -207,7 +207,7 @@ export interface EnrichedAnswer {
   questionDescription: string | null;
   questionRequired: boolean;
   displayValue: string | number | string[];
-  rawValue: string | number | string[];
+  rawValue: string | number | boolean | string[];
 }
 
 export interface ResponseDetailsDto {

@@ -8,6 +8,7 @@ const baseQuestion: Omit<Question, "id" | "type" | "options"> = {
   required: false,
   config: null,
   formId: "form-1",
+  condition: null,
   order: 0,
 };
 

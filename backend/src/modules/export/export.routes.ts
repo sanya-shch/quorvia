@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../../shared/middleware/auth.js";
 import { validate } from "../../shared/middleware/validate.js";
-import { asyncHandler } from "../../shared/utils/asyncHandler.js";
 import { createExportSchema } from "./export.schema.js";
 import { exportLimiter } from "../../shared/middleware/rateLimiters.js";
 import {
@@ -18,13 +17,13 @@ router.post(
   authMiddleware,
   exportLimiter,
   validate(createExportSchema),
-  asyncHandler(createExportHandler),
+  createExportHandler,
 );
 
-router.get("/:formId/export", authMiddleware, asyncHandler(listExportsHandler));
+router.get("/:formId/export", authMiddleware, listExportsHandler);
 
-router.get("/:formId/export/:jobId", authMiddleware, asyncHandler(getExportHandler));
+router.get("/:formId/export/:jobId", authMiddleware, getExportHandler);
 
-router.get("/:formId/export/:jobId/download", authMiddleware, asyncHandler(downloadExportHandler));
+router.get("/:formId/export/:jobId/download", authMiddleware, downloadExportHandler);
 
 export default router;

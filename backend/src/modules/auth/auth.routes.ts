@@ -4,7 +4,6 @@ import { getMeHandler, login, logout, refresh, register } from "./auth.controlle
 import { authMiddleware } from "../../shared/middleware/auth.js";
 import { validate } from "../../shared/middleware/validate.js";
 import { loginSchema, registerSchema } from "./auth.schema.js";
-import { asyncHandler } from "../../shared/utils/asyncHandler.js";
 import { ErrorCode } from "@quorvia/shared-types";
 import { refreshLimiter } from "../../shared/middleware/rateLimiters.js";
 
@@ -23,10 +22,10 @@ const authRateLimiter = rateLimit({
   message: { message: ErrorCode.RATE_LIMITED },
 });
 
-router.post("/register", authRateLimiter, validate(registerSchema), asyncHandler(register));
-router.post("/login", authRateLimiter, validate(loginSchema), asyncHandler(login));
-router.post("/refresh", refreshLimiter, asyncHandler(refresh));
-router.get("/me", authMiddleware, asyncHandler(getMeHandler));
-router.post("/logout", asyncHandler(logout));
+router.post("/register", authRateLimiter, validate(registerSchema), register);
+router.post("/login", authRateLimiter, validate(loginSchema), login);
+router.post("/refresh", refreshLimiter, refresh);
+router.get("/me", authMiddleware, getMeHandler);
+router.post("/logout", logout);
 
 export default router;

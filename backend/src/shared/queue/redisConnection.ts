@@ -1,7 +1,7 @@
 import "dotenv/config";
-import IORedis from "ioredis";
+import { Redis } from "ioredis";
 import { getRedisUrl } from "../../config/env.js";
 
-export const redisConnection = new IORedis(getRedisUrl(), {
+export const redisConnection = new Redis(getRedisUrl(), {
   maxRetriesPerRequest: null,
 });

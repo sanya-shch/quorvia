@@ -105,6 +105,7 @@ describe("registerUser", () => {
         "Unique constraint failed on the fields: (`email`)",
         {
           code: "P2002",
+          clientVersion: "test",
         },
       ),
     );

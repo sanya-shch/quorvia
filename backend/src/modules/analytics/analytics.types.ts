@@ -1,4 +1,4 @@
-import { Answers } from "../response/response.types.js";
+import type { Answer, Answers } from "../response/response.types.js";
 
 /**
  * Скільки респондентів бачили це питання взагалі (shownCount, залежить від
@@ -138,7 +138,7 @@ export type QuestionAnalyticsDto =
 export type ResponseListItem = {
   id: string;
   createdAt: Date;
-  answersPreview?: Record<string, any>;
+  answersPreview?: Record<string, unknown>;
 };
 
 export type ResponseListDto = {
@@ -160,7 +160,7 @@ export interface EnrichedAnswer {
   questionDescription: string | null;
   questionRequired: boolean;
   displayValue: string | number | string[];
-  rawValue: string | number | string[];
+  rawValue: Answer;
 }
 
 export type ResponseDetailsDto = {

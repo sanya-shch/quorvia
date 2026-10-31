@@ -35,6 +35,8 @@ const resolveVisibleIdsForResponse = (
   return new Set(allQuestionIds.filter((id) => answers?.[id] !== undefined));
 };
 
+type StoredOption = { id: string; text: string };
+
 type QuestionAccumulator = {
   type: string;
   shownCount: number;
@@ -344,7 +346,7 @@ export const getQuestionAnalytics = async (
   });
 
   const values = responses
-    .map((r) => (r.answers as any)[questionId])
+    .map((r) => (r.answers as Answers)[questionId])
     .filter((v) => v !== undefined);
 
   const totalAnswers = values.length;
@@ -408,7 +410,7 @@ export const getQuestionAnalytics = async (
         for (const v of val) {
           map[v] = (map[v] || 0) + 1;
         }
-      } else if (val) {
+      } else if (typeof val === "string" && val) {
         map[val] = (map[val] || 0) + 1;
       }
     }
@@ -513,7 +515,7 @@ export const getResponseById = async (
     throw new AppError(ErrorCode.ANALYTICS_RESPONSE_NOT_FOUND, 404);
   }
 
-  const rawAnswers = response.answers as Record<string, any>;
+  const rawAnswers = response.answers as Answers;
   const enrichedAnswers: EnrichedAnswer[] = [];
 
   for (const q of form.questions) {
@@ -526,20 +528,20 @@ export const getResponseById = async (
     let displayValue: string | number | string[] = "";
 
     if (q.type === "CHOICE_SINGLE") {
-      const option = (q.options as any[] | null)?.find((o) => o.id === userValue);
+      const option = (q.options as StoredOption[] | null)?.find((o) => o.id === userValue);
       displayValue = option ? option.text : `Опція видалена (${userValue})`;
     } else if (q.type === "CHOICE_MULTI") {
       const optionIds = userValue as string[];
-      const options = q.options as any[];
+      const options = q.options as StoredOption[] | null;
 
       displayValue = optionIds.map((id) => {
         const opt = options?.find((o) => o.id === id);
-        return opt ? opt.text : `Невідformattingована опція (${id})`;
+        return opt ? opt.text : `Невідома опція (${id})`;
       });
     } else if (q.type === "BOOLEAN") {
       displayValue = userValue === true ? "Так" : "Ні";
     } else {
-      displayValue = userValue;
+      displayValue = typeof userValue === "boolean" ? String(userValue) : userValue;
     }
 
     enrichedAnswers.push({

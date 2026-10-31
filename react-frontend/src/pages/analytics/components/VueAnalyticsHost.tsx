@@ -68,8 +68,6 @@ export default function VueAnalyticsHost({ formId }: VueAnalyticsHostProps) {
       appRef.current?.unmount();
       appRef.current = null;
     };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formId]);
 
   if (!token) return null;

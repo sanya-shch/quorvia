@@ -2,8 +2,12 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../prisma/prisma.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
 import { ErrorCode } from "@quorvia/shared-types";
-import { UpdateFormInput, UserFormsDto } from "./form.types.js";
-import { toJson } from "../../shared/utils/helpers.js";
+import type { UpdateFormInput, UserFormsDto } from "./form.types.js";
+
+type IncomingQuestion = UpdateFormInput["questions"][number];
+/** Питання, якому вже гарантовано призначено id (клієнтський або згенерований). */
+type ResolvedQuestion = IncomingQuestion & { id: string };
+import { toJson, toNullableJson } from "../../shared/utils/helpers.js";
 import { validateConditionGraph } from "@quorvia/condition-engine";
 
 export const createForm = async ({
@@ -123,17 +127,18 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
   // Питанням без клієнтського id призначаємо його самі до валідації графа,
   // щоб condition інших питань могли на них посилатись і щоб id, який ми
   // валідували, збігався з тим, що реально запишеться в БД.
-  const withResolvedIds = incomingQuestions.map((q: any) =>
-    !q.id || !existingIds.has(q.id) ? { ...q, id: q.id ?? crypto.randomUUID() } : q,
-  );
+  const withResolvedIds: ResolvedQuestion[] = incomingQuestions.map((q) => ({
+    ...q,
+    id: q.id ?? crypto.randomUUID(),
+  }));
 
   // Клієнт може передати власний id для НОВОГО питання (щоб умови інших
   // питань могли на нього посилатись). Якщо такий id уже існує в БД (в
   // іншій формі), запис упав би з unique-помилкою (500) і заодно
   // підтвердив би існування чужого id - віддаємо контрольований 409.
-  const clientNewIds = incomingQuestions
-    .filter((q: any) => q.id && !existingIds.has(q.id))
-    .map((q: any) => q.id as string);
+  const clientNewIds = incomingQuestions.flatMap((q) =>
+    q.id && !existingIds.has(q.id) ? [q.id] : [],
+  );
 
   if (clientNewIds.length > 0) {
     const taken = await prisma.question.count({ where: { id: { in: clientNewIds } } });
@@ -144,7 +149,7 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
   }
 
   const graphValidation = validateConditionGraph(
-    withResolvedIds.map((q: any) => ({ id: q.id, order: q.order, condition: q.condition })),
+    withResolvedIds.map((q) => ({ id: q.id, order: q.order, condition: q.condition })),
   );
 
   if (!graphValidation.valid) {
@@ -154,7 +159,7 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
     throw new AppError(ErrorCode.FORM_INVALID_CONDITIONS, 400, graphValidation.errors);
   }
 
-  const incomingIds = new Set(withResolvedIds.map((q: any) => q.id));
+  const incomingIds = new Set(withResolvedIds.map((q) => q.id));
   const toDelete = existingQuestions.filter((q) => !incomingIds.has(q.id)).map((q) => q.id);
 
   return prisma.$transaction(async (tx) => {
@@ -174,8 +179,8 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
       });
     }
 
-    const resolvedToUpdate = withResolvedIds.filter((q: any) => existingIds.has(q.id));
-    const resolvedToCreate = withResolvedIds.filter((q: any) => !existingIds.has(q.id));
+    const resolvedToUpdate = withResolvedIds.filter((q) => existingIds.has(q.id));
+    const resolvedToCreate = withResolvedIds.filter((q) => !existingIds.has(q.id));
 
     for (const q of resolvedToUpdate) {
       await tx.question.update({
@@ -187,15 +192,15 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
           required: q.required ?? false,
           order: q.order,
           options: "options" in q ? toJson(q.options) : undefined,
-          config: "config" in q ? toJson(q.config) : undefined,
-          condition: q.condition === undefined ? undefined : toJson(q.condition),
+          config: "config" in q ? toNullableJson(q.config) : undefined,
+          condition: toNullableJson(q.condition),
         },
       });
     }
 
     if (resolvedToCreate.length) {
       await tx.question.createMany({
-        data: resolvedToCreate.map((q: any) => ({
+        data: resolvedToCreate.map((q) => ({
           id: q.id,
           text: q.text,
           description: q.description,

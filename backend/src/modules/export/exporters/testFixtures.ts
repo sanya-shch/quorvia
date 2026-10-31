@@ -11,6 +11,7 @@ export const buildQuestions = (): Question[] => [
     options: null,
     config: null,
     formId: "form-1",
+    condition: null,
     order: 0,
   },
   {
@@ -22,6 +23,7 @@ export const buildQuestions = (): Question[] => [
     options: null,
     config: null,
     formId: "form-1",
+    condition: null,
     order: 1,
   },
   {
@@ -33,6 +35,7 @@ export const buildQuestions = (): Question[] => [
     options: null,
     config: null,
     formId: "form-1",
+    condition: null,
     order: 2,
   },
   {
@@ -44,6 +47,7 @@ export const buildQuestions = (): Question[] => [
     options: null,
     config: null,
     formId: "form-1",
+    condition: null,
     order: 3,
   },
   {
@@ -58,6 +62,7 @@ export const buildQuestions = (): Question[] => [
     ],
     config: null,
     formId: "form-1",
+    condition: null,
     order: 4,
   },
   {
@@ -73,6 +78,7 @@ export const buildQuestions = (): Question[] => [
     ],
     config: null,
     formId: "form-1",
+    condition: null,
     order: 5,
   },
 ];
@@ -81,6 +87,7 @@ export const buildResponses = (): SurveyResponse[] => [
   {
     id: "resp-1",
     formId: "form-1",
+    visibleQuestionIds: null,
     createdAt: new Date("2026-01-15T10:00:00.000Z"),
     answers: {
       "q-text": 'Олександр, "сеньйор"',
@@ -94,6 +101,7 @@ export const buildResponses = (): SurveyResponse[] => [
   {
     id: "resp-2",
     formId: "form-1",
+    visibleQuestionIds: null,
     createdAt: new Date("2026-01-16T12:30:00.000Z"),
     answers: {
       "q-text": "",
