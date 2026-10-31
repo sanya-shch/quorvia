@@ -11,3 +11,7 @@ generated/
 # Локальні нотатки/плани - можуть містити тестові облікові дані
 plans.txt
 *.tsbuildinfo
+
+/backend/coverage
+/react-frontend/coverage
+/vue-analytics/coverage

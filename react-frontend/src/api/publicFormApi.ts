@@ -29,6 +29,7 @@ export const saveFormAttempt = async (
   shareId: string,
   sessionKey: string,
   answers: FormAnswers,
+  reachedQuestionIds?: string[],
 ): Promise<void> => {
-  await publicApi.put(`/forms/${shareId}/attempt`, { sessionKey, answers });
+  await publicApi.put(`/forms/${shareId}/attempt`, { sessionKey, answers, reachedQuestionIds });
 };

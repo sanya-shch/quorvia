@@ -10,6 +10,13 @@ const AUTOSAVE_DEBOUNCE_MS = 1200;
  * аналітика (backend: buildFormFunnel) бачила реальні покинуті
  * проходження, а не лише завершені сабміти.
  *
+ * reachedQuestionIds - id питань, які респондент реально побачив (шле лише
+ * покроковий режим, де "видиме за умовами" і "показане на екрані" - різні
+ * речі). Без нього сервер вважає досягнутими всі зараз видимі питання, що
+ * правильно для режиму "все на одній сторінці". Список входить у ключ
+ * debounce, тому перехід на наступний крок без зміни відповіді (пропуск
+ * необов'язкового питання) теж зберігається.
+ *
  * Викликається і з FormViewer, і з QuestionStepper (кожен володіє власним
  * `answers`-станом) - тому це самостійний хук, а не піднятий у
  * PublicFormPage стан.
@@ -30,6 +37,7 @@ export function useAttemptAutosave(
   shareId: string | undefined,
   sessionKey: string,
   answers: FormAnswers,
+  reachedQuestionIds?: string[],
 ) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRef = useRef<string>("");
@@ -37,14 +45,14 @@ export function useAttemptAutosave(
   useEffect(() => {
     if (!shareId) return;
 
-    const serialized = JSON.stringify(answers);
+    const serialized = JSON.stringify({ answers, reachedQuestionIds });
     if (serialized === lastSavedRef.current) return;
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     timeoutRef.current = setTimeout(() => {
       lastSavedRef.current = serialized;
-      saveFormAttempt(shareId, sessionKey, answers).catch(() => {
+      saveFormAttempt(shareId, sessionKey, answers, reachedQuestionIds).catch(() => {
         // мовчазний невдача(коментар вище)
       });
     }, AUTOSAVE_DEBOUNCE_MS);
@@ -52,5 +60,5 @@ export function useAttemptAutosave(
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [shareId, sessionKey, answers]);
+  }, [shareId, sessionKey, answers, reachedQuestionIds]);
 }

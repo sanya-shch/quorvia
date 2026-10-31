@@ -133,6 +133,14 @@ model ResponseAttempt {
   // основі цього поля funnel рахує "найдальше досягнуте питання" навіть
   // для покинутих проходжень, з урахуванням conditional branching.
   visibleQuestionIds Json?
+  // "Reached" - питання, які респондент реально побачив хоча б раз за це
+  // проходження. На відміну від visibleQuestionIds ("зараз логічно
+  // видиме") це множина, що лише росте: якщо респондент повернувся і
+  // змінив відповідь, через що питання сховалось, воно лишається
+  // досягнутим. Саме з цього поля funnel рахує reachedCount. Оновлюється
+  // атомарно як об'єднання в SQL (див. attempt.sql.ts). null - рядки,
+  // створені до появи колонки (funnel тоді падає на visibleQuestionIds).
+  reachedQuestionIds Json?
 
   startedAt DateTime @default(now())
   updatedAt DateTime @updatedAt

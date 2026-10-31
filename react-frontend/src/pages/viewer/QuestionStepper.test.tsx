@@ -1,8 +1,15 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import QuestionStepper from "./QuestionStepper";
 import type { Question } from "../../types/formBuilder";
+import { saveFormAttempt } from "../../api/publicFormApi";
+
+vi.mock("../../api/publicFormApi", () => ({
+  saveFormAttempt: vi.fn(),
+}));
+
+const mockedSave = vi.mocked(saveFormAttempt);
 
 const q = (overrides: Partial<Question>): Question => ({
   id: "q",
@@ -142,5 +149,68 @@ describe("QuestionStepper - покрокова навігація з умовн�
     await user.click(screen.getByRole("button", { name: "Надіслати відповіді" }));
 
     expect(onSubmit).toHaveBeenCalledWith({ q1: "Олександр" });
+  });
+});
+
+describe("QuestionStepper - autosave передає reachedQuestionIds (реально показані питання)", () => {
+  const linear = [
+    q({ id: "q1", order: 0, text: "Перше" }),
+    q({ id: "q2", order: 1, text: "Друге" }),
+    q({ id: "q3", order: 2, text: "Третє" }),
+  ];
+
+  const flush = () => act(() => vi.advanceTimersByTimeAsync(1300));
+  const lastReached = () => mockedSave.mock.calls.at(-1)?.[3];
+
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    mockedSave.mockReset();
+    mockedSave.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const setup = () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(
+      <QuestionStepper
+        formTitle="Тест"
+        questions={linear}
+        onSubmit={vi.fn()}
+        shareId="share-1"
+        sessionKey="session-1"
+      />,
+    );
+    return user;
+  };
+
+  it("на першому кроці лінійної форми досягнуто лише перше питання, а не всі три", async () => {
+    setup();
+    await flush();
+
+    expect(lastReached()).toEqual(["q1"]);
+  });
+
+  it("перехід на наступний крок БЕЗ зміни відповіді теж зберігається (пропуск необов'язкового)", async () => {
+    const user = setup();
+    await flush();
+
+    await user.click(screen.getByRole("button", { name: "Далі →" }));
+    await flush();
+
+    expect(lastReached()).toEqual(["q1", "q2"]);
+  });
+
+  it("на review-екрані досягнуто весь пройдений шлях", async () => {
+    const user = setup();
+    for (let i = 0; i < 3; i++) {
+      await user.click(screen.getByRole("button", { name: "Далі →" }));
+    }
+    await flush();
+
+    expect(screen.getByText("Готово, перевірте відповіді")).toBeInTheDocument();
+    expect(lastReached()).toEqual(["q1", "q2", "q3"]);
   });
 });

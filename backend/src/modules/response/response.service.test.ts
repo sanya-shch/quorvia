@@ -5,7 +5,7 @@ vi.mock("../../prisma/prisma.js", () => ({
   prisma: {
     form: { findUnique: vi.fn() },
     response: { create: vi.fn() },
-    responseAttempt: { updateMany: vi.fn() },
+    $executeRaw: vi.fn(),
   },
 }));
 
@@ -149,16 +149,17 @@ describe("submitResponse", () => {
     expect(prisma.response.create).not.toHaveBeenCalled();
   });
 
-  it("з sessionKey - позначає відповідний ResponseAttempt як завершений (completedAt)", async () => {
+  it("з sessionKey - завершує ResponseAttempt і дописує видимі питання до reached", async () => {
     (prisma.form.findUnique as any).mockResolvedValue(publishedForm);
     (prisma.response.create as any).mockResolvedValue({ id: "resp-1" });
 
     await submitResponse(SHARE_ID, { "q-name": "Олександр" }, "session-abc");
 
-    expect(prisma.responseAttempt.updateMany).toHaveBeenCalledWith({
-      where: { formId: "form-1", sessionKey: "session-abc" },
-      data: { completedAt: expect.any(Date) },
-    });
+    expect(prisma.$executeRaw).toHaveBeenCalledTimes(1);
+    const sql = (prisma.$executeRaw as any).mock.calls[0][0];
+    expect(sql.text).toContain('"completedAt" = CURRENT_TIMESTAMP');
+    // [reached JSON, formId, sessionKey]
+    expect(sql.values).toEqual([JSON.stringify(["q-name"]), "form-1", "session-abc"]);
   });
 
   it("без sessionKey - НЕ чіпає ResponseAttempt взагалі", async () => {
@@ -167,6 +168,6 @@ describe("submitResponse", () => {
 
     await submitResponse(SHARE_ID, { "q-name": "Олександр" });
 
-    expect(prisma.responseAttempt.updateMany).not.toHaveBeenCalled();
+    expect(prisma.$executeRaw).not.toHaveBeenCalled();
   });
 });

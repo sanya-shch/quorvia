@@ -266,23 +266,31 @@ export const getFormPaths = async (formId: string, userId: string): Promise<Form
 /**
  * Чиста функція агрегації funnel - винесена окремо від getFormFunnel, щоб
  * тестувати без моку Prisma (той самий підхід, що й buildFormPaths).
- * attempts - рядки ResponseAttempt (і завершені, і ні); reachedCount на
- * питання рахується з visibleQuestionIds КОЖНОГО attempt, не з answers -
- * респондент міг побачити питання й ще не встигнути на нього відповісти,
- * і це все одно "досяг" для funnel-цілей.
+ * attempts - рядки ResponseAttempt (і завершені, і ні).
+ *
+ * reachedCount рахується з reachedQuestionIds - питань, які респондент
+ * реально побачив (множина лише росте). visibleQuestionIds тут НЕ годиться:
+ * це "питання, які зараз логічно прохідні", і воно (а) вже містить усі
+ * питання без умови з першого autosave, навіть якщо респондент ще на
+ * першому кроці, та (б) втрачає питання, приховані пізнішою зміною
+ * відповіді. Для рядків, створених до появи reachedQuestionIds, лишається
+ * fallback на visibleQuestionIds (старе, менш точне наближення).
  */
 export const buildFormFunnel = (
   orderedQuestions: { id: string; text: string; order: number }[],
-  attempts: { visibleQuestionIds: unknown; completedAt: Date | null }[],
+  attempts: {
+    reachedQuestionIds?: unknown;
+    visibleQuestionIds: unknown;
+    completedAt: Date | null;
+  }[],
 ): FormFunnelDto => {
   const reachedCount: Record<string, number> = {};
 
   for (const attempt of attempts) {
-    const visibleIds = Array.isArray(attempt.visibleQuestionIds)
-      ? (attempt.visibleQuestionIds as string[])
-      : [];
+    const source = attempt.reachedQuestionIds ?? attempt.visibleQuestionIds;
+    const reachedIds = Array.isArray(source) ? (source as string[]) : [];
 
-    for (const id of visibleIds) {
+    for (const id of reachedIds) {
       reachedCount[id] = (reachedCount[id] || 0) + 1;
     }
   }
@@ -316,7 +324,7 @@ export const getFormFunnel = async (formId: string, userId: string): Promise<For
 
   const attempts = await prisma.responseAttempt.findMany({
     where: { formId },
-    select: { visibleQuestionIds: true, completedAt: true },
+    select: { reachedQuestionIds: true, visibleQuestionIds: true, completedAt: true },
   });
 
   const orderedQuestions = [...form.questions].sort((a, b) => a.order - b.order);

@@ -47,7 +47,7 @@ Exceeding a limit returns `429 RATE_LIMITED`. Limits are per IP unless noted (in
 | Method | Path | Description |
 | --- | --- | --- |
 | GET | `/forms/public/:shareId` | Published form for respondents (`404 FORM_NOT_AVAILABLE` otherwise). |
-| PUT | `/forms/:shareId/attempt` | Autosave progress. Body: `{ sessionKey, answers }`. |
+| PUT | `/forms/:shareId/attempt` | Autosave progress. Body: `{ sessionKey, answers, reachedQuestionIds? }` (`reachedQuestionIds` - ids of questions actually shown; merged server-side, never shrinks). |
 | POST | `/forms/:shareId/responses` | Submit. Body: `{ answers, sessionKey? }`. The server recomputes visible questions, validates answers and drops answers to hidden questions. |
 
 `answers` limits: at most 500 keys; strings up to 10,000 chars; arrays up to 200 items.

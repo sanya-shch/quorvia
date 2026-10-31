@@ -32,7 +32,27 @@ describe("PUT /api/public-forms/:shareId/attempt", () => {
       .send({ sessionKey: "session-abc", answers: { "q-1": "ok" } });
 
     expect(res.status).toBe(200);
-    expect(saveAttempt).toHaveBeenCalledWith("share-1", "session-abc", { "q-1": "ok" });
+    expect(saveAttempt).toHaveBeenCalledWith("share-1", "session-abc", { "q-1": "ok" }, undefined);
+  });
+
+  it("передає reachedQuestionIds від клієнта в сервіс", async () => {
+    (saveAttempt as any).mockResolvedValue({ id: "attempt-1", updatedAt: new Date() });
+
+    const res = await request(app)
+      .put("/api/public-forms/share-1/attempt")
+      .send({ sessionKey: "session-abc", answers: {}, reachedQuestionIds: ["q-1", "q-2"] });
+
+    expect(res.status).toBe(200);
+    expect(saveAttempt).toHaveBeenCalledWith("share-1", "session-abc", {}, ["q-1", "q-2"]);
+  });
+
+  it("400 для reachedQuestionIds неправильного типу", async () => {
+    const res = await request(app)
+      .put("/api/public-forms/share-1/attempt")
+      .send({ sessionKey: "session-abc", answers: {}, reachedQuestionIds: "q-1" });
+
+    expect(res.status).toBe(400);
+    expect(saveAttempt).not.toHaveBeenCalled();
   });
 
   it("порожні answers валідні (autosave до будь-якого вводу)", async () => {

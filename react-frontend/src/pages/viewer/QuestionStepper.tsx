@@ -47,8 +47,6 @@ export default function QuestionStepper({
     return initial;
   });
 
-  useAttemptAutosave(shareId, sessionKey, answers);
-
   const [path, setPath] = useState<Question[]>(() => {
     const first = getNextQuestion(orderedQuestions, {}, -Infinity);
     return first ? [first] : [];
@@ -66,6 +64,22 @@ export default function QuestionStepper({
 
   const isReview = currentIndex >= path.length;
   const current = isReview ? null : path[currentIndex];
+
+  // Питання, які респондент реально побачив на екрані: шлях до поточного
+  // кроку (на review - увесь шлях). Не плутати з "логічно видимими" - у
+  // лінійній формі вони видимі всі одразу, а побачено лише пройдене.
+  // Сервер накопичує цей список (об'єднує з попередніми збереженнями), тож
+  // повернення Назад або зміна гілки не "розвидяють" уже побачене питання.
+  const reachedQuestionIds = useMemo(
+    () =>
+      path
+        .slice(0, isReview ? path.length : currentIndex + 1)
+        .map((q) => q.id)
+        .filter((id): id is string => !!id),
+    [path, currentIndex, isReview],
+  );
+
+  useAttemptAutosave(shareId, sessionKey, answers, reachedQuestionIds);
   const combinedErrors = { ...serverErrors, ...localErrors };
 
   const handleAnswerChange = (questionId: string, value: FormAnswers[string]) => {

@@ -5,6 +5,7 @@ import { ErrorCode } from "@quorvia/shared-types";
 import { Answers } from "./response.types.js";
 import { resolveVisibleQuestionIds, type QuestionLike } from "@quorvia/condition-engine";
 import { toJson } from "../../shared/utils/helpers.js";
+import { buildCompleteAttemptSql } from "../attempt/attempt.sql.js";
 
 export const submitResponse = async (shareId: string, answers: Answers, sessionKey?: string) => {
   const form = await prisma.form.findUnique({
@@ -55,15 +56,17 @@ export const submitResponse = async (shareId: string, answers: Answers, sessionK
   });
 
   if (sessionKey) {
-    // updateMany, не update: якщо autosave жодного разу не спрацював
-    // (наприклад, респондент заповнив і надіслав форму блискавично, до
-    // першого debounced autosave), рядка ResponseAttempt може не бути
-    // взагалі - це не помилка, просто funnel не матиме "проміжного" сліду
-    // цього конкретного проходження, лишень фінальний Response.
-    await prisma.responseAttempt.updateMany({
-      where: { formId: form.id, sessionKey },
-      data: { completedAt: new Date() },
-    });
+    // Рядка ResponseAttempt може не бути взагалі (респондент надіслав форму
+    // блискавично, до першого debounced autosave) - тоді UPDATE просто
+    // нічого не зачепить, це не помилка: funnel не матиме проміжного сліду
+    // цього проходження, лишень фінальний Response.
+    //
+    // Заодно дописуємо до reachedQuestionIds усі видимі питання фінальної
+    // відповіді: респондент, що дійшов до submit, бачив їх усі, навіть якщо
+    // останній autosave (debounce 1.2 с) не встиг спрацювати.
+    await prisma.$executeRaw(
+      buildCompleteAttemptSql(form.id, sessionKey, Array.from(visibleQuestionIds)),
+    );
   }
 
   return response;

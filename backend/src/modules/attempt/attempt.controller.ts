@@ -9,9 +9,9 @@ export const saveAttemptHandler = async (
 ) => {
   try {
     const { shareId } = req.params;
-    const { sessionKey, answers } = req.body;
+    const { sessionKey, answers, reachedQuestionIds } = req.body;
 
-    const result = await saveAttempt(shareId, sessionKey, answers);
+    const result = await saveAttempt(shareId, sessionKey, answers, reachedQuestionIds);
 
     res.json(result);
   } catch (err) {

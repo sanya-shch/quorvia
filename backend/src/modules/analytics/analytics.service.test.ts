@@ -529,6 +529,40 @@ describe("buildFormFunnel", () => {
     ]);
   });
 
+  it("reachedQuestionIds має пріоритет над visibleQuestionIds", () => {
+    // Лінійна форма: усі питання "видимі" з першого autosave, але респондент
+    // дійшов лише до q1 - саме reached показує справжній відвал.
+    const attempts = [
+      { reachedQuestionIds: ["q1"], visibleQuestionIds: ["q1", "q2", "q3"], completedAt: null },
+      { reachedQuestionIds: ["q1", "q2"], visibleQuestionIds: ["q1", "q2", "q3"], completedAt: null },
+    ];
+
+    const result = buildFormFunnel(orderedQuestions, attempts);
+
+    expect(result.nodes.map((n) => n.reachedCount)).toEqual([2, 1, 0]);
+  });
+
+  it("питання, приховане пізнішою зміною відповіді, лишається в funnel (visible його вже втратило)", () => {
+    const attempts = [
+      // Q2 бачили, потім змінили Q1 -> Q2 більше не видиме, але reached його тримає
+      { reachedQuestionIds: ["q1", "q2"], visibleQuestionIds: ["q1"], completedAt: null },
+    ];
+
+    const result = buildFormFunnel(orderedQuestions, attempts);
+
+    expect(result.nodes.find((n) => n.questionId === "q2")?.reachedCount).toBe(1);
+  });
+
+  it("fallback на visibleQuestionIds для рядків без reachedQuestionIds (до міграції)", () => {
+    const attempts = [
+      { reachedQuestionIds: null, visibleQuestionIds: ["q1", "q2"], completedAt: null },
+    ];
+
+    const result = buildFormFunnel(orderedQuestions, attempts);
+
+    expect(result.nodes.map((n) => n.reachedCount)).toEqual([1, 1, 0]);
+  });
+
   it("completionRate = totalCompletions / totalAttempts", () => {
     const attempts = [
       { visibleQuestionIds: ["q1"], completedAt: new Date() },
@@ -582,7 +616,7 @@ describe("getFormFunnel", () => {
 
     expect(prisma.responseAttempt.findMany).toHaveBeenCalledWith({
       where: { formId: FORM_ID },
-      select: { visibleQuestionIds: true, completedAt: true },
+      select: { reachedQuestionIds: true, visibleQuestionIds: true, completedAt: true },
     });
     expect(result.totalAttempts).toBe(1);
     expect(result.totalCompletions).toBe(0);

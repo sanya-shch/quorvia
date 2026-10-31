@@ -37,4 +37,38 @@ describe("saveAttemptSchema", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  describe("reachedQuestionIds", () => {
+    it("необов'язкове поле (старі клієнти та режим ALL_AT_ONCE його не шлють)", () => {
+      expect(saveAttemptSchema.safeParse({ sessionKey: "s", answers: {} }).success).toBe(true);
+    });
+
+    it("приймає масив id", () => {
+      const result = saveAttemptSchema.safeParse({
+        sessionKey: "s",
+        answers: {},
+        reachedQuestionIds: ["q-1", "q-2"],
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it("відхиляє більше 200 id (стеля, як і для питань у формі)", () => {
+      const result = saveAttemptSchema.safeParse({
+        sessionKey: "s",
+        answers: {},
+        reachedQuestionIds: Array.from({ length: 201 }, (_, i) => `q-${i}`),
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("відхиляє id довше 100 символів і не-рядки", () => {
+      expect(
+        saveAttemptSchema.safeParse({ sessionKey: "s", answers: {}, reachedQuestionIds: ["x".repeat(101)] })
+          .success,
+      ).toBe(false);
+      expect(
+        saveAttemptSchema.safeParse({ sessionKey: "s", answers: {}, reachedQuestionIds: [1] }).success,
+      ).toBe(false);
+    });
+  });
 });

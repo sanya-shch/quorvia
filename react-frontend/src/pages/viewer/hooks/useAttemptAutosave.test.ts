@@ -34,7 +34,7 @@ describe("useAttemptAutosave", () => {
       vi.advanceTimersByTime(1200);
     });
 
-    expect(mockedSaveFormAttempt).toHaveBeenCalledWith("share-1", "session-1", {});
+    expect(mockedSaveFormAttempt).toHaveBeenCalledWith("share-1", "session-1", {}, undefined);
   });
 
   it("не викликає saveFormAttempt взагалі, якщо shareId не передано", () => {
@@ -70,7 +70,7 @@ describe("useAttemptAutosave", () => {
     });
 
     expect(mockedSaveFormAttempt).toHaveBeenCalledTimes(1);
-    expect(mockedSaveFormAttempt).toHaveBeenCalledWith("share-1", "session-1", { q1: "абв" });
+    expect(mockedSaveFormAttempt).toHaveBeenCalledWith("share-1", "session-1", { q1: "абв" }, undefined);
   });
 
   it("не дублює запит, якщо answers не змінились між рендерами", () => {
@@ -118,5 +118,54 @@ describe("useAttemptAutosave", () => {
     });
 
     expect(mockedSaveFormAttempt).toHaveBeenCalled();
+  });
+
+  it("передає reachedQuestionIds четвертим аргументом", () => {
+    renderHook(() => useAttemptAutosave("share-1", "session-1", {}, ["q1", "q2"]));
+
+    act(() => {
+      vi.advanceTimersByTime(1200);
+    });
+
+    expect(mockedSaveFormAttempt).toHaveBeenCalledWith("share-1", "session-1", {}, ["q1", "q2"]);
+  });
+
+  it("зміна reachedQuestionIds БЕЗ зміни answers теж запускає збереження", () => {
+    const answers = { q1: "x" };
+    const { rerender } = renderHook(
+      ({ reached }) => useAttemptAutosave("share-1", "session-1", answers, reached),
+      { initialProps: { reached: ["q1"] } },
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(1200);
+    });
+    expect(mockedSaveFormAttempt).toHaveBeenCalledTimes(1);
+
+    rerender({ reached: ["q1", "q2"] });
+    act(() => {
+      vi.advanceTimersByTime(1200);
+    });
+
+    expect(mockedSaveFormAttempt).toHaveBeenCalledTimes(2);
+    expect(mockedSaveFormAttempt).toHaveBeenLastCalledWith("share-1", "session-1", answers, ["q1", "q2"]);
+  });
+
+  it("новий масив з тим самим вмістом НЕ запускає зайвого збереження", () => {
+    const answers = { q1: "x" };
+    const { rerender } = renderHook(
+      ({ reached }) => useAttemptAutosave("share-1", "session-1", answers, reached),
+      { initialProps: { reached: ["q1"] } },
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(1200);
+    });
+    rerender({ reached: ["q1"] });
+    act(() => {
+      vi.advanceTimersByTime(1200);
+    });
+
+    expect(mockedSaveFormAttempt).toHaveBeenCalledTimes(1);
   });
 });

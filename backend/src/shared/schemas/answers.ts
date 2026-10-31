@@ -12,6 +12,7 @@ export const MAX_ANSWER_KEYS = 500;
 export const MAX_ANSWER_STRING_LENGTH = 10_000;
 export const MAX_ANSWER_ARRAY_ITEMS = 200;
 export const MAX_SESSION_KEY_LENGTH = 100;
+export const MAX_REACHED_QUESTION_IDS = 200;
 
 const answerValueSchema = z.union([
   z.string().max(MAX_ANSWER_STRING_LENGTH),

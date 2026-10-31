@@ -482,7 +482,7 @@ Response
 Completed submission
 ```
 
-`ResponseAttempt` stores the questions that were visible during the session.
+`ResponseAttempt` stores the questions the respondent actually **reached** during the session.
 
 This allows analytics to answer:
 
@@ -497,7 +497,7 @@ instead of only:
 ```
 ResponseAttempt
       │
-      ├── visibleQuestionIds
+      ├── reachedQuestionIds
       └── completedAt
               │
               ▼
@@ -509,9 +509,16 @@ ResponseAttempt
               └── reached count per question
 ```
 
-An attempt is considered to have reached a question if that question appears in its `visibleQuestionIds`.
+An attempt is considered to have reached a question if that question appears in its `reachedQuestionIds`.
 
-This means conditional branching is naturally reflected in the funnel.
+`reached` is deliberately **not** the same as `visible`:
+
+- **visible** (`visibleQuestionIds`) - the question is logically eligible to be shown right now, given the current answers. Every question without a condition is visible from the very first autosave, even if the respondent is still on step one.
+- **reached** (`reachedQuestionIds`) - the respondent really saw the question at least once. It is a grow-only set: if a respondent answers Q1 = Yes, sees Q2, then goes back and changes Q1 to No, Q2 is hidden again but stays reached.
+
+In step-by-step mode the client sends the exact list of questions it displayed; in all-at-once mode every currently visible question is on screen, so the server uses the visible set. Unknown ids are discarded. The set is merged with the stored value atomically in one SQL statement (`INSERT ... ON CONFLICT DO UPDATE` with a `jsonb` union), so out-of-order or parallel autosave requests cannot shrink it. Submitting the form also adds every question of the final response to the attempt. The list comes from the client, so a tampered request can only skew the funnel of the respondent's own form, like a forged submission would.
+
+Attempts created before `reachedQuestionIds` existed fall back to `visibleQuestionIds` until they are saved again.
 
 ### Analytics Model
 
@@ -639,7 +646,7 @@ sequenceDiagram
 flowchart TD
     Attempts["Response Attempts"]
     Responses["Completed Responses"]
-    Visibility["visibleQuestionIds"]
+    Visibility["reachedQuestionIds"]
     Funnel["Funnel calculation"]
     Paths["Branch / Path analysis"]
     Dashboard["Analytics UI"]

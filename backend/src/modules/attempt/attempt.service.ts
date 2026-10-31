@@ -1,9 +1,10 @@
+import { randomUUID } from "node:crypto";
 import { prisma } from "../../prisma/prisma.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
 import { ErrorCode } from "@quorvia/shared-types";
 import { Answers } from "../response/response.types.js";
 import { resolveVisibleQuestionIds, type QuestionLike } from "@quorvia/condition-engine";
-import { toJson } from "../../shared/utils/helpers.js";
+import { buildUpsertAttemptSql } from "./attempt.sql.js";
 
 /**
  * Зберігає "чернетку" проходження - на відміну від submitResponse, НЕ
@@ -17,10 +18,49 @@ import { toJson } from "../../shared/utils/helpers.js";
  * upsert по (formId, sessionKey) - повторні autosave-виклики того самого
  * проходження оновлюють один рядок, а не плодять нові на кожен keystroke.
  */
+/**
+ * Яка підмножина питань вважається "досягнутою" цим збереженням.
+ *
+ * Клієнт у покроковому режимі шле точний список показаних питань; режим
+ * "все на одній сторінці" нічого не шле, і тоді показані = зараз видимі.
+ * Id, яких немає у формі, відкидаються - клієнту не можна довіряти
+ * довільні значення, а чужі/вигадані id зіпсували б funnel.
+ *
+ * Це НЕ перевіряється проти умов (питання могло стати прихованим саме
+ * тому, що респондент змінив попередню відповідь - це й є кейс, заради
+ * якого reached відокремлено від visible). Підробка клієнтом лише
+ * спотворить funnel його ж власної форми, як і підроблені відповіді.
+ */
+export const resolveReachedQuestionIds = (
+  formQuestionIds: ReadonlySet<string>,
+  visibleQuestionIds: ReadonlySet<string>,
+  clientReached: readonly string[] | undefined,
+): string[] => {
+  const source = clientReached ?? Array.from(visibleQuestionIds);
+
+  return Array.from(new Set(source.filter((id) => formQuestionIds.has(id))));
+};
+
+/**
+ * Зберігає "чернетку" проходження - на відміну від submitResponse, НЕ
+ * валідує required-поля чи повноту: респондент, що заповнив половину
+ * форми, - це нормальний, очікуваний стан для autosave, а не помилка.
+ * Єдине, що робить сервер тут (як і в submitResponse) - перераховує
+ * видимість на сирих відповідях і вирізає значення для прихованих умовою
+ * питань, щоб funnel-дані лишались чесними навіть при застарілому
+ * клієнтському стані.
+ *
+ * Один рядок на (formId, sessionKey): повторні autosave-виклики
+ * оновлюють його, а не плодять нові на кожен keystroke. reachedQuestionIds
+ * при цьому не перезаписується, а об'єднується зі збереженим значенням
+ * в одному SQL-виразі (attempt.sql.ts), тому порядок запитів на нього не
+ * впливає.
+ */
 export const saveAttempt = async (
   shareId: string,
   sessionKey: string,
   answers: Answers,
+  reachedQuestionIds?: string[],
 ): Promise<{ id: string; updatedAt: Date }> => {
   const form = await prisma.form.findUnique({
     where: { shareId },
@@ -44,22 +84,22 @@ export const saveAttempt = async (
     Object.entries(answers).filter(([questionId]) => visibleQuestionIds.has(questionId)),
   ) as Answers;
 
-  const attempt = await prisma.responseAttempt.upsert({
-    where: { formId_sessionKey: { formId: form.id, sessionKey } },
-    create: {
+  const reached = resolveReachedQuestionIds(
+    new Set(form.questions.map((q) => q.id)),
+    visibleQuestionIds,
+    reachedQuestionIds,
+  );
+
+  const [attempt] = await prisma.$queryRaw<{ id: string; updatedAt: Date }[]>(
+    buildUpsertAttemptSql({
+      id: randomUUID(),
       formId: form.id,
       sessionKey,
-      answers: toJson(cleanedAnswers),
-      visibleQuestionIds: toJson(Array.from(visibleQuestionIds)),
-    },
-    update: {
-      answers: toJson(cleanedAnswers),
-      visibleQuestionIds: toJson(Array.from(visibleQuestionIds)),
-      // updatedAt має @updatedAt в схемі - Prisma оновить сама, явно не
-      // задаємо, щоб не розійтись із behaviour @updatedAt при майбутніх
-      // змінах.
-    },
-  });
+      answers: cleanedAnswers,
+      visibleQuestionIds: Array.from(visibleQuestionIds),
+      reachedQuestionIds: reached,
+    }),
+  );
 
   return { id: attempt.id, updatedAt: attempt.updatedAt };
 };
