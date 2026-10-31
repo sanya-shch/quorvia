@@ -162,16 +162,30 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
   const incomingIds = new Set(withResolvedIds.map((q) => q.id));
   const toDelete = existingQuestions.filter((q) => !incomingIds.has(q.id)).map((q) => q.id);
 
+  // Версія, відносно якої клієнт редагував (або, якщо не передав, та, що ми
+  // прочитали вище). Усе, що вище прочитано й провалідовано, істинне лише
+  // для цієї версії - тому перевірка й інкремент іде ПЕРШОЮ дією транзакції.
+  const expectedVersion = data.version ?? form.version;
+
   return prisma.$transaction(async (tx) => {
-    await tx.form.update({
-      where: { id: formId },
+    // Умовний UPDATE ... WHERE version = N атомарний: рядок блокується до кінця
+    // транзакції, а конкурентний запит з тим самим N після нашого commit
+    // побачить уже N+1, не знайде рядка (count = 0) і отримає 409. Усі зміни
+    // питань нижче тому виконуються тільки над тим станом, який ми читали.
+    const { count } = await tx.form.updateMany({
+      where: { id: formId, version: expectedVersion },
       data: {
         title: data.title,
         description: data.description,
         responseMode: data.responseMode,
         updatedAt: new Date(),
+        version: { increment: 1 },
       },
     });
+
+    if (count === 0) {
+      throw new AppError(ErrorCode.FORM_VERSION_CONFLICT, 409);
+    }
 
     if (toDelete.length) {
       await tx.question.deleteMany({
@@ -215,7 +229,7 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
       });
     }
 
-    return { success: true };
+    return { success: true, version: expectedVersion + 1 };
   });
 };
 

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useFormBuilder } from "./hooks/useFormBuilder";
-import { type QuestionType } from "../../types/formBuilder";
+import { type AdminForm, type QuestionType } from "../../types/formBuilder";
 import { formsApi } from "../../api/forms";
 
 import Sidebar from "./components/Sidebar";
@@ -19,11 +19,17 @@ import BooleanConfigEditor from "./components/editors/BooleanConfigEditor";
 import ConditionEditor from "./components/editors/ConditionEditor";
 import { calendarIcon } from "../../components/ui/icons";
 import { ErrorInfo } from "../../components/ui/ErrorInfo";
+import { getApiErrorCode } from "../../i18n/errorCodes";
 
 export default function FormBuilder() {
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
+  // Версія форми, яку редактор зараз тримає (optimistic lock). Зберігається
+  // поза станом форми: її зміна не повинна позначати форму "брудною" чи
+  // перерисовувати редактор.
+  const versionRef = useRef<number | undefined>(undefined);
   const { t } = useTranslation();
 
   const {
@@ -68,23 +74,37 @@ export default function FormBuilder() {
     }
   };
 
-  const { data: serverForm, isLoading } = useQuery({
+  const {
+    data: serverForm,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["formAdmin", formId],
     queryFn: () => formsApi.getAdminForm(formId!),
     enabled: !!formId,
+    // Редактор не повинен тихо замінювати незбережені правки даними з сервера
+    // при поверненні на вкладку; актуальну версію користувач завантажує
+    // свідомо (діалог конфлікту).
+    refetchOnWindowFocus: false,
   });
 
-  useEffect(() => {
-    if (serverForm) {
+  const applyServerForm = useCallback(
+    (server: AdminForm) => {
       setForm({
-        title: serverForm.title,
-        description: serverForm.description || "",
-        responseMode: serverForm.responseMode || "ALL_AT_ONCE",
-        questions: serverForm.questions || [],
+        title: server.title,
+        description: server.description || "",
+        responseMode: server.responseMode || "ALL_AT_ONCE",
+        questions: server.questions || [],
       });
+      versionRef.current = server.version;
       resetDirty();
-    }
-  }, [serverForm, setForm, resetDirty]);
+    },
+    [setForm, resetDirty],
+  );
+
+  useEffect(() => {
+    if (serverForm) applyServerForm(serverForm);
+  }, [serverForm, applyServerForm]);
 
   const saveMutation = useMutation({
     mutationFn: () => {
@@ -105,16 +125,28 @@ export default function FormBuilder() {
         description: form.description,
         responseMode: form.responseMode,
         questions: normalizedQuestions,
+        version: versionRef.current,
       });
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      versionRef.current = result.version;
       resetDirty();
       alert(t("builder.saveSuccess"));
     },
-    onError: () => {
+    onError: (error) => {
+      if (getApiErrorCode(error) === "FORM_VERSION_CONFLICT") {
+        setIsConflictModalOpen(true);
+        return;
+      }
       alert(t("builder.saveError"));
     },
   });
+
+  const handleLoadLatestAfterConflict = async () => {
+    setIsConflictModalOpen(false);
+    const { data } = await refetch();
+    if (data) applyServerForm(data);
+  };
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -444,6 +476,16 @@ export default function FormBuilder() {
             </Droppable>
           </main>
         </div>
+
+        <ConfirmModal
+          isOpen={isConflictModalOpen}
+          title={t("builder.conflictModal.title")}
+          description={t("builder.conflictModal.description")}
+          confirmLabel={t("builder.conflictModal.confirm")}
+          cancelLabel={t("builder.conflictModal.cancel")}
+          onCancel={() => setIsConflictModalOpen(false)}
+          onConfirm={handleLoadLatestAfterConflict}
+        />
 
         <ConfirmModal
           isOpen={isLeaveModalOpen}

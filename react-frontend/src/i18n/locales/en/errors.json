@@ -12,6 +12,7 @@
   "FORM_NOT_AVAILABLE": "This form is not available",
   "FORM_NOT_PUBLISHED": "This form isn't published yet",
   "FORM_QUESTION_ID_CONFLICT": "A question ID conflicts with another form. Reload the page and try again",
+  "FORM_VERSION_CONFLICT": "The form was changed elsewhere. Load the latest version and reapply your changes",
   "FORM_INVALID_CONDITIONS": "Invalid question display conditions",
 
   "EXPORT_JOB_NOT_FOUND": "Export job not found",

@@ -8,22 +8,9 @@ import type { Prisma } from "@prisma/client";
  * порційний (keyset) обхід дає той самий результат, що й читання одним
  * запитом, у тому числі коли в багатьох рядків однаковий createdAt.
  */
-vi.mock("../../prisma/prisma.js", async () => {
-  const { PGlite } = await import("@electric-sql/pglite");
-  const { PrismaPGlite } = await import("pglite-prisma-adapter");
-  const { PrismaClient } = await import("@prisma/client");
-  const { readdirSync, readFileSync, existsSync } = await import("node:fs");
-  const { join } = await import("node:path");
-
-  const pg = new PGlite();
-  const dir = join(import.meta.dirname, "../../../prisma/migrations");
-  for (const name of readdirSync(dir).sort()) {
-    const file = join(dir, name, "migration.sql");
-    if (existsSync(file)) await pg.exec(readFileSync(file, "utf8"));
-  }
-
-  return { prisma: new PrismaClient({ adapter: new PrismaPGlite(pg) }) };
-});
+vi.mock("../../prisma/prisma.js", async () =>
+  (await import("../../test/createTestPrisma.js")).createTestPrisma(),
+);
 
 const { prisma } = await import("../../prisma/prisma.js");
 const { analyticsConfig } = await import("./analytics.config.js");

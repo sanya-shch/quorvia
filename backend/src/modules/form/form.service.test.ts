@@ -36,6 +36,7 @@ const mockForm = (overrides: Record<string, unknown> = {}) => ({
   id: FORM_ID,
   userId: OWNER_ID,
   title: "Форма",
+  version: 1,
   ...overrides,
 });
 
@@ -362,7 +363,7 @@ describe("updateForm", () => {
   ];
 
   const setupTransactionMocks = () => {
-    const txForm = { update: vi.fn().mockResolvedValue({}) };
+    const txForm = { updateMany: vi.fn().mockResolvedValue({ count: 1 }) };
     const txQuestion = {
       deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
       update: vi.fn().mockResolvedValue({}),
@@ -441,9 +442,9 @@ describe("updateForm", () => {
       ],
     } as any);
 
-    expect(txForm.update).toHaveBeenCalledWith(
+    expect(txForm.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: FORM_ID },
+        where: { id: FORM_ID, version: 1 },
         data: expect.objectContaining({ title: "Оновлена назва" }),
       }),
     );
@@ -458,7 +459,7 @@ describe("updateForm", () => {
     });
   });
 
-  it("передає responseMode у prisma.form.update, коли він переданий", async () => {
+  it("передає responseMode в оновлення форми, коли він переданий", async () => {
     (prisma.form.findUnique as any).mockResolvedValue(mockForm({ questions: [] }));
     const { txForm } = setupTransactionMocks();
 
@@ -468,7 +469,7 @@ describe("updateForm", () => {
       questions: [],
     } as any);
 
-    expect(txForm.update).toHaveBeenCalledWith(
+    expect(txForm.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ responseMode: "STEP_BY_STEP" }) }),
     );
   });
@@ -479,7 +480,7 @@ describe("updateForm", () => {
 
     await updateForm(FORM_ID, OWNER_ID, { title: "Форма", questions: [] } as any);
 
-    expect(txForm.update).toHaveBeenCalledWith(
+    expect(txForm.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ responseMode: undefined }) }),
     );
   });
@@ -563,6 +564,51 @@ describe("updateForm", () => {
       questions: [],
     } as any);
 
-    expect(result).toEqual({ success: true });
+    expect(result).toEqual({ success: true, version: 2 });
+  });
+
+  describe("optimistic locking (version)", () => {
+    it("умовно оновлює форму за переданою клієнтом версією й збільшує її на 1", async () => {
+      (prisma.form.findUnique as any).mockResolvedValue(mockForm({ version: 5, questions: [] }));
+      const { txForm } = setupTransactionMocks();
+
+      const result = await updateForm(FORM_ID, OWNER_ID, {
+        title: "Форма",
+        questions: [],
+        version: 5,
+      } as any);
+
+      expect(txForm.updateMany).toHaveBeenCalledWith({
+        where: { id: FORM_ID, version: 5 },
+        data: expect.objectContaining({ version: { increment: 1 } }),
+      });
+      expect(result).toEqual({ success: true, version: 6 });
+    });
+
+    it("без version у запиті використовує версію, прочитану на початку (захист від гонки всередині запиту)", async () => {
+      (prisma.form.findUnique as any).mockResolvedValue(mockForm({ version: 7, questions: [] }));
+      const { txForm } = setupTransactionMocks();
+
+      await updateForm(FORM_ID, OWNER_ID, { title: "Форма", questions: [] } as any);
+
+      expect(txForm.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: FORM_ID, version: 7 } }),
+      );
+    });
+
+    it("409 FORM_VERSION_CONFLICT, якщо форму змінили після того, як клієнт її завантажив", async () => {
+      (prisma.form.findUnique as any).mockResolvedValue(mockForm({ version: 6, questions: [] }));
+      const { txForm, txQuestion } = setupTransactionMocks();
+      txForm.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(
+        updateForm(FORM_ID, OWNER_ID, { title: "Форма", questions: [], version: 5 } as any),
+      ).rejects.toMatchObject({ message: ErrorCode.FORM_VERSION_CONFLICT, statusCode: 409 });
+
+      // конфлікт - ПЕРШЕ, що відбувається в транзакції: питання не чіпаються
+      expect(txQuestion.deleteMany).not.toHaveBeenCalled();
+      expect(txQuestion.update).not.toHaveBeenCalled();
+      expect(txQuestion.createMany).not.toHaveBeenCalled();
+    });
   });
 });

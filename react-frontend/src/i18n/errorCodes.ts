@@ -24,12 +24,21 @@ export const translateErrorCode = (t: TFunction, code: string | undefined | null
  */
 export const getApiErrorMessage = (t: TFunction, error: unknown): string => {
   if (axios.isAxiosError(error)) {
-    const code = (error.response?.data as { message?: string } | undefined)?.message;
-    return translateErrorCode(t, code);
+    return translateErrorCode(t, getApiErrorCode(error));
   }
 
   return t("errors.UNKNOWN");
 };
+
+/**
+ * Код помилки API (`message` відповіді) без перекладу - для місць, де від
+ * коду залежить поведінка (напр. FORM_VERSION_CONFLICT відкриває діалог,
+ * а не просто показує текст).
+ */
+export const getApiErrorCode = (error: unknown): string | undefined =>
+  axios.isAxiosError(error)
+    ? (error.response?.data as { message?: string } | undefined)?.message
+    : undefined;
 
 /**
  * Для RESPONSE_VALIDATION_FAILED (backend/src/modules/response/response.service.ts):

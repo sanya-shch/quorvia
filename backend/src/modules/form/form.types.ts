@@ -15,6 +15,7 @@ export type FormDto = {
   shareId: string;
   userId: string;
   responseMode: ResponseMode;
+  version: number;
 };
 
 export type PublicFormDto = {

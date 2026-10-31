@@ -15,6 +15,12 @@
     "stepByStep": "One at a time"
   },
   "emptyState": "Drag an item from the sidebar or use the add buttons to create your first question.",
+  "conflictModal": {
+    "title": "The form was changed elsewhere",
+    "description": "This form has already been saved from another tab or device, so your copy is out of date. Load the latest version? Your unsaved changes will be lost.",
+    "confirm": "Load latest version",
+    "cancel": "Stay"
+  },
   "leaveModal": {
     "title": "You have unsaved changes",
     "description": "Are you sure you want to leave?",

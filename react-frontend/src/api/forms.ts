@@ -1,6 +1,6 @@
 import { api } from "./axios";
 import { type FormSummary } from "../types/form";
-import type { FormState } from "../types/formBuilder";
+import type { AdminForm, UpdateFormPayload, UpdateFormResult } from "../types/formBuilder";
 
 export const formsApi = {
   // GET /api/forms
@@ -42,13 +42,13 @@ export const formsApi = {
   },
 
   // PATCH /api/forms/:formId
-  update: async (formId: string, data: FormState): Promise<void> => {
+  update: async (formId: string, data: UpdateFormPayload): Promise<UpdateFormResult> => {
     const response = await api.patch(`/forms/${formId}`, data);
     return response.data;
   },
 
   // GET /api/forms/:formId/admin
-  getAdminForm: async (formId: string): Promise<FormState> => {
+  getAdminForm: async (formId: string): Promise<AdminForm> => {
     const response = await api.get(`/forms/${formId}/admin`);
     return response.data;
   },

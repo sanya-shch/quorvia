@@ -36,7 +36,7 @@ Exceeding a limit returns `429 RATE_LIMITED`. Limits are per IP unless noted (in
 | GET 🔒 | `/forms` | List own forms. |
 | POST 🔒 | `/forms` | Create a form. Body: `{ title (3-200), description? }`. |
 | GET 🔒 | `/forms/:formId/admin` | Full form with questions. |
-| PATCH 🔒 | `/forms/:formId` | Replace title, description, mode and the whole question list (limits: 200 questions, 100 options per question, 500 chars per text). Text `pattern` must be RE2-compatible. Conditions are validated as a graph (no cycles, only references to earlier questions). |
+| PATCH 🔒 | `/forms/:formId` | Replace title, description, mode and the whole question list (limits: 200 questions, 100 options per question, 500 chars per text). Text `pattern` must be RE2-compatible. Conditions are validated as a graph (no cycles, only references to earlier questions). **Optimistic locking:** send the `version` you loaded (returned by `GET /forms/:formId/admin`); if the form was saved by someone else since, the answer is `409 FORM_VERSION_CONFLICT` and nothing is written. Success returns `{ success: true, version }` with the new version. Without `version` the request is still applied atomically against the version read at its start. |
 | PATCH 🔒 | `/forms/:formId/publish` | Publish. |
 | PATCH 🔒 | `/forms/:formId/unpublish` | Unpublish. |
 | POST 🔒 | `/forms/:formId/duplicate` | Copy (unpublished, `(Copy)` suffix). |

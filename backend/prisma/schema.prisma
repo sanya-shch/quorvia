@@ -57,6 +57,12 @@ model Form {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @default(now())
 
+  // Лічильник для optimistic locking: updateForm збільшує його на 1 і
+  // приймає зміни лише від клієнта, що редагував актуальну версію. Без
+  // цього два відкриті редактори тихо затирали б зміни один одного
+  // (last write wins).
+  version     Int         @default(1)
+
   isPublished Boolean     @default(false)
   shareId     String      @unique @default(uuid())
 

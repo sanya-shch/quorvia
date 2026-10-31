@@ -132,4 +132,9 @@ export const updateFormSchema = z.object({
   description: z.string().max(FORM_LIMITS.description).optional(),
   responseMode: z.enum(["ALL_AT_ONCE", "STEP_BY_STEP"]).optional(),
   questions: z.array(questionSchema).max(FORM_LIMITS.questions),
+  // Версія форми, яку редагував клієнт (optimistic lock). Якщо передана і вже
+  // не збігається з поточною - 409 FORM_VERSION_CONFLICT. Без неї застосовується
+  // версія, прочитана на початку запиту: захищає від гонки всередині самого
+  // запиту, але не від застарілого редактора.
+  version: z.number().int().min(1).optional(),
 });
