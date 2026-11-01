@@ -454,12 +454,31 @@ This is a portfolio project, but it is built to be hardened the way a real surve
 | Supply chain | Dependabot, CodeQL, `pnpm audit` job, least-privilege `GITHUB_TOKEN` in CI |
 | Local infra | Postgres and Redis ports are published on `127.0.0.1` only |
 
+### Data retention
+
+The worker runs maintenance tasks on start and then periodically (all of them idempotent, so several worker instances only duplicate work):
+
+| Task | Interval | What it removes |
+| --- | --- | --- |
+| `token-cleanup` | hourly | Expired or revoked refresh tokens (after a 7-day grace) |
+| `export-cleanup` | daily | Export jobs older than `EXPORT_RETENTION_DAYS` together with their files, plus files in `uploads/exports` that have no database row (for example after a form was deleted - the cascade removes the rows, not the files) |
+| `attempt-cleanup` | daily | **Unfinished** `ResponseAttempt` rows that started more than `ATTEMPT_RETENTION_DAYS` ago |
+
+Design notes:
+
+- Work is done in batches of 500, so neither the id lists nor the deletes grow with the table.
+- Files are removed before their rows. A crash in between leaves a row without a file (downloads answer `410`, the next run removes the row) rather than a file nobody tracks. Stored file names are resolved inside the exports directory and anything that would escape it is ignored.
+- Orphan files are only deleted when older than the retention period, so a file the worker has just written but not yet recorded is never touched. Files whose names do not look like `<job uuid>-<name>` are left alone.
+- **Completed attempts are never deleted**: the funnel needs them. Deleting abandoned attempts does have a visible side effect - they stop counting towards `totalAttempts`, so the completion rate for the old period goes up. Set `ATTEMPT_RETENTION_DAYS=0` if you prefer exact historical numbers over table size. The cut-off uses `startedAt` (immutable, indexed) rather than `updatedAt`, which every autosave changes.
+
 ### Known gaps / deployment notes
 
 - **Rate-limit state is in memory.** With more than one backend instance each one counts separately; use `rate-limit-redis` (Redis is already part of the stack).
 - **Set `TRUST_PROXY`** (for example `1`) when running behind nginx, Render, Railway or similar. Without it every user shares the proxy's IP and therefore one rate limit.
 - **Same-site deployment.** The refresh cookie is `SameSite=Lax`. Serve the frontend and the API from the same site (e.g. `app.example.com` and `api.example.com`); on unrelated domains the browser will not send the cookie and sessions will end after 15 minutes.
 - **HTTP security headers for the frontend.** The CSP in the build is a `<meta>` tag, which cannot express `frame-ancestors`. Prefer sending a CSP header (plus `X-Content-Type-Options`, `Referrer-Policy`) from the static host. Set `VITE_DISABLE_CSP=true` to turn the meta tag off.
+- **Exports live on local disk.** The worker writes files to `uploads/exports` and the API serves them from the same path, so both processes must see the same filesystem (a shared volume when they run in separate containers). Object storage would remove this constraint.
+- **Failure handling in the browser.** A render or lazy-chunk error on any page shows a localized error screen (router `errorElement`) instead of a blank page; if the Vue remote cannot be loaded the analytics page shows a fallback with a reload button (a failed dynamic `import()` is cached by the browser, so reloading is more reliable than retrying in place). Analytics requests that depend on changing input (page, selected response/question) use a *latest wins* guard with `AbortController`, so a slow old response cannot overwrite a newer one.
 - **The Vue remote is trusted code.** It runs inside the React page with access to the in-memory token. Host it under your control and keep `VITE_VUE_ANALYTICS_URL` pointing only to it.
 - **Analytics reads responses in batches, not all at once.** Overview, paths, funnel and per-question analytics walk a form's responses with keyset pagination (2,000 rows per query, ordered by `createdAt, id` and served by the `(formId, createdAt, id)` index) and aggregate incrementally, so memory is bounded by the batch size. Time is still linear in the number of responses, because every request re-scans them; for very large forms the next step is caching with a short TTL or pre-aggregated counters. Free-text questions are capped (top 5 / top 100 values and the first 1,000 raw answers, flagged by `answersTruncated`), and at most 10,000 distinct text values per question are tracked.
 - **Export size limit.** Exports are limited to 20,000 responses because the worker builds files in memory; streaming exporters would remove the limit.
@@ -851,6 +870,8 @@ Backend variables:
 | `PORT` | no | API port, default `5001` |
 | `TRUST_PROXY` | no | Number of reverse proxies in front of the API (`1` for one proxy). Required for correct per-IP rate limiting behind a proxy |
 | `NODE_ENV` | no | `production` enables the stricter checks above and `Secure` cookies |
+| `EXPORT_RETENTION_DAYS` | no | How long finished exports (file + `ExportJob` row) are kept. Default `7`, minimum `1` |
+| `ATTEMPT_RETENTION_DAYS` | no | How long **unfinished** attempts are kept. Default `180`; `0` keeps them forever. See [Data retention](#data-retention) |
 
 The React application can optionally use:
 

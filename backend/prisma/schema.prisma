@@ -160,6 +160,10 @@ model ResponseAttempt {
   completedAt DateTime?
 
   @@unique([formId, sessionKey])
+  // Для cleanup (maintenance.service): видалення покинутих проходжень за startedAt.
+  // Навмисно НЕ updatedAt - він змінюється при кожному autosave, і індекс по ньому
+  // гасив би HOT-оновлення на найгарячішій таблиці.
+  @@index([startedAt])
   // @@index([formId]) прибрано: його повністю покриває унікальний індекс
   // (formId, sessionKey), який також обслуговує keyset-обхід funnel.
 }
@@ -201,4 +205,5 @@ model ExportJob {
 
   @@index([formId])
   @@index([userId])
+  @@index([createdAt])
 }

@@ -22,6 +22,12 @@ const envSchema = z
   // Без цього за проксі req.ip - адреса самого проксі, і rate limit
   // (однаковий для всіх користувачів) спрацьовує на всіх одразу.
   TRUST_PROXY: z.string().optional(),
+  // Скільки днів зберігаються готові експорти (файл + запис ExportJob).
+  EXPORT_RETENTION_DAYS: z.coerce.number().int().min(1).default(7),
+  // Скільки днів зберігаються НЕзавершені проходження (ResponseAttempt).
+  // 0 = не видаляти. Завершені проходження не видаляються ніколи: без них
+  // funnel втратив би завершення (див. README, "Data retention").
+  ATTEMPT_RETENTION_DAYS: z.coerce.number().int().min(0).default(180),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV !== "production") return;

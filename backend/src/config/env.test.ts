@@ -3,7 +3,7 @@ import { parseTrustProxy, validateEnv } from "./env.js";
 
 const withEnv = (vars: Record<string, string | undefined>, fn: () => void) => {
   const saved = { ...process.env };
-  for (const key of ["NODE_ENV", "JWT_SECRET", "DATABASE_URL", "CORS_ORIGIN", "TRUST_PROXY"]) {
+  for (const key of ["NODE_ENV", "JWT_SECRET", "DATABASE_URL", "CORS_ORIGIN", "TRUST_PROXY", "EXPORT_RETENTION_DAYS", "ATTEMPT_RETENTION_DAYS"]) {
     delete process.env[key];
   }
   Object.assign(process.env, vars);
@@ -58,5 +58,44 @@ describe("parseTrustProxy", () => {
     ["loopback", "loopback"],
   ])("%j -> %j", (input, expected) => {
     expect(parseTrustProxy(input as string | undefined)).toBe(expected);
+  });
+});
+
+describe("validateEnv - retention", () => {
+  it("за замовчуванням: експорти 7 днів, незавершені проходження 180 днів", () => {
+    withEnv(base, () => {
+      const env = validateEnv();
+      expect(env.EXPORT_RETENTION_DAYS).toBe(7);
+      expect(env.ATTEMPT_RETENTION_DAYS).toBe(180);
+    });
+  });
+
+  it("читає значення зі змінних середовища (рядки -> числа)", () => {
+    withEnv({ ...base, EXPORT_RETENTION_DAYS: "30", ATTEMPT_RETENTION_DAYS: "365" }, () => {
+      const env = validateEnv();
+      expect(env.EXPORT_RETENTION_DAYS).toBe(30);
+      expect(env.ATTEMPT_RETENTION_DAYS).toBe(365);
+    });
+  });
+
+  it("ATTEMPT_RETENTION_DAYS=0 дозволено - це \"не видаляти\"", () => {
+    withEnv({ ...base, ATTEMPT_RETENTION_DAYS: "0" }, () =>
+      expect(validateEnv().ATTEMPT_RETENTION_DAYS).toBe(0),
+    );
+  });
+
+  it("EXPORT_RETENTION_DAYS=0 відхиляється (негайне видалення зламало б завантаження)", () => {
+    withEnv({ ...base, EXPORT_RETENTION_DAYS: "0" }, () =>
+      expect(() => validateEnv()).toThrow(/EXPORT_RETENTION_DAYS/),
+    );
+  });
+
+  it("відхиляє від'ємні й нечислові значення", () => {
+    withEnv({ ...base, ATTEMPT_RETENTION_DAYS: "-5" }, () =>
+      expect(() => validateEnv()).toThrow(/ATTEMPT_RETENTION_DAYS/),
+    );
+    withEnv({ ...base, EXPORT_RETENTION_DAYS: "soon" }, () =>
+      expect(() => validateEnv()).toThrow(/EXPORT_RETENTION_DAYS/),
+    );
   });
 });

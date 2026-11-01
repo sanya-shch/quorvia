@@ -1,9 +1,9 @@
-import path from "node:path";
 import fs from "node:fs/promises";
 import { prisma } from "../../prisma/prisma.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
 import { ErrorCode } from "@quorvia/shared-types";
 import { exportQueue } from "./export.queue.js";
+import { EXPORTS_DIR, resolveExportPath } from "./export.paths.js";
 import { ExportJobDto, ExportQueueJobData } from "./export.types.js";
 import { ExportFormat } from "@prisma/client";
 
@@ -17,7 +17,8 @@ import { ExportFormat } from "@prisma/client";
 export const MAX_ACTIVE_EXPORTS_PER_USER = 3;
 const ACTIVE_JOB_WINDOW_MS = 15 * 60 * 1000;
 
-export const EXPORTS_DIR = path.join(process.cwd(), "uploads", "exports");
+// Реекспорт: воркер і тести імпортують EXPORTS_DIR звідси.
+export { EXPORTS_DIR };
 
 const toDto = (job: {
   id: string;
@@ -130,7 +131,11 @@ export const getExportFileForDownload = async (formId: string, userId: string, j
     throw new AppError(ErrorCode.EXPORT_NOT_READY, 409);
   }
 
-  const absolutePath = path.join(EXPORTS_DIR, job.filePath);
+  const absolutePath = resolveExportPath(job.filePath);
+
+  if (!absolutePath) {
+    throw new AppError(ErrorCode.EXPORT_FILE_MISSING, 410);
+  }
 
   try {
     await fs.access(absolutePath);

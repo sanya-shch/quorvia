@@ -252,6 +252,19 @@ describe("getExportFileForDownload", () => {
     expect(result.fileName).toBe("form-responses.csv");
     expect(result.absolutePath).toContain("job-1-file.csv");
   });
+
+  it("410, якщо збережений filePath виходить за межі каталогу експортів (path traversal)", async () => {
+    (prisma.form.findUnique as any).mockResolvedValue(mockForm());
+    (prisma.exportJob.findUnique as any).mockResolvedValue({
+      ...completedJob,
+      filePath: "../../etc/passwd",
+    });
+
+    await expect(getExportFileForDownload(FORM_ID, OWNER_ID, "job-1")).rejects.toMatchObject({
+      statusCode: 410,
+    });
+    expect(fs.access).not.toHaveBeenCalled();
+  });
 });
 
 describe("AppError sanity", () => {
