@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Question } from "../../shared/types/questions.js";
-import { ErrorCode } from "@quorvia/shared-types";
+import { assertNever, ErrorCode } from "@quorvia/shared-types";
 import { compileSafePattern } from "../../shared/utils/safeRegex.js";
 import { MAX_ANSWER_STRING_LENGTH } from "../../shared/schemas/answers.js";
 
@@ -99,7 +99,7 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
       }
 
       default:
-        throw new Error(`Unsupported question type: ${q.type}`);
+        return assertNever(q.type, "question type");
     }
 
     const isVisible = !visibleQuestionIds || visibleQuestionIds.has(q.id);

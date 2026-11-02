@@ -1,6 +1,6 @@
 import { type Question } from "../../types/formBuilder";
 import { type AnswerValue } from "../../types/formViewer";
-import { ErrorCode } from "@quorvia/shared-types";
+import { assertNever, ErrorCode } from "@quorvia/shared-types";
 
 /**
  * Результат валідації - НЕ готовий текст, а ключ перекладу i18next (+
@@ -81,15 +81,22 @@ export const validateField = (q: Question, value: AnswerValue): FieldValidationE
 };
 
 export const getDefaultAnswer = (q: Question): AnswerValue => {
-  if (q.type === "BOOLEAN") return q.config?.defaultValue ?? false;
-  if (q.type === "CHOICE_SINGLE") {
-    const defaultOpt = q.options?.find((o) => o.isDefault);
-    return defaultOpt ? defaultOpt.id : "";
+  switch (q.type) {
+    case "BOOLEAN":
+      return q.config?.defaultValue ?? false;
+    case "CHOICE_SINGLE": {
+      const defaultOpt = q.options?.find((o) => o.isDefault);
+      return defaultOpt ? defaultOpt.id : "";
+    }
+    case "CHOICE_MULTI":
+      return q.options?.filter((o) => o.isDefault).map((o) => o.id) || [];
+    case "TEXT":
+    case "NUMBER":
+    case "DATE":
+      return "";
+    default:
+      return assertNever(q.type, "question type");
   }
-  if (q.type === "CHOICE_MULTI") {
-    return q.options?.filter((o) => o.isDefault).map((o) => o.id) || [];
-  }
-  return "";
 };
 
 /** Валідує набір питань (типово - лише видимі) і повертає мапу помилок questionId -> ключ перекладу. */

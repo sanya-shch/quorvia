@@ -181,7 +181,7 @@ describe("buildResponseSchema — visibleQuestionIds (умовна логіка)
 describe("buildResponseSchema — загальне", () => {
   it("кидає для непідтримуваного типу питання", () => {
     expect(() => buildResponseSchema([makeQuestion({ type: "UNKNOWN" as any })])).toThrow(
-      /Unsupported question type/,
+      /Unhandled question type/,
     );
   });
 

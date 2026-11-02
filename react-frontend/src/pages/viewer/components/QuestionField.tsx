@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { assertNever } from "@quorvia/shared-types";
 import { type Question } from "../../../types/formBuilder";
 import { type AnswerValue } from "../../../types/formViewer";
 
@@ -274,5 +275,7 @@ export default function QuestionField({
     );
   }
 
-  return null;
+  // Усі типи питань оброблені вище: тут question.type має звузитись до never.
+  // Новий тип у QUESTION_TYPES без власної гілки зламає компіляцію.
+  return assertNever(question.type, "question type");
 }

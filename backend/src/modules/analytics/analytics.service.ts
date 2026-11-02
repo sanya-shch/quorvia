@@ -1,6 +1,6 @@
 import { prisma } from "../../prisma/prisma.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
-import { ErrorCode } from "@quorvia/shared-types";
+import { assertNever, ErrorCode, type QuestionType } from "@quorvia/shared-types";
 import { Answers } from "../response/response.types.js";
 import { paginate } from "../../shared/utils/paginate.js";
 import { analyticsConfig } from "./analytics.config.js";
@@ -76,7 +76,7 @@ const attemptBatches = (formId: string) =>
   );
 
 type QuestionAccumulator = {
-  type: string;
+  type: QuestionType;
   shownCount: number;
   answeredCount: number;
   textCounts?: Map<string, number>;
@@ -164,6 +164,8 @@ export const getFormAnalytics = async (
         } else if (acc.type === "BOOLEAN") {
           if (value === true) acc.trueCount++;
           else if (value === false) acc.falseCount++;
+        } else {
+          assertNever(acc.type, "question type");
         }
       }
     }
@@ -232,6 +234,8 @@ export const getFormAnalytics = async (
         falseCount: acc.falseCount,
         ...visibility,
       });
+    } else {
+      assertNever(q.type, "question type");
     }
   }
 
@@ -403,6 +407,20 @@ export const getFormFunnel = async (formId: string, userId: string): Promise<For
   return acc.result();
 };
 
+/**
+ * Record<QuestionType, ...>, а не масив рядків: додаючи тип питання, не
+ * вийде забути вирішити, чи підтримує він детальну аналітику (TypeScript
+ * вимагатиме ключ). false -> 400 ANALYTICS_UNSUPPORTED_TYPE.
+ */
+const DETAIL_ANALYTICS_SUPPORT: Record<QuestionType, boolean> = {
+  TEXT: true,
+  DATE: true,
+  NUMBER: true,
+  CHOICE_SINGLE: true,
+  CHOICE_MULTI: true,
+  BOOLEAN: true,
+};
+
 export const getQuestionAnalytics = async (
   formId: string,
   questionId: string,
@@ -420,7 +438,7 @@ export const getQuestionAnalytics = async (
 
   if (!question) throw new AppError(ErrorCode.ANALYTICS_QUESTION_NOT_FOUND, 404);
 
-  if (!["TEXT", "DATE", "NUMBER", "CHOICE_SINGLE", "CHOICE_MULTI", "BOOLEAN"].includes(question.type)) {
+  if (!DETAIL_ANALYTICS_SUPPORT[question.type]) {
     throw new AppError(ErrorCode.ANALYTICS_UNSUPPORTED_TYPE, 400);
   }
 
@@ -476,6 +494,8 @@ export const getQuestionAnalytics = async (
           if (value === true) trueCount++;
           else if (value === false) falseCount++;
           break;
+        default:
+          assertNever(question.type, "question type");
       }
     }
   }
@@ -529,12 +549,16 @@ export const getQuestionAnalytics = async (
     };
   }
 
-  return {
-    question: { ...base, type: "BOOLEAN" },
-    totalAnswers,
-    trueCount,
-    falseCount,
-  };
+  if (question.type === "BOOLEAN") {
+    return {
+      question: { ...base, type: "BOOLEAN" },
+      totalAnswers,
+      trueCount,
+      falseCount,
+    };
+  }
+
+  return assertNever(question.type, "question type");
 };
 
 export const getResponses = async (
@@ -623,8 +647,10 @@ export const getResponseById = async (
       });
     } else if (q.type === "BOOLEAN") {
       displayValue = userValue === true ? "Так" : "Ні";
-    } else {
+    } else if (q.type === "TEXT" || q.type === "DATE" || q.type === "NUMBER") {
       displayValue = typeof userValue === "boolean" ? String(userValue) : userValue;
+    } else {
+      assertNever(q.type, "question type");
     }
 
     enrichedAnswers.push({

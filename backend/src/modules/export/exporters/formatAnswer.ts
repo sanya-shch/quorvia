@@ -1,4 +1,5 @@
 import { Question } from "@prisma/client";
+import { assertNever } from "@quorvia/shared-types";
 
 export type AnswerValue = string | number | boolean | string[] | null | undefined;
 
@@ -15,14 +16,22 @@ export const formatAnswer = (question: Question, value: AnswerValue): string => 
     return "";
   }
 
-  if (question.type === "BOOLEAN") {
-    return value ? "Так" : "Ні";
-  }
-
-  if (question.type === "CHOICE_SINGLE" || question.type === "CHOICE_MULTI") {
-    const labels = optionLabelsById(question);
-    const ids = Array.isArray(value) ? value : [value as string];
-    return ids.map((id) => labels[id] ?? String(id)).join("; ");
+  switch (question.type) {
+    case "BOOLEAN":
+      return value ? "Так" : "Ні";
+    case "CHOICE_SINGLE":
+    case "CHOICE_MULTI": {
+      const labels = optionLabelsById(question);
+      const ids = Array.isArray(value) ? value : [value as string];
+      return ids.map((id) => labels[id] ?? String(id)).join("; ");
+    }
+    case "TEXT":
+    case "DATE":
+    case "NUMBER":
+      // Загальне форматування нижче.
+      break;
+    default:
+      return assertNever(question.type, "question type");
   }
 
   if (Array.isArray(value)) {

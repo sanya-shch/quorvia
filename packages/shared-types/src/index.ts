@@ -71,6 +71,54 @@ export const DEFAULT_LOCALE: SupportedLocale = "en";
 
 export type ResponseMode = "ALL_AT_ONCE" | "STEP_BY_STEP";
 
+/**
+ * Єдине джерело правди про типи питань. Prisma-enum `QuestionType`
+ * (backend/prisma/schema.prisma) має збігатися з цим списком - це
+ * перевіряється на етапі компіляції (backend/src/shared/types/questions.check.ts).
+ * Додаючи тип: оновіть цей список, і TypeScript підсвітить усі місця, де
+ * `switch`/ланцюжок `if` за типом став неповним (див. assertNever).
+ */
+export const QUESTION_TYPES = [
+  "TEXT",
+  "CHOICE_SINGLE",
+  "CHOICE_MULTI",
+  "BOOLEAN",
+  "DATE",
+  "NUMBER",
+] as const;
+
+export type QuestionType = (typeof QUESTION_TYPES)[number];
+
+export type QuestionDisplayVariant = "list" | "tabs" | "dropdown";
+
+export interface QuestionOption {
+  id: string;
+  text: string;
+  isDefault: boolean;
+}
+
+export interface QuestionConfig {
+  variant?: "input" | "textarea" | "email" | "name";
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  min?: number;
+  max?: number;
+  defaultValue?: boolean;
+  displayVariant?: QuestionDisplayVariant;
+}
+
+/**
+ * Перевірка вичерпності: у кінці `switch`/ланцюжка `if` за дискримінантом
+ * значення має звузитись до `never`. Якщо з'явився новий варіант, якого
+ * гілки не покривають, код перестане компілюватись; якщо ж невідоме значення
+ * все одно потрапило в рантайм (рядок у БД, який випередив код), кидаємо
+ * помилку замість того, щоб тихо обробити його як "останню" гілку.
+ */
+export function assertNever(value: never, context = "value"): never {
+  throw new Error(`Unhandled ${context}: ${JSON.stringify(value)}`);
+}
+
 export type ConditionOperator = "equals" | "notEquals" | "contains" | "in" | "gt" | "lt";
 
 export type ConditionValue = string | number | boolean | string[];
@@ -109,13 +157,7 @@ export interface ChoiceDistribution {
   text: string;
 }
 
-export type QuestionAnalyticsType =
-  | "TEXT"
-  | "CHOICE_SINGLE"
-  | "CHOICE_MULTI"
-  | "BOOLEAN"
-  | "DATE"
-  | "NUMBER";
+export type QuestionAnalyticsType = QuestionType;
 
 export interface QuestionOverview extends Partial<QuestionVisibilityStats> {
   id: string;
