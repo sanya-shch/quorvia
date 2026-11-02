@@ -8,7 +8,11 @@
       "max": "макс",
       "booleanYes": "Так: {count}",
       "booleanNo": "Ні: {count}",
-      "requiredAriaLabel": "обов'язкове питання"
+      "requiredAriaLabel": "обов'язкове питання",
+      "nps": "NPS",
+      "npsPromoters": "Промоутери (9–10)",
+      "npsPassives": "Нейтральні (7–8)",
+      "npsDetractors": "Критики (0–6)"
     },
     "errors": {
       "accessDenied": "Немає доступу до аналітики цієї форми",

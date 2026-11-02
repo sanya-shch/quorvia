@@ -8,7 +8,11 @@
       "max": "max",
       "booleanYes": "Yes: {count}",
       "booleanNo": "No: {count}",
-      "requiredAriaLabel": "required question"
+      "requiredAriaLabel": "required question",
+      "nps": "NPS",
+      "npsPromoters": "Promoters (9–10)",
+      "npsPassives": "Passives (7–8)",
+      "npsDetractors": "Detractors (0–6)"
     },
     "errors": {
       "accessDenied": "You don't have access to this form's analytics",

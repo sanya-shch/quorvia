@@ -56,7 +56,10 @@
     "CHOICE_SINGLE": "Single choice",
     "CHOICE_MULTI": "Multiple choice",
     "BOOLEAN": "Yes / No",
-    "DATE": "Date picker"
+    "DATE": "Date picker",
+    "RATING": "Rating (stars)",
+    "SCALE": "Linear scale",
+    "NPS": "NPS (0–10)"
   },
   "editors": {
     "text": {
@@ -73,7 +76,10 @@
       "min": "Minimum number",
       "max": "Maximum number",
       "noLimit": "No limit",
-      "minMaxError": "Minimum value can't be greater than maximum value"
+      "minMaxError": "Minimum value can't be greater than maximum value",
+      "slider": "Show as a slider",
+      "step": "Step",
+      "sliderRangeError": "A slider needs a minimum smaller than the maximum"
     },
     "boolean": {
       "defaultValueLabel": "Default value",
@@ -117,6 +123,19 @@
         "gt": "is greater than",
         "lt": "is less than"
       }
+    },
+    "rating": {
+      "max": "Number of stars"
+    },
+    "scale": {
+      "start": "Scale starts at",
+      "end": "Scale ends at",
+      "minLabel": "Label for {{value}}",
+      "maxLabel": "Label for {{value}}",
+      "labelPlaceholder": "Optional"
+    },
+    "nps": {
+      "hint": "Standard NPS question: 0–10 scale with “Not at all likely” and “Extremely likely” at the ends. Nothing to configure."
     }
   }
 }

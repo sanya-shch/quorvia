@@ -14,15 +14,17 @@
 | Аналітика (огляд, деталі, відповідь), `formatAnswer` (експорт) | `tsc`: `assertNever` / `Record<QuestionType, ...>` |
 | `QuestionField` (відображення поля), `getDefaultAnswer` | `tsc`: `assertNever` |
 | Палітра конструктора, підписи, переклади uk/en | `vitest`: `questionTypes.coverage.test.ts` |
+| Типовий config нового питання, чи зберігається config | `tsc`: `switch` без `default` у `pages/builder/questionConfig.ts` |
+| Оператори в редакторі умов | `tsc`: `Record<QuestionType, ...>` у `ConditionEditor.tsx` |
 
 ## Що робиться вручну
 
 1. `backend/prisma/schema.prisma` + міграція. `ALTER TYPE ... ADD VALUE` не можна
    використовувати в тій самій транзакції, тож enum додається окремою міграцією.
 2. `form.schema.ts`: гілка в `questionSchema` (config, options).
-3. Редактор налаштувань у конструкторі (`QuestionCard.tsx`, `FormBuilder.tsx`)
-   і оператори в `ConditionEditor.tsx`, якщо тип можна використовувати в умовах
-   (`packages/condition-engine`).
+3. Редактор налаштувань у конструкторі (`FormBuilder.tsx`, `components/editors/`),
+   бейдж у `QuestionCard.tsx` і значення умови в `ConditionEditor.tsx`
+   (`packages/condition-engine` від типу не залежить).
 4. Аналітика в React (`QuestionDetailsPage.tsx`) і Vue
    (`QuestionOverviewCard.vue`, `ResponseDetailView.vue`) - це `if`/`v-if` без
    перевірки вичерпності, їх треба оновити свідомо.

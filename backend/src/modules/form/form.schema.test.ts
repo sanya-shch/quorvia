@@ -74,6 +74,48 @@ describe("questionSchema — discriminated union за type", () => {
     ).toBe(false);
   });
 
+  it("RATING: config.max лише ціле 3..10; без config валідний", () => {
+    const rating = (config?: unknown) =>
+      questionSchema.safeParse({ ...base, type: "RATING", config }).success;
+
+    expect(rating()).toBe(true);
+    expect(rating(null)).toBe(true);
+    expect(rating({ max: 3 })).toBe(true);
+    expect(rating({ max: 10 })).toBe(true);
+    expect(rating({ max: 2 })).toBe(false);
+    expect(rating({ max: 11 })).toBe(false);
+    expect(rating({ max: 4.5 })).toBe(false);
+  });
+
+  it("SCALE: початок 0|1, кінець 2..10 і більший за початок, підписи до 100 символів", () => {
+    const scale = (config?: unknown) =>
+      questionSchema.safeParse({ ...base, type: "SCALE", config }).success;
+
+    expect(scale()).toBe(true);
+    expect(scale({ min: 0, max: 10, minLabel: "Ні", maxLabel: "Так" })).toBe(true);
+    expect(scale({ min: 2, max: 5 })).toBe(false);
+    expect(scale({ min: 1, max: 1 })).toBe(false);
+    expect(scale({ min: 1, max: 11 })).toBe(false);
+    expect(scale({ minLabel: "x".repeat(101) })).toBe(false);
+    // типовий кінець 5 має бути більшим за заданий початок
+    expect(scale({ min: 1 })).toBe(true);
+  });
+
+  it("NPS не потребує config", () => {
+    expect(questionSchema.safeParse({ ...base, type: "NPS" }).success).toBe(true);
+  });
+
+  it("NUMBER зі слайдером вимагає min < max; крок додатний", () => {
+    const number = (config: unknown) =>
+      questionSchema.safeParse({ ...base, type: "NUMBER", config }).success;
+
+    expect(number({ numberVariant: "slider", min: 0, max: 10, step: 2 })).toBe(true);
+    expect(number({ numberVariant: "slider", min: 0 })).toBe(false);
+    expect(number({ numberVariant: "slider", min: 5, max: 5 })).toBe(false);
+    expect(number({ numberVariant: "slider", min: 0, max: 10, step: 0 })).toBe(false);
+    expect(number({ numberVariant: "input" })).toBe(true);
+  });
+
   it("text обов'язковий і не може бути порожнім", () => {
     const result = questionSchema.safeParse({ type: "TEXT", text: "", order: 0 });
     expect(result.success).toBe(false);

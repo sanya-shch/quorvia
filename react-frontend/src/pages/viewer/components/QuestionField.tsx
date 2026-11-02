@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { assertNever } from "@quorvia/shared-types";
+import { assertNever, getScaleBounds } from "@quorvia/shared-types";
+import ScaleField from "./ScaleField";
+import NumberSlider from "./NumberSlider";
 import { type Question } from "../../../types/formBuilder";
 import { type AnswerValue } from "../../../types/formViewer";
 
@@ -50,7 +52,53 @@ export default function QuestionField({
     );
   }
 
+  if (question.type === "RATING" || question.type === "SCALE" || question.type === "NPS") {
+    const { min, max } = getScaleBounds(question.type, question.config);
+
+    return (
+      <ScaleField
+        name={qId}
+        min={min}
+        max={max}
+        value={value}
+        onChange={onChange}
+        variant={question.type === "RATING" ? "stars" : "numbers"}
+        required={question.required}
+        labelledBy={labelledBy}
+        describedBy={describedBy}
+        invalid={invalid}
+        minLabel={
+          question.type === "NPS" ? t("viewer.scale.npsLow") : question.config?.minLabel || undefined
+        }
+        maxLabel={
+          question.type === "NPS"
+            ? t("viewer.scale.npsHigh")
+            : question.config?.maxLabel || undefined
+        }
+      />
+    );
+  }
+
   if (question.type === "NUMBER") {
+    const { numberVariant, min, max, step } = question.config ?? {};
+
+    if (numberVariant === "slider" && min !== undefined && max !== undefined && min < max) {
+      return (
+        <NumberSlider
+          id={qId}
+          min={min}
+          max={max}
+          step={step ?? 1}
+          value={value}
+          onChange={onChange}
+          required={question.required}
+          labelledBy={labelledBy}
+          describedBy={describedBy}
+          invalid={invalid}
+        />
+      );
+    }
+
     return (
       <input
         id={qId}

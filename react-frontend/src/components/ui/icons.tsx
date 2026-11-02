@@ -87,3 +87,47 @@ export const choiceMultiIcon = (
     />
   </svg>
 );
+
+export const ratingIcon = (
+  <svg
+    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth="2"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M11.48 3.5a.56.56 0 011.04 0l2.13 5.11a.56.56 0 00.47.35l5.52.44c.5.04.7.66.32.99l-4.2 3.6a.56.56 0 00-.18.56l1.28 5.39a.56.56 0 01-.84.61l-4.73-2.89a.56.56 0 00-.59 0l-4.73 2.89a.56.56 0 01-.84-.61l1.28-5.39a.56.56 0 00-.18-.56l-4.2-3.6a.56.56 0 01.32-.99l5.52-.44a.56.56 0 00.47-.35L11.48 3.5z"
+    />
+  </svg>
+);
+
+export const scaleIcon = (
+  <svg
+    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth="2"
+    stroke="currentColor"
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12h18M6 8v8M12 9v6M18 8v8" />
+  </svg>
+);
+
+export const npsIcon = (
+  <svg
+    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth="2"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M3 17l5-5 4 4 8-9M15 7h5v5"
+    />
+  </svg>
+);

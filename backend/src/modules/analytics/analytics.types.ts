@@ -1,3 +1,4 @@
+import type { NpsBreakdown } from "@quorvia/shared-types";
 import type { Answer, Answers } from "../response/response.types.js";
 
 /**
@@ -38,6 +39,21 @@ export type QuestionOverview =
       type: "CHOICE_SINGLE" | "CHOICE_MULTI";
       text: string;
       distribution: { optionId: string; count: number; text: string }[];
+    } & QuestionVisibilityStats)
+  | ({
+      id: string;
+      type: "RATING" | "SCALE" | "NPS";
+      text: string;
+      /** Середнє/мінімум/максимум серед фактичних відповідей (нулі, якщо відповідей немає). */
+      stats: {
+        avg: number;
+        min: number;
+        max: number;
+      };
+      /** Усі значення шкали від min до max (з нулями), optionId/text - саме значення. */
+      distribution: { optionId: string; count: number; text: string }[];
+      /** Лише для NPS. */
+      nps?: NpsBreakdown;
     } & QuestionVisibilityStats)
   | ({
       id: string;
@@ -124,6 +140,24 @@ export type QuestionAnalyticsDto =
       };
       totalAnswers: number;
       distribution: { optionId: string; count: number; text: string }[];
+    }
+  | {
+      question: {
+        id: string;
+        text: string;
+        description: string | null;
+        type: "RATING" | "SCALE" | "NPS";
+      };
+      totalAnswers: number;
+      stats: {
+        avg: number;
+        min: number;
+        max: number;
+      };
+      /** Усі значення шкали від min до max (з нулями). */
+      distribution: { value: number; count: number }[];
+      /** Лише для NPS. */
+      nps?: NpsBreakdown;
     }
   | {
       question: {

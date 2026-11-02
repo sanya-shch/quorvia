@@ -28,7 +28,11 @@ export const formatAnswer = (question: Question, value: AnswerValue): string => 
     case "TEXT":
     case "DATE":
     case "NUMBER":
-      // Загальне форматування нижче.
+    case "RATING":
+    case "SCALE":
+    case "NPS":
+      // Загальне форматування нижче (шкали експортуються сирим числом -
+      // так їх можна сумувати й будувати графіки в таблиці).
       break;
     default:
       return assertNever(question.type, "question type");

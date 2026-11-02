@@ -12,4 +12,7 @@ export const QUESTION_TYPE_LABEL_KEYS: Record<QuestionType, string> = {
   CHOICE_MULTI: "builder.questionTypes.CHOICE_MULTI",
   BOOLEAN: "builder.questionTypes.BOOLEAN",
   DATE: "builder.questionTypes.DATE",
+  RATING: "builder.questionTypes.RATING",
+  SCALE: "builder.questionTypes.SCALE",
+  NPS: "builder.questionTypes.NPS",
 } as const;

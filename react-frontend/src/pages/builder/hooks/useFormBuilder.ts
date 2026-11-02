@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { type FormState, type Question, type QuestionType } from "../../../types/formBuilder";
 import { validateConditionGraph } from "@quorvia/condition-engine";
 import { ErrorCode } from "@quorvia/shared-types";
+import { createDefaultQuestionConfig } from "../questionConfig";
 
 const INITIAL_STATE: FormState = {
   title: "",
@@ -243,13 +244,7 @@ export function useFormBuilder(initialData?: FormState) {
                 },
               ]
             : [],
-          config: isChoice
-            ? { displayVariant: "list" }
-            : type === "TEXT"
-              ? { variant: "input" }
-              : type === "BOOLEAN"
-                ? { defaultValue: false }
-                : null,
+          config: createDefaultQuestionConfig(type),
         };
 
         const updatedQuestions = [...prev.questions];

@@ -1,6 +1,15 @@
 import { prisma } from "../../prisma/prisma.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
-import { assertNever, ErrorCode, type QuestionType } from "@quorvia/shared-types";
+import {
+  assertNever,
+  ErrorCode,
+  getScaleBounds,
+  isScaleQuestionType,
+  type NpsBreakdown,
+  type QuestionConfig,
+  type QuestionType,
+  type ScaleBounds,
+} from "@quorvia/shared-types";
 import { Answers } from "../response/response.types.js";
 import { paginate } from "../../shared/utils/paginate.js";
 import { analyticsConfig } from "./analytics.config.js";
@@ -75,8 +84,46 @@ const attemptBatches = (formId: string) =>
     analyticsConfig.batchSize,
   );
 
+/**
+ * Шкальні відповіді: лише цілі значення в поточних межах шкали. Значення поза
+ * межами (config змінили вже після збору відповідей) не потрапляють у розподіл
+ * і середнє, щоб воно не виходило за шкалу; у totalAnswers вони все одно є.
+ */
+const isInScale = (value: unknown, bounds: ScaleBounds): value is number =>
+  typeof value === "number" &&
+  Number.isInteger(value) &&
+  value >= bounds.min &&
+  value <= bounds.max;
+
+const scaleValues = (bounds: ScaleBounds): number[] =>
+  Array.from({ length: bounds.max - bounds.min + 1 }, (_, i) => bounds.min + i);
+
+/** NPS: 9-10 promoters, 7-8 passives, 0-6 detractors; score = %promoters - %detractors. */
+const computeNps = (counts: Map<number, number>): NpsBreakdown => {
+  let promoters = 0;
+  let passives = 0;
+  let detractors = 0;
+
+  for (const [value, count] of counts) {
+    if (value >= 9) promoters += count;
+    else if (value >= 7) passives += count;
+    else detractors += count;
+  }
+
+  const total = promoters + passives + detractors;
+
+  return {
+    promoters,
+    passives,
+    detractors,
+    score: total === 0 ? null : Math.round(((promoters - detractors) / total) * 1000) / 10,
+  };
+};
+
 type QuestionAccumulator = {
   type: QuestionType;
+  scaleBounds?: ScaleBounds;
+  scaleCounts?: Map<number, number>;
   shownCount: number;
   answeredCount: number;
   textCounts?: Map<string, number>;
@@ -116,6 +163,10 @@ export const getFormAnalytics = async (
       numberSum: 0,
       numberCount: 0,
       choiceCounts: q.type === "CHOICE_SINGLE" || q.type === "CHOICE_MULTI" ? new Map() : undefined,
+      scaleBounds: isScaleQuestionType(q.type)
+        ? getScaleBounds(q.type, q.config as QuestionConfig | null)
+        : undefined,
+      scaleCounts: isScaleQuestionType(q.type) ? new Map() : undefined,
       trueCount: 0,
       falseCount: 0,
     });
@@ -164,6 +215,14 @@ export const getFormAnalytics = async (
         } else if (acc.type === "BOOLEAN") {
           if (value === true) acc.trueCount++;
           else if (value === false) acc.falseCount++;
+        } else if (acc.type === "RATING" || acc.type === "SCALE" || acc.type === "NPS") {
+          if (isInScale(value, acc.scaleBounds!)) {
+            acc.scaleCounts!.set(value, (acc.scaleCounts!.get(value) || 0) + 1);
+            acc.numberSum += value;
+            acc.numberCount += 1;
+            acc.numberMin = acc.numberMin === undefined ? value : Math.min(acc.numberMin, value);
+            acc.numberMax = acc.numberMax === undefined ? value : Math.max(acc.numberMax, value);
+          }
         } else {
           assertNever(acc.type, "question type");
         }
@@ -232,6 +291,24 @@ export const getFormAnalytics = async (
         text: q.text,
         trueCount: acc.trueCount,
         falseCount: acc.falseCount,
+        ...visibility,
+      });
+    } else if (q.type === "RATING" || q.type === "SCALE" || q.type === "NPS") {
+      questions.push({
+        id: q.id,
+        text: q.text,
+        type: q.type,
+        stats: {
+          avg: acc.numberCount > 0 ? acc.numberSum / acc.numberCount : 0,
+          min: acc.numberMin ?? 0,
+          max: acc.numberMax ?? 0,
+        },
+        distribution: scaleValues(acc.scaleBounds!).map((value) => ({
+          optionId: String(value),
+          text: String(value),
+          count: acc.scaleCounts!.get(value) ?? 0,
+        })),
+        ...(q.type === "NPS" ? { nps: computeNps(acc.scaleCounts!) } : {}),
         ...visibility,
       });
     } else {
@@ -419,6 +496,9 @@ const DETAIL_ANALYTICS_SUPPORT: Record<QuestionType, boolean> = {
   CHOICE_SINGLE: true,
   CHOICE_MULTI: true,
   BOOLEAN: true,
+  RATING: true,
+  SCALE: true,
+  NPS: true,
 };
 
 export const getQuestionAnalytics = async (
@@ -454,6 +534,9 @@ export const getQuestionAnalytics = async (
   let numberMin = Infinity;
   let numberMax = -Infinity;
   const choiceCounts = new Map<string, number>();
+  const scaleBounds = isScaleQuestionType(question.type)
+    ? getScaleBounds(question.type, question.config as QuestionConfig | null)
+    : undefined;
   let trueCount = 0;
   let falseCount = 0;
   let totalAnswers = 0;
@@ -493,6 +576,16 @@ export const getQuestionAnalytics = async (
         case "BOOLEAN":
           if (value === true) trueCount++;
           else if (value === false) falseCount++;
+          break;
+        case "RATING":
+        case "SCALE":
+        case "NPS":
+          if (!isInScale(value, scaleBounds!)) break;
+          numberCounts.set(value, (numberCounts.get(value) ?? 0) + 1);
+          numberSum += value;
+          numberCount++;
+          if (value < numberMin) numberMin = value;
+          if (value > numberMax) numberMax = value;
           break;
         default:
           assertNever(question.type, "question type");
@@ -546,6 +639,23 @@ export const getQuestionAnalytics = async (
         text: opt.text,
         count: choiceCounts.get(opt.id) ?? 0,
       })),
+    };
+  }
+
+  if (question.type === "RATING" || question.type === "SCALE" || question.type === "NPS") {
+    return {
+      question: { ...base, type: question.type },
+      totalAnswers,
+      stats: {
+        avg: numberCount > 0 ? numberSum / numberCount : 0,
+        min: numberCount > 0 ? numberMin : 0,
+        max: numberCount > 0 ? numberMax : 0,
+      },
+      distribution: scaleValues(scaleBounds!).map((value) => ({
+        value,
+        count: numberCounts.get(value) ?? 0,
+      })),
+      ...(question.type === "NPS" ? { nps: computeNps(numberCounts) } : {}),
     };
   }
 
@@ -647,7 +757,14 @@ export const getResponseById = async (
       });
     } else if (q.type === "BOOLEAN") {
       displayValue = userValue === true ? "Так" : "Ні";
-    } else if (q.type === "TEXT" || q.type === "DATE" || q.type === "NUMBER") {
+    } else if (
+      q.type === "TEXT" ||
+      q.type === "DATE" ||
+      q.type === "NUMBER" ||
+      q.type === "RATING" ||
+      q.type === "SCALE" ||
+      q.type === "NPS"
+    ) {
       displayValue = typeof userValue === "boolean" ? String(userValue) : userValue;
     } else {
       assertNever(q.type, "question type");

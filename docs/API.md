@@ -42,6 +42,23 @@ Exceeding a limit returns `429 RATE_LIMITED`. Limits are per IP unless noted (in
 | POST 🔒 | `/forms/:formId/duplicate` | Copy (unpublished, `(Copy)` suffix). |
 | DELETE 🔒 | `/forms/:formId` | Delete the form with its data. |
 
+## Question types
+
+`type` is one of the values below; `config` is validated per type (unknown keys are dropped). Answers are sent in `answers[questionId]`.
+
+| Type | Answer | `config` |
+| --- | --- | --- |
+| `TEXT` | string | `variant` (`input`/`textarea`/`email`/`name`), `minLength`, `maxLength`, `pattern` |
+| `NUMBER` | number | `min`, `max`; `numberVariant: "slider"` (requires `min < max`) with optional `step` (> 0, default 1; answers must lie on the `min + k*step` grid) |
+| `CHOICE_SINGLE` / `CHOICE_MULTI` | option id / array of option ids | `displayVariant` (`list`/`tabs`/`dropdown`), `options` |
+| `BOOLEAN` | boolean | `defaultValue` |
+| `DATE` | date string (anything `Date.parse` accepts; the builder sends `YYYY-MM-DD`) | - |
+| `RATING` | integer `1..max` | `max`: integer 3-10 (default 5) |
+| `SCALE` | integer `min..max` | `min`: 0 or 1 (default 1), `max`: integer 2-10, strictly greater than `min` (default 5), `minLabel`/`maxLabel` (up to 100 chars) |
+| `NPS` | integer `0..10` | - (fixed) |
+
+Scale answers (`RATING`, `SCALE`, `NPS`) are plain numbers, so `0` is a real answer, and conditions can use `equals`, `notEquals`, `gt`, `lt` on them. Exports contain the raw number.
+
 ## Public form (anonymous)
 
 | Method | Path | Description |

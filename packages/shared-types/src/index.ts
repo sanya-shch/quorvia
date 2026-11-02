@@ -85,6 +85,9 @@ export const QUESTION_TYPES = [
   "BOOLEAN",
   "DATE",
   "NUMBER",
+  "RATING",
+  "SCALE",
+  "NPS",
 ] as const;
 
 export type QuestionType = (typeof QUESTION_TYPES)[number];
@@ -106,6 +109,91 @@ export interface QuestionConfig {
   max?: number;
   defaultValue?: boolean;
   displayVariant?: QuestionDisplayVariant;
+  /** NUMBER: "slider" вимагає min < max (крок - `step`, типово 1). */
+  numberVariant?: NumberVariant;
+  step?: number;
+  /** SCALE: підписи крайніх значень (напр. "Зовсім не згоден" / "Повністю згоден"). */
+  minLabel?: string;
+  maxLabel?: string;
+}
+
+export type NumberVariant = "input" | "slider";
+
+/**
+ * Шкальні типи: відповідь - ціле число в межах [min, max], які визначаються
+ * типом і config (див. getScaleBounds). Умови та аналітика працюють з ними як
+ * з числами; NPS додатково має розбивку на promoters/passives/detractors.
+ */
+export const SCALE_QUESTION_TYPES = ["RATING", "SCALE", "NPS"] as const;
+export type ScaleQuestionType = (typeof SCALE_QUESTION_TYPES)[number];
+
+export const isScaleQuestionType = (type: QuestionType): type is ScaleQuestionType =>
+  (SCALE_QUESTION_TYPES as readonly QuestionType[]).includes(type);
+
+/** Допустимі межі налаштувань шкал (їх же перевіряє бекенд-схема форми). */
+export const SCALE_LIMITS = {
+  /** RATING: кількість зірок (максимальне значення), min завжди 1. */
+  ratingMax: { min: 3, max: 10, default: 5 },
+  /** SCALE: початок шкали 0 або 1, кінець 2..10 і строго більший за початок. */
+  scaleStart: { allowed: [0, 1], default: 1 },
+  scaleEnd: { min: 2, max: 10, default: 5 },
+  /** NPS фіксований: 0..10. */
+  nps: { min: 0, max: 10 },
+  labelMaxLength: 100,
+} as const;
+
+export interface ScaleBounds {
+  min: number;
+  max: number;
+}
+
+/**
+ * Межі значень шкали з урахуванням config. Некоректний або відсутній config
+ * (старі дані, ручні правки БД) не ламає відповіді: повертаємо типові межі.
+ */
+export const getScaleBounds = (
+  type: ScaleQuestionType,
+  config: QuestionConfig | null | undefined,
+): ScaleBounds => {
+  switch (type) {
+    case "NPS":
+      return { min: SCALE_LIMITS.nps.min, max: SCALE_LIMITS.nps.max };
+    case "RATING": {
+      const { min, max, default: def } = SCALE_LIMITS.ratingMax;
+      const value = config?.max;
+      return {
+        min: 1,
+        max: Number.isInteger(value) && value! >= min && value! <= max ? value! : def,
+      };
+    }
+    case "SCALE": {
+      const start = (SCALE_LIMITS.scaleStart.allowed as readonly number[]).includes(
+        config?.min as number,
+      )
+        ? (config!.min as number)
+        : SCALE_LIMITS.scaleStart.default;
+      const endValue = config?.max;
+      const end =
+        Number.isInteger(endValue) &&
+        endValue! >= SCALE_LIMITS.scaleEnd.min &&
+        endValue! <= SCALE_LIMITS.scaleEnd.max &&
+        endValue! > start
+          ? endValue!
+          : Math.max(SCALE_LIMITS.scaleEnd.default, start + 1);
+      return { min: start, max: end };
+    }
+    default:
+      return assertNever(type, "scale question type");
+  }
+};
+
+/** Розбивка NPS: promoters 9-10, passives 7-8, detractors 0-6. */
+export interface NpsBreakdown {
+  promoters: number;
+  passives: number;
+  detractors: number;
+  /** (promoters - detractors) / total * 100, одне знак після коми; null, якщо відповідей немає. */
+  score: number | null;
 }
 
 /**
@@ -166,6 +254,8 @@ export interface QuestionOverview extends Partial<QuestionVisibilityStats> {
   preview?: TextPreview[];
   stats?: NumberStats;
   distribution?: ChoiceDistribution[];
+  /** Лише для NPS. */
+  nps?: NpsBreakdown;
   trueCount?: number;
   falseCount?: number;
 }
@@ -185,6 +275,8 @@ export interface QuestionAnalyticsDto {
   totalAnswers: number;
   distribution?: { value: string | number; optionId: string; count: number; text: string }[];
   stats?: NumberStats;
+  /** Лише для NPS. */
+  nps?: NpsBreakdown;
   answers?: string[];
   trueCount?: number;
   falseCount?: number;

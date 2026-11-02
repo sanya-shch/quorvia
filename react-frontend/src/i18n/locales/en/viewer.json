@@ -31,5 +31,14 @@
     "textMinLength": "Minimum length: {{minLength}}",
     "textMaxLength": "Maximum length: {{maxLength}}",
     "nameInvalid": "Name can only contain letters, spaces, or hyphens"
+  },
+  "scale": {
+    "pointLabel": "{{value}} of {{max}}",
+    "clear": "Clear answer",
+    "npsLow": "Not at all likely",
+    "npsHigh": "Extremely likely"
+  },
+  "slider": {
+    "notSet": "Not set"
   }
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import type { QuestionOverview } from "@quorvia/shared-types";
+import { isScaleQuestionType, type QuestionOverview } from "@quorvia/shared-types";
 
 const props = defineProps<{
   question: QuestionOverview;
@@ -15,6 +15,8 @@ const { t } = useI18n();
 const hasVisibilityInfo = computed(
   () => (props.question.hiddenCount ?? 0) > 0 || (props.question.skippedCount ?? 0) > 0,
 );
+
+const isScale = computed(() => isScaleQuestionType(props.question.type));
 
 const topPreview = computed(() => props.question.preview?.slice(0, 3) ?? []);
 const topDistribution = computed(() => props.question.distribution ?? []);
@@ -40,7 +42,33 @@ const maxDistributionCount = computed(
     </div>
 
     <div class="card-body">
-      <template v-if="question.type === 'NUMBER' && question.stats">
+      <template v-if="isScale && question.stats">
+        <div class="stats-row">
+          <div class="stat">
+            <span class="stat-value">{{ question.stats.avg.toFixed(1) }}</span>
+            <span class="stat-label">{{ t("analytics.common.avg") }}</span>
+          </div>
+          <div v-if="question.nps" class="stat">
+            <span class="stat-value">{{ question.nps.score ?? "—" }}</span>
+            <span class="stat-label">{{ t("analytics.common.nps") }}</span>
+          </div>
+        </div>
+        <div v-if="topDistribution.length" class="histogram">
+          <div
+            v-for="d in topDistribution"
+            :key="d.optionId"
+            class="hist-col"
+            :title="d.text + ': ' + d.count"
+          >
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" :style="{ height: (d.count / maxDistributionCount) * 100 + '%' }" />
+            </div>
+            <span class="hist-label">{{ d.text }}</span>
+          </div>
+        </div>
+      </template>
+
+      <template v-else-if="question.type === 'NUMBER' && question.stats">
         <div class="stats-row">
           <div class="stat">
             <span class="stat-value">{{ question.stats.avg.toFixed(1) }}</span>
@@ -172,6 +200,36 @@ const maxDistributionCount = computed(
 }
 .stat-label {
   font-size: 11px;
+  color: #94a3b8;
+}
+.histogram {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  margin-top: 12px;
+}
+.hist-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.hist-bar-wrap {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: flex-end;
+}
+.hist-bar {
+  width: 100%;
+  min-height: 2px;
+  background: #4f46e5;
+  border-radius: 3px 3px 0 0;
+}
+.hist-label {
+  font-size: 10px;
   color: #94a3b8;
 }
 .bool-bar {

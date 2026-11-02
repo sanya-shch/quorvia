@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ErrorCode } from "@quorvia/shared-types";
+import { ErrorCode, SCALE_LIMITS } from "@quorvia/shared-types";
 import { compileSafePattern, MAX_PATTERN_LENGTH } from "../../shared/utils/safeRegex.js";
 
 /**
@@ -19,6 +19,7 @@ export const FORM_LIMITS = {
   conditionValueItems: 100,
   conditionValueText: 500,
   textLength: 10_000,
+  scaleLabel: SCALE_LIMITS.labelMaxLength,
 } as const;
 
 export const createFormSchema = z.object({
@@ -121,9 +122,67 @@ export const questionSchema = z.discriminatedUnion("type", [
       .object({
         min: z.number().optional(),
         max: z.number().optional(),
+        numberVariant: z.enum(["input", "slider"]).optional(),
+        step: z.number().positive().optional(),
+      })
+      // Слайдеру потрібен скінченний діапазон, інакше немає що рухати.
+      .refine(
+        (c) =>
+          c.numberVariant !== "slider" ||
+          (c.min !== undefined && c.max !== undefined && c.min < c.max),
+        ErrorCode.REQUEST_BODY_INVALID,
+      )
+      .nullable()
+      .optional(),
+  }),
+
+  z.object({
+    ...base,
+    type: z.literal("RATING"),
+    config: z
+      .object({
+        max: z
+          .number()
+          .int()
+          .min(SCALE_LIMITS.ratingMax.min)
+          .max(SCALE_LIMITS.ratingMax.max)
+          .optional(),
       })
       .nullable()
       .optional(),
+  }),
+
+  z.object({
+    ...base,
+    type: z.literal("SCALE"),
+    config: z
+      .object({
+        min: z
+          .number()
+          .int()
+          .refine((v) => (SCALE_LIMITS.scaleStart.allowed as readonly number[]).includes(v))
+          .optional(),
+        max: z
+          .number()
+          .int()
+          .min(SCALE_LIMITS.scaleEnd.min)
+          .max(SCALE_LIMITS.scaleEnd.max)
+          .optional(),
+        minLabel: z.string().trim().max(FORM_LIMITS.scaleLabel).optional(),
+        maxLabel: z.string().trim().max(FORM_LIMITS.scaleLabel).optional(),
+      })
+      .refine(
+        (c) =>
+          (c.max ?? SCALE_LIMITS.scaleEnd.default) > (c.min ?? SCALE_LIMITS.scaleStart.default),
+        ErrorCode.REQUEST_BODY_INVALID,
+      )
+      .nullable()
+      .optional(),
+  }),
+
+  z.object({
+    ...base,
+    type: z.literal("NPS"),
   }),
 ]);
 

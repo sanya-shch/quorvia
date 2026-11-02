@@ -13,6 +13,9 @@ enum QuestionType {
   BOOLEAN
   DATE
   NUMBER
+  RATING
+  SCALE
+  NPS
 }
 
 enum ResponseMode {

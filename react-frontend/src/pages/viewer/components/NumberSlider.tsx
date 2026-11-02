@@ -1,0 +1,86 @@
+import { useTranslation } from "react-i18next";
+import type { AnswerValue } from "../../../types/formViewer";
+
+interface NumberSliderProps {
+  id: string;
+  min: number;
+  max: number;
+  step: number;
+  value: AnswerValue | undefined;
+  onChange: (value: AnswerValue) => void;
+  required: boolean;
+  describedBy?: string;
+  invalid?: boolean;
+  labelledBy?: string;
+}
+
+// Клавіші, якими користувач може "поставити" значення, не змінюючи його
+// відносно стартового (ползунок візуально стоїть на min).
+const MIN_KEYS = new Set(["Home", "ArrowLeft", "ArrowDown"]);
+
+export default function NumberSlider({
+  id,
+  min,
+  max,
+  step,
+  value,
+  onChange,
+  required,
+  describedBy,
+  invalid,
+  labelledBy,
+}: NumberSliderProps) {
+  const { t } = useTranslation();
+  const answered = typeof value === "number";
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-4">
+        <input
+          id={id}
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={answered ? value : min}
+          aria-labelledby={labelledBy}
+          aria-describedby={describedBy}
+          aria-invalid={invalid}
+          onChange={(e) => onChange(Number(e.target.value))}
+          // Без цього відповідь "рівно min" неможлива: ползунок уже стоїть
+          // на min, тож change не спрацює. Доторк/клавіша вважаються відповіддю.
+          onPointerDown={() => {
+            if (!answered) onChange(min);
+          }}
+          onKeyDown={(e) => {
+            if (!answered && MIN_KEYS.has(e.key)) onChange(min);
+          }}
+          className="h-2 flex-1 cursor-pointer accent-indigo-600"
+        />
+        <output
+          htmlFor={id}
+          className={`min-w-12 text-right text-sm font-semibold ${
+            answered ? "text-slate-800" : "text-slate-400"
+          }`}
+        >
+          {answered ? value : t("viewer.slider.notSet")}
+        </output>
+      </div>
+
+      <div className="flex justify-between text-xs text-slate-400" aria-hidden="true">
+        <span>{min}</span>
+        <span>{max}</span>
+      </div>
+
+      {!required && answered && (
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          className="text-xs font-medium text-slate-400 underline hover:text-slate-600 cursor-pointer"
+        >
+          {t("viewer.scale.clear")}
+        </button>
+      )}
+    </div>
+  );
+}

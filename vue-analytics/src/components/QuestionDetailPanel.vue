@@ -58,6 +58,13 @@ onUnmounted(() => {
           <div class="stat"><span class="stat-value">{{ data.stats.max }}</span><span class="stat-label">{{ t("analytics.common.max") }}</span></div>
         </div>
 
+        <div v-if="data.nps" class="stats-row">
+          <div class="stat"><span class="stat-value">{{ data.nps.score ?? "—" }}</span><span class="stat-label">{{ t("analytics.common.nps") }}</span></div>
+          <div class="stat"><span class="stat-value">{{ data.nps.promoters }}</span><span class="stat-label">{{ t("analytics.common.npsPromoters") }}</span></div>
+          <div class="stat"><span class="stat-value">{{ data.nps.passives }}</span><span class="stat-label">{{ t("analytics.common.npsPassives") }}</span></div>
+          <div class="stat"><span class="stat-value">{{ data.nps.detractors }}</span><span class="stat-label">{{ t("analytics.common.npsDetractors") }}</span></div>
+        </div>
+
         <div v-if="typeof data.trueCount === 'number'" class="bool-legend">
           <span>{{ t("analytics.common.booleanYes", { count: data.trueCount }) }}</span>
           <span>{{ t("analytics.common.booleanNo", { count: data.falseCount }) }}</span>

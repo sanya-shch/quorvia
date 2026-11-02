@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Question } from "../../shared/types/questions.js";
-import { assertNever, ErrorCode } from "@quorvia/shared-types";
+import { assertNever, ErrorCode, getScaleBounds } from "@quorvia/shared-types";
 import { compileSafePattern } from "../../shared/utils/safeRegex.js";
 import { MAX_ANSWER_STRING_LENGTH } from "../../shared/schemas/answers.js";
 
@@ -57,6 +57,29 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
         if (q.config?.max !== undefined) {
           schema = schema.max(q.config.max);
         }
+
+        const { numberVariant, step, min } = q.config ?? {};
+
+        if (numberVariant === "slider" && step !== undefined && min !== undefined) {
+          // Слайдер віддає лише значення на сітці min + k*step; допуск - для
+          // похибок двійкових дробів (0.1 * 3 !== 0.3).
+          schema = schema.refine((value: number) => {
+            const steps = (value - min) / step;
+            return Math.abs(steps - Math.round(steps)) < 1e-9;
+          }, ErrorCode.VALIDATION_FORMAT_INVALID);
+        }
+
+        break;
+      }
+
+      case "RATING":
+      case "SCALE":
+      case "NPS": {
+        // Ціле число в межах шкали (межі - з config, див. getScaleBounds).
+        // 0 - коректна відповідь (NPS, шкала з нуля), тому не z.number().min(1).
+        const { min, max } = getScaleBounds(q.type, q.config);
+
+        schema = z.number().int().min(min).max(max);
 
         break;
       }

@@ -14,10 +14,13 @@ import ConfirmModal from "../../components/ui/ConfirmModal";
 
 import TextConfigEditor from "./components/editors/TextConfigEditor";
 import NumberConfigEditor from "./components/editors/NumberConfigEditor";
+import RatingConfigEditor from "./components/editors/RatingConfigEditor";
+import ScaleConfigEditor from "./components/editors/ScaleConfigEditor";
 import OptionsConfigEditor from "./components/editors/OptionsConfigEditor";
 import BooleanConfigEditor from "./components/editors/BooleanConfigEditor";
 import ConditionEditor from "./components/editors/ConditionEditor";
 import { calendarIcon } from "../../components/ui/icons";
+import { questionTypeUsesConfig } from "./questionConfig";
 import { ErrorInfo } from "../../components/ui/ErrorInfo";
 import { getApiErrorCode } from "../../i18n/errorCodes";
 import { useToast } from "../../components/ui/Toast";
@@ -120,10 +123,7 @@ export default function FormBuilder() {
         return {
           ...q,
           options: isChoice ? q.options : [],
-          config:
-            q.type === "TEXT" || q.type === "NUMBER" || isChoice || q.type === "BOOLEAN"
-              ? q.config
-              : null,
+          config: questionTypeUsesConfig(q.type) ? q.config : null,
         };
       });
 
@@ -452,6 +452,30 @@ export default function FormBuilder() {
                                     }
                                   />
                                 </div>
+                              )}
+
+                              {question.type === "RATING" && (
+                                <RatingConfigEditor
+                                  config={question.config}
+                                  onChange={(newConfig) =>
+                                    updateQuestion(index, { config: newConfig })
+                                  }
+                                />
+                              )}
+
+                              {question.type === "SCALE" && (
+                                <ScaleConfigEditor
+                                  config={question.config}
+                                  onChange={(newConfig) =>
+                                    updateQuestion(index, { config: newConfig })
+                                  }
+                                />
+                              )}
+
+                              {question.type === "NPS" && (
+                                <p className="py-2 text-xs text-slate-400 animate-in fade-in duration-150">
+                                  {t("builder.editors.nps.hint")}
+                                </p>
                               )}
 
                               {question.type === "DATE" && (

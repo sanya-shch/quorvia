@@ -20,6 +20,14 @@
     "optionIdSuffix": "(ID: {{id}})",
     "options": "Options:",
     "booleanTrue": "Positive answer (Yes / True)",
-    "booleanFalse": "Negative answer (No / False)"
+    "booleanFalse": "Negative answer (No / False)",
+    "nps": {
+      "title": "Net Promoter Score",
+      "score": "NPS",
+      "promoters": "Promoters (9–10)",
+      "passives": "Passives (7–8)",
+      "detractors": "Detractors (0–6)",
+      "noData": "No answers yet"
+    }
   }
 }

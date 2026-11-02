@@ -178,6 +178,76 @@ describe("buildResponseSchema — visibleQuestionIds (умовна логіка)
   });
 });
 
+describe("buildResponseSchema — RATING / SCALE / NPS", () => {
+  const build = (q: Partial<Question>) => buildResponseSchema([makeQuestion(q)]);
+
+  it("RATING: ціле від 1 до config.max (типово 5)", () => {
+    const schema = build({ type: "RATING" });
+
+    expect(schema.safeParse({ "q-1": 1 }).success).toBe(true);
+    expect(schema.safeParse({ "q-1": 5 }).success).toBe(true);
+    expect(schema.safeParse({ "q-1": 0 }).success).toBe(false);
+    expect(schema.safeParse({ "q-1": 6 }).success).toBe(false);
+    expect(schema.safeParse({ "q-1": 3.5 }).success).toBe(false);
+    expect(schema.safeParse({ "q-1": "3" }).success).toBe(false);
+
+    const ten = build({ type: "RATING", config: { max: 10 } });
+    expect(ten.safeParse({ "q-1": 10 }).success).toBe(true);
+    expect(ten.safeParse({ "q-1": 11 }).success).toBe(false);
+  });
+
+  it("SCALE: межі з config, 0 допустимий, якщо шкала з нуля", () => {
+    const schema = build({ type: "SCALE", config: { min: 0, max: 4 } });
+
+    expect(schema.safeParse({ "q-1": 0 }).success).toBe(true);
+    expect(schema.safeParse({ "q-1": 4 }).success).toBe(true);
+    expect(schema.safeParse({ "q-1": -1 }).success).toBe(false);
+    expect(schema.safeParse({ "q-1": 5 }).success).toBe(false);
+  });
+
+  it("NPS: 0..10, і 0 - це відповідь, а не порожнє значення", () => {
+    const schema = build({ type: "NPS", required: true });
+
+    expect(schema.safeParse({ "q-1": 0 }).success).toBe(true);
+    expect(schema.safeParse({ "q-1": 10 }).success).toBe(true);
+    expect(schema.safeParse({ "q-1": 11 }).success).toBe(false);
+    expect(schema.safeParse({}).success).toBe(false);
+  });
+
+  it("необов'язкова шкала може бути пропущена; приховану (умовою) можна не передавати", () => {
+    expect(build({ type: "NPS", required: false }).safeParse({}).success).toBe(true);
+
+    const hidden = buildResponseSchema(
+      [makeQuestion({ type: "RATING", required: true })],
+      new Set<string>(),
+    );
+    expect(hidden.safeParse({}).success).toBe(true);
+  });
+});
+
+describe("buildResponseSchema — NUMBER зі слайдером", () => {
+  const slider = buildResponseSchema([
+    makeQuestion({
+      type: "NUMBER",
+      config: { numberVariant: "slider", min: 0, max: 1, step: 0.1 },
+    }),
+  ]);
+
+  it("приймає лише значення на сітці кроку (з допуском для дробів)", () => {
+    expect(slider.safeParse({ "q-1": 0.3 }).success).toBe(true);
+    expect(slider.safeParse({ "q-1": 0.7 }).success).toBe(true);
+    expect(slider.safeParse({ "q-1": 0.35 }).success).toBe(false);
+  });
+
+  it("без слайдера крок не перевіряється", () => {
+    const plain = buildResponseSchema([
+      makeQuestion({ type: "NUMBER", config: { min: 0, max: 1, step: 0.1 } }),
+    ]);
+
+    expect(plain.safeParse({ "q-1": 0.35 }).success).toBe(true);
+  });
+});
+
 describe("buildResponseSchema — загальне", () => {
   it("кидає для непідтримуваного типу питання", () => {
     expect(() => buildResponseSchema([makeQuestion({ type: "UNKNOWN" as any })])).toThrow(

@@ -3,7 +3,10 @@ import {
   calendarIcon,
   choiceMultiIcon,
   choiceSingleIcon,
+  npsIcon,
   numberIcon,
+  ratingIcon,
+  scaleIcon,
   textIcon,
   toggleIcon,
 } from "../../components/ui/icons";
@@ -33,4 +36,7 @@ export const getSidebarItems = (t: TFunction): SidebarItem[] => [
     label: t(QUESTION_TYPE_LABEL_KEYS.DATE),
     icon: calendarIcon,
   },
+  { type: "RATING", label: t(QUESTION_TYPE_LABEL_KEYS.RATING), icon: ratingIcon },
+  { type: "SCALE", label: t(QUESTION_TYPE_LABEL_KEYS.SCALE), icon: scaleIcon },
+  { type: "NPS", label: t(QUESTION_TYPE_LABEL_KEYS.NPS), icon: npsIcon },
 ];

@@ -93,6 +93,9 @@ export const getDefaultAnswer = (q: Question): AnswerValue => {
     case "TEXT":
     case "NUMBER":
     case "DATE":
+    case "RATING":
+    case "SCALE":
+    case "NPS":
       return "";
     default:
       return assertNever(q.type, "question type");

@@ -1,3 +1,4 @@
+import { isScaleQuestionType } from "@quorvia/shared-types";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import type {
@@ -21,6 +22,9 @@ const OPERATORS_BY_TYPE: Record<Question["type"], ConditionOperator[]> = {
   // gt/lt лише для типу number, ISO-рядок дати такого порівняння не пройде.
   DATE: ["equals", "notEquals"],
   BOOLEAN: ["equals"],
+  RATING: ["equals", "notEquals", "gt", "lt"],
+  SCALE: ["equals", "notEquals", "gt", "lt"],
+  NPS: ["equals", "notEquals", "gt", "lt"],
   CHOICE_SINGLE: ["equals", "notEquals", "in"],
   CHOICE_MULTI: ["contains"],
 };
@@ -302,7 +306,7 @@ function ConditionValueInput({ target, operator, value, onChange }: ConditionVal
     );
   }
 
-  if (target.type === "NUMBER") {
+  if (target.type === "NUMBER" || isScaleQuestionType(target.type)) {
     return (
       <input
         type="number"

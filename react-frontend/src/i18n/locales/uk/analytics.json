@@ -20,6 +20,14 @@
     "optionIdSuffix": "(ID: {{id}})",
     "options": "Опції:",
     "booleanTrue": "Позитивна відповідь (Так / True)",
-    "booleanFalse": "Негативна відповідь (Ні / False)"
+    "booleanFalse": "Негативна відповідь (Ні / False)",
+    "nps": {
+      "title": "Net Promoter Score",
+      "score": "NPS",
+      "promoters": "Промоутери (9–10)",
+      "passives": "Нейтральні (7–8)",
+      "detractors": "Критики (0–6)",
+      "noData": "Відповідей ще немає"
+    }
   }
 }

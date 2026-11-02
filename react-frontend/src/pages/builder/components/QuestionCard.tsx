@@ -5,7 +5,10 @@ import { type Question } from "../../../types/formBuilder";
 import {
   choiceMultiIcon,
   choiceSingleIcon,
+  npsIcon,
   numberIcon,
+  ratingIcon,
+  scaleIcon,
   textIcon,
   toggleIcon,
 } from "../../../components/ui/icons";
@@ -119,6 +122,21 @@ export default function QuestionCard({
             {question.type === "DATE" && (
               <>
                 {textIcon} {t(QUESTION_TYPE_LABEL_KEYS.DATE)}
+              </>
+            )}
+            {question.type === "RATING" && (
+              <>
+                {ratingIcon} {t(QUESTION_TYPE_LABEL_KEYS.RATING)}
+              </>
+            )}
+            {question.type === "SCALE" && (
+              <>
+                {scaleIcon} {t(QUESTION_TYPE_LABEL_KEYS.SCALE)}
+              </>
+            )}
+            {question.type === "NPS" && (
+              <>
+                {npsIcon} {t(QUESTION_TYPE_LABEL_KEYS.NPS)}
               </>
             )}
           </span>

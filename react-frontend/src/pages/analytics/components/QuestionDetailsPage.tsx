@@ -1,3 +1,4 @@
+import { isScaleQuestionType } from "@quorvia/shared-types";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuestionAnalyticsQuery } from "../hooks/useAnalytics";
@@ -34,7 +35,7 @@ export default function QuestionDetailsPage() {
     );
   }
 
-  const { question, totalAnswers, stats, distribution, answers } = data;
+  const { question, totalAnswers, stats, distribution, answers, nps } = data;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -85,7 +86,7 @@ export default function QuestionDetailsPage() {
             </div>
           )}
 
-          {question.type === "NUMBER" && (
+          {(question.type === "NUMBER" || isScaleQuestionType(question.type)) && (
             <div className="space-y-6">
               <div className="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border">
                 <div className="text-center">
@@ -135,6 +136,42 @@ export default function QuestionDetailsPage() {
                         </div>
                       );
                     })}
+                  </div>
+                </div>
+              )}
+
+              {question.type === "NPS" && nps && (
+                <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    {t("analytics.detail.nps.title")}
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border">
+                    <div className="text-center">
+                      <span className="text-xs font-bold text-slate-400 uppercase">
+                        {t("analytics.detail.nps.score")}
+                      </span>
+                      <p className="text-2xl font-black text-indigo-600 mt-1">
+                        {nps.score === null ? t("analytics.detail.nps.noData") : nps.score}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-xs font-bold text-slate-400 uppercase">
+                        {t("analytics.detail.nps.promoters")}
+                      </span>
+                      <p className="text-2xl font-black text-emerald-600 mt-1">{nps.promoters}</p>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-xs font-bold text-slate-400 uppercase">
+                        {t("analytics.detail.nps.passives")}
+                      </span>
+                      <p className="text-2xl font-black text-slate-700 mt-1">{nps.passives}</p>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-xs font-bold text-slate-400 uppercase">
+                        {t("analytics.detail.nps.detractors")}
+                      </span>
+                      <p className="text-2xl font-black text-rose-600 mt-1">{nps.detractors}</p>
+                    </div>
                   </div>
                 </div>
               )}
