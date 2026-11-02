@@ -24,7 +24,9 @@ describe("getFunnelErrorMessage (чиста функція, без async/mock)",
 });
 
 describe("useFormFunnel (composable - loading/success шлях)", () => {
-  beforeEach(() => mockedApiGet.mockReset());
+  beforeEach(() => {
+    mockedApiGet.mockReset();
+  });
 
   it("запитує правильний endpoint і заповнює data при успіху", async () => {
     mockedApiGet.mockResolvedValue({

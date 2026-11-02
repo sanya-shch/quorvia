@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import QuestionStepper from "./QuestionStepper";
 import type { Question } from "../../types/formBuilder";
@@ -205,12 +205,92 @@ describe("QuestionStepper - autosave передає reachedQuestionIds (реал
 
   it("на review-екрані досягнуто весь пройдений шлях", async () => {
     const user = setup();
-    for (let i = 0; i < 3; i++) {
-      await user.click(screen.getByRole("button", { name: "Далі →" }));
+    // Кожен крок чекаємо окремо: під час переходу екран, що виходить, inert
+    // і кліки по ньому ігноруються (див. StepTransition).
+    for (const next of ["Друге", "Третє"]) {
+      await user.click(await screen.findByRole("button", { name: "Далі →" }));
+      await screen.findByText(next);
     }
+    await user.click(await screen.findByRole("button", { name: "Далі →" }));
     await flush();
 
     expect(screen.getByText("Готово, перевірте відповіді")).toBeInTheDocument();
     expect(lastReached()).toEqual(["q1", "q2", "q3"]);
+  });
+});
+
+describe("QuestionStepper - анімований перехід між кроками (фокус, повторні кліки)", () => {
+  const steps = [
+    q({ id: "q1", order: 0, text: "Перше" }),
+    q({ id: "q2", order: 1, text: "Друге" }),
+    q({ id: "q3", order: 2, text: "Третє" }),
+  ];
+  const next = () => screen.findByRole("button", { name: "Далі →" });
+  const headingOf = (text: string) => screen.getByText(text).closest("[tabindex='-1']");
+
+  const setup = () => {
+    render(<QuestionStepper formTitle="Тест" questions={steps} onSubmit={vi.fn()} />);
+    return userEvent.setup();
+  };
+
+  it("після «Далі» фокус переходить на заголовок НОВОГО питання (а не лишається на екрані, що виходить)", async () => {
+    const user = setup();
+
+    await user.click(await next());
+    await screen.findByText("Друге");
+
+    await waitFor(() => expect(headingOf("Друге")).toHaveFocus());
+  });
+
+  it("після «Назад» фокус переходить на заголовок попереднього питання", async () => {
+    const user = setup();
+    await user.click(await next());
+    await screen.findByText("Друге");
+
+    await user.click(await screen.findByRole("button", { name: "← Назад" }));
+    await screen.findByText("Перше");
+
+    await waitFor(() => expect(headingOf("Перше")).toHaveFocus());
+  });
+
+  it("фокус НЕ краде з поля введення під час набору тексту (re-render не повертає фокус на заголовок)", async () => {
+    const user = setup();
+    const input = await screen.findByRole("textbox");
+
+    await user.click(input);
+    await user.type(input, "привіт");
+
+    expect(input).toHaveFocus();
+    expect(input).toHaveValue("привіт");
+  });
+
+  it("повторний клік по кнопці екрана, що вже виходить, не перескакує крок", async () => {
+    const user = setup();
+    const staleNext = await next();
+
+    fireEvent.click(staleNext);
+    fireEvent.click(staleNext); // друге натискання на "старій" кнопці
+
+    await screen.findByText("Друге");
+    expect(screen.queryByText("Третє")).not.toBeInTheDocument();
+    expect(screen.getByText("Питання 2")).toBeInTheDocument();
+    await user.click(await next()); // а наступний справжній клік іде далі як звичайно
+    expect(await screen.findByText("Третє")).toBeInTheDocument();
+  });
+
+  it("«Змінити відповідь» на review повертає на потрібне питання", async () => {
+    const user = setup();
+    for (const label of ["Друге", "Третє"]) {
+      await user.click(await next());
+      await screen.findByText(label);
+    }
+    await user.click(await next());
+    await screen.findByText("Готово, перевірте відповіді");
+
+    const changeButtons = await screen.findAllByRole("button", { name: "Змінити" });
+    await user.click(changeButtons[0]);
+
+    expect(await screen.findByText("Перше")).toBeInTheDocument();
+    expect(screen.getByText("Питання 1")).toBeInTheDocument();
   });
 });

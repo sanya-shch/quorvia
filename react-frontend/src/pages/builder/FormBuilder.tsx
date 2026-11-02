@@ -4,7 +4,7 @@ import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-p
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useFormBuilder } from "./hooks/useFormBuilder";
-import { type AdminForm, type QuestionType } from "../../types/formBuilder";
+import { type AdminForm, type QuestionType, type UpdateFormResult } from "../../types/formBuilder";
 import { formsApi } from "../../api/forms";
 
 import Sidebar from "./components/Sidebar";
@@ -20,11 +20,13 @@ import ConditionEditor from "./components/editors/ConditionEditor";
 import { calendarIcon } from "../../components/ui/icons";
 import { ErrorInfo } from "../../components/ui/ErrorInfo";
 import { getApiErrorCode } from "../../i18n/errorCodes";
+import { useToast } from "../../components/ui/Toast";
 
 export default function FormBuilder() {
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const toast = useToast();
   const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
   // Версія форми, яку редактор зараз тримає (optimistic lock). Зберігається
   // поза станом форми: її зміна не повинна позначати форму "брудною" чи
@@ -38,7 +40,9 @@ export default function FormBuilder() {
     errors,
     trySave,
     isDirty,
+    revision,
     resetDirty,
+    markSaved,
     updateFormMeta,
     updateQuestion,
     deleteQuestion,
@@ -106,7 +110,10 @@ export default function FormBuilder() {
     if (serverForm) applyServerForm(serverForm);
   }, [serverForm, applyServerForm]);
 
-  const saveMutation = useMutation({
+  // Змінна мутації - revision: скільки правок було в момент відправки (див.
+  // useFormBuilder). Після успіху чистою вважається саме ця ревізія, а не все,
+  // що є зараз, тож правки, зроблені під час запиту, лишаються незбереженими.
+  const saveMutation = useMutation<UpdateFormResult, unknown, number>({
     mutationFn: () => {
       const normalizedQuestions = form.questions.map((q) => {
         const isChoice = ["CHOICE_SINGLE", "CHOICE_MULTI"].includes(q.type);
@@ -128,17 +135,17 @@ export default function FormBuilder() {
         version: versionRef.current,
       });
     },
-    onSuccess: (result) => {
+    onSuccess: (result, revision) => {
       versionRef.current = result.version;
-      resetDirty();
-      alert(t("builder.saveSuccess"));
+      markSaved(revision);
+      toast.success(t("builder.saveSuccess"));
     },
     onError: (error) => {
       if (getApiErrorCode(error) === "FORM_VERSION_CONFLICT") {
         setIsConflictModalOpen(true);
         return;
       }
-      alert(t("builder.saveError"));
+      toast.error(t("builder.saveError"));
     },
   });
 
@@ -180,7 +187,7 @@ export default function FormBuilder() {
 
   const handleSaveForm = () => {
     trySave(() => {
-      saveMutation.mutate();
+      saveMutation.mutate(revision);
     });
   };
 

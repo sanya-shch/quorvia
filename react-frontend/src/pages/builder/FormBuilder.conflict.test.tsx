@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -6,6 +6,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { AxiosError } from "axios";
 import FormBuilder from "./FormBuilder";
 import { formsApi } from "../../api/forms";
+import { ToastProvider } from "../../components/ui/Toast";
 import type { AdminForm } from "../../types/formBuilder";
 
 vi.mock("../../api/forms", () => ({
@@ -48,11 +49,13 @@ const renderBuilder = () => {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={["/forms/form-1/edit"]}>
-        <Routes>
-          <Route path="/forms/:formId/edit" element={<FormBuilder />} />
-        </Routes>
-      </MemoryRouter>
+      <ToastProvider>
+        <MemoryRouter initialEntries={["/forms/form-1/edit"]}>
+          <Routes>
+            <Route path="/forms/:formId/edit" element={<FormBuilder />} />
+          </Routes>
+        </MemoryRouter>
+      </ToastProvider>
     </QueryClientProvider>,
   );
 };
@@ -66,17 +69,10 @@ const editTitleAndSave = async (user: User, currentTitle: string) => {
 };
 
 describe("FormBuilder - optimistic locking (version)", () => {
-  let alertSpy: ReturnType<typeof vi.spyOn>;
-
   beforeEach(() => {
     mockedGet.mockReset();
     mockedUpdate.mockReset();
     mockedGet.mockResolvedValue(adminForm());
-    alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    alertSpy.mockRestore();
   });
 
   it("шле на збереження версію, яку завантажив, а наступне збереження - ту, що повернув сервер", async () => {
@@ -90,7 +86,7 @@ describe("FormBuilder - optimistic locking (version)", () => {
     await waitFor(() => expect(mockedUpdate).toHaveBeenCalledTimes(1));
     expect(mockedUpdate.mock.calls[0][1]).toMatchObject({ title: "Початкова!", version: 3 });
 
-    await waitFor(() => expect(alertSpy).toHaveBeenCalledTimes(1)); // saveSuccess
+    expect(await screen.findByRole("status")).toHaveTextContent("Форму успішно збережено!");
     await editTitleAndSave(user, "Початкова!");
     await waitFor(() => expect(mockedUpdate).toHaveBeenCalledTimes(2));
     expect(mockedUpdate.mock.calls[1][1]).toMatchObject({ version: 4 });
@@ -105,7 +101,7 @@ describe("FormBuilder - optimistic locking (version)", () => {
     await editTitleAndSave(user, "Початкова");
 
     expect(await screen.findByText("Форму змінили в іншому місці")).toBeInTheDocument();
-    expect(alertSpy).not.toHaveBeenCalled();
+    expect(screen.queryByRole("alert", { name: "" })?.textContent ?? "").not.toContain("Помилка при збереженні");
   });
 
   it("«Завантажити актуальну» підтягує свіжу форму і наступне збереження йде з її версією", async () => {
@@ -129,7 +125,7 @@ describe("FormBuilder - optimistic locking (version)", () => {
     expect(mockedUpdate.mock.calls[1][1]).toMatchObject({ title: "З іншої вкладки!", version: 7 });
   });
 
-  it("інша помилка збереження - загальний alert, діалог конфлікту не відкривається", async () => {
+  it("інша помилка збереження - toast з помилкою, діалог конфлікту не відкривається", async () => {
     const user = userEvent.setup();
     mockedUpdate.mockRejectedValueOnce(apiError(500, "UNKNOWN"));
     renderBuilder();
@@ -137,7 +133,36 @@ describe("FormBuilder - optimistic locking (version)", () => {
 
     await editTitleAndSave(user, "Початкова");
 
-    await waitFor(() => expect(alertSpy).toHaveBeenCalledTimes(1));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Помилка при збереженні форми.");
     expect(screen.queryByText("Форму змінили в іншому місці")).not.toBeInTheDocument();
+  });
+
+  it("правки, зроблені ПОКИ запит збереження летить, лишаються незбереженими", async () => {
+    const user = userEvent.setup();
+    let finishSave!: (result: { success: boolean; version: number }) => void;
+    mockedUpdate.mockReturnValueOnce(new Promise((resolve) => (finishSave = resolve)));
+    renderBuilder();
+
+    await user.type(await screen.findByDisplayValue("Початкова"), "!");
+    await user.click(await screen.findByRole("button", { name: "Зберегти форму" }));
+    await waitFor(() => expect(mockedUpdate).toHaveBeenCalledTimes(1));
+
+    // Запит ще не завершено, а користувач уже друкує далі
+    await user.type(screen.getByDisplayValue("Початкова!"), "?");
+    finishSave({ success: true, version: 4 });
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Форму успішно збережено!");
+    expect(screen.getByText("Є незбережені зміни")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Зберегти форму" })).toBeEnabled();
+  });
+
+  it("якщо під час запиту правок не було - після успіху форма чиста", async () => {
+    const user = userEvent.setup();
+    mockedUpdate.mockResolvedValueOnce({ success: true, version: 4 });
+    renderBuilder();
+
+    await editTitleAndSave(user, "Початкова");
+
+    expect(await screen.findByText("Усі зміни збережено")).toBeInTheDocument();
   });
 });

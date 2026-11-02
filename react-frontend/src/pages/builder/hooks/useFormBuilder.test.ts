@@ -128,4 +128,54 @@ describe("useFormBuilder", () => {
     expect(types).toEqual(["NUMBER", "BOOLEAN"]);
     expect(result.current.form.questions.map((q) => q.order)).toEqual([0, 1]);
   });
+
+  describe("лічильник правок (isDirty / revision / markSaved)", () => {
+    it("нова форма чиста; будь-яка правка робить її брудною", () => {
+      const { result } = renderHook(() => useFormBuilder());
+      expect(result.current.isDirty).toBe(false);
+
+      act(() => result.current.updateFormMeta({ title: "A" }));
+
+      expect(result.current.isDirty).toBe(true);
+    });
+
+    it("markSaved(поточна ревізія) робить форму чистою", () => {
+      const { result } = renderHook(() => useFormBuilder());
+      act(() => result.current.updateFormMeta({ title: "A" }));
+
+      act(() => result.current.markSaved(result.current.revision));
+
+      expect(result.current.isDirty).toBe(false);
+    });
+
+    it("правка ПІСЛЯ відправки (але до відповіді) лишає форму брудною", () => {
+      const { result } = renderHook(() => useFormBuilder());
+      act(() => result.current.updateFormMeta({ title: "A" }));
+      const revisionAtSend = result.current.revision;
+
+      act(() => result.current.updateFormMeta({ title: "AB" })); // користувач друкує далі
+      act(() => result.current.markSaved(revisionAtSend)); // відповідь на старе збереження
+
+      expect(result.current.isDirty).toBe(true);
+    });
+
+    it("resetDirty (завантаження з сервера) очищає форму відносно поточного стану", () => {
+      const { result } = renderHook(() => useFormBuilder());
+      act(() => result.current.updateFormMeta({ title: "A" }));
+
+      act(() => result.current.resetDirty());
+
+      expect(result.current.isDirty).toBe(false);
+    });
+
+    it("після resetDirty нова правка знову робить форму брудною", () => {
+      const { result } = renderHook(() => useFormBuilder());
+      act(() => result.current.updateFormMeta({ title: "A" }));
+      act(() => result.current.resetDirty());
+
+      act(() => result.current.updateFormMeta({ title: "B" }));
+
+      expect(result.current.isDirty).toBe(true);
+    });
+  });
 });

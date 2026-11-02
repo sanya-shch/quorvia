@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type Question } from "../../types/formBuilder";
 import { type FormAnswers } from "../../types/formViewer";
@@ -13,6 +13,7 @@ import {
 } from "./questionValidation";
 import { sortByOrder, getNextQuestion } from "./questionFlow";
 import { useAttemptAutosave } from "./hooks/useAttemptAutosave";
+import StepTransition, { type StepDirection } from "./components/StepTransition";
 
 interface QuestionStepperProps {
   formTitle: string;
@@ -54,11 +55,24 @@ export default function QuestionStepper({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [localErrors, setLocalErrors] = useState<Record<string, FieldValidationError>>({});
 
-  const stepHeadingRef = useRef<HTMLElement>(null);
+  const [direction, setDirection] = useState<StepDirection>(1);
 
-  useEffect(() => {
-    stepHeadingRef.current?.focus();
-  }, [currentIndex]);
+  const stepHeadingRef = useRef<HTMLElement | null>(null);
+
+  // Фокус на заголовок кроку - при МОНТУВАННІ екрана, а не при зміні індексу:
+  // з анімацією старий екран ще в DOM, коли індекс уже змінився, і фокус
+  // перейшов би на екран, що виходить. Стабільний callback-ref викликається
+  // лише коли елемент з'являється/зникає, а не на кожен рендер (інакше фокус
+  // крадено б у поля введення при кожному натисканні клавіші).
+  const setHeadingRef = useCallback((el: HTMLElement | null) => {
+    stepHeadingRef.current = el;
+    el?.focus();
+  }, []);
+
+  const goTo = (index: number) => {
+    setDirection(index >= currentIndex ? 1 : -1);
+    setCurrentIndex(index);
+  };
 
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
 
@@ -112,12 +126,12 @@ export default function QuestionStepper({
       return next ? [...truncated, next] : truncated;
     });
 
-    setCurrentIndex((i) => i + 1);
+    goTo(currentIndex + 1);
   };
 
   const handleBack = () => {
     if (currentIndex > 0) {
-      setCurrentIndex((i) => i - 1);
+      goTo(currentIndex - 1);
       setLocalErrors({});
     }
   };
@@ -130,7 +144,7 @@ export default function QuestionStepper({
       setLocalErrors(newErrors);
       const firstInvalidId = Object.keys(newErrors)[0];
       const invalidIndex = path.findIndex((q) => (q.id || "") === firstInvalidId);
-      if (invalidIndex !== -1) setCurrentIndex(invalidIndex);
+      if (invalidIndex !== -1) goTo(invalidIndex);
       return;
     }
 
@@ -168,139 +182,139 @@ export default function QuestionStepper({
           />
         </div>
 
-        {isReview ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5 animate-in fade-in duration-200">
-            <div>
-              <h2
-                ref={(el) => {
-                  stepHeadingRef.current = el;
-                }}
-                tabIndex={-1}
-                className="text-xl font-bold text-slate-900 focus:outline-none"
-              >
-                {t("viewer.stepper.reviewTitle")}
-              </h2>
-              {formDescription && <p className="text-sm text-slate-500 mt-1">{formDescription}</p>}
-            </div>
-
-            <ul className="space-y-2">
-              {path.map((q, i) => (
-                <li
-                  key={q.id || i}
-                  className="flex items-center justify-between text-sm border-b border-slate-100 pb-2 last:border-0"
+        <StepTransition
+          stepKey={isReview ? "review" : `q-${current?.id ?? currentIndex}`}
+          direction={direction}
+        >
+          {isReview ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5">
+              <div>
+                <h2
+                  ref={setHeadingRef}
+                  tabIndex={-1}
+                  className="text-xl font-bold text-slate-900 focus:outline-none"
                 >
-                  <span className="text-xs text-slate-400">
-                    {q.text || t("viewer.questionFallback", { number: i + 1 })}
-                    {" - "}
-                    {answers[q.id!].toString()}
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={() => setCurrentIndex(i)}
-                    className="text-left text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer pl-4"
-                  >
-                    <span className="text-xs">{t("viewer.stepper.changeAnswer")}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-
-            <div className="flex justify-between pt-2">
-              <button
-                type="button"
-                onClick={handleBack}
-                className="inline-flex h-11 items-center rounded-xl px-5 text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                {t("viewer.stepper.back")}
-              </button>
-              <button
-                type="button"
-                onClick={handleFinalSubmit}
-                className="inline-flex h-11 items-center rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-white hover:bg-indigo-500 shadow-sm transition-colors cursor-pointer"
-              >
-                {t("viewer.submit")}
-              </button>
-            </div>
-          </div>
-        ) : (
-          current && (
-            <div
-              key={current.id || currentIndex}
-              className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5 animate-in fade-in slide-in-from-right-2 duration-200"
-            >
-              <div
-                ref={(el) => {
-                  stepHeadingRef.current = el;
-                }}
-                tabIndex={-1}
-                className="focus:outline-none"
-              >
-                <label
-                  id={`${current.id || currentIndex}-label`}
-                  htmlFor={current.id || `q-${currentIndex}`}
-                  className="text-lg font-bold text-slate-800 flex items-center gap-1"
-                >
-                  {current.text || t("viewer.questionFallback", { number: currentIndex + 1 })}
-                  {current.required && (
-                    <span
-                      className="text-rose-500"
-                      aria-label={t("viewer.requiredQuestionAriaLabel")}
-                    >
-                      *
-                    </span>
-                  )}
-                </label>
-                {current.description && (
-                  <p className="text-xs text-slate-400 mt-1">{current.description}</p>
-                )}
+                  {t("viewer.stepper.reviewTitle")}
+                </h2>
+                {formDescription && <p className="text-sm text-slate-500 mt-1">{formDescription}</p>}
               </div>
 
-              <QuestionField
-                question={current}
-                qId={current.id || `q-${currentIndex}`}
-                value={answers[current.id || `q-${currentIndex}`]}
-                onChange={(value) => handleAnswerChange(current.id || `q-${currentIndex}`, value)}
-                labelledBy={`${current.id || currentIndex}-label`}
-                describedBy={
-                  combinedErrors[current.id || `q-${currentIndex}`]
-                    ? `${current.id || currentIndex}-error`
-                    : undefined
-                }
-                invalid={!!combinedErrors[current.id || `q-${currentIndex}`]}
-              />
+              <ul className="space-y-2">
+                {path.map((q, i) => (
+                  <li
+                    key={q.id || i}
+                    className="flex items-center justify-between text-sm border-b border-slate-100 pb-2 last:border-0"
+                  >
+                    <span className="text-xs text-slate-400">
+                      {q.text || t("viewer.questionFallback", { number: i + 1 })}
+                      {" - "}
+                      {answers[q.id!].toString()}
+                    </span>
 
-              {combinedErrors[current.id || `q-${currentIndex}`] && (
-                <div id={`${current.id || currentIndex}-error`}>
-                  <ErrorInfo
-                    errorText={t(
-                      combinedErrors[current.id || `q-${currentIndex}`].key,
-                      combinedErrors[current.id || `q-${currentIndex}`].params,
-                    )}
-                  />
-                </div>
-              )}
+                    <button
+                      type="button"
+                      onClick={() => goTo(i)}
+                      className="text-left text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer pl-4"
+                    >
+                      <span className="text-xs">{t("viewer.stepper.changeAnswer")}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
 
               <div className="flex justify-between pt-2">
                 <button
                   type="button"
                   onClick={handleBack}
-                  disabled={currentIndex === 0}
-                  className="inline-flex h-11 items-center rounded-xl px-5 text-sm font-semibold text-slate-500 hover:bg-slate-100 disabled:opacity-0 disabled:pointer-events-none transition-colors cursor-pointer"
+                  className="inline-flex h-11 items-center rounded-xl px-5 text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   {t("viewer.stepper.back")}
                 </button>
                 <button
                   type="button"
-                  onClick={handleNext}
+                  onClick={handleFinalSubmit}
                   className="inline-flex h-11 items-center rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-white hover:bg-indigo-500 shadow-sm transition-colors cursor-pointer"
                 >
-                  {t("viewer.stepper.next")}
+                  {t("viewer.submit")}
                 </button>
               </div>
             </div>
-          )
-        )}
+          ) : (
+            current && (
+              <div
+                className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5"
+              >
+                <div
+                  ref={setHeadingRef}
+                  tabIndex={-1}
+                  className="focus:outline-none"
+                >
+                  <label
+                    id={`${current.id || currentIndex}-label`}
+                    htmlFor={current.id || `q-${currentIndex}`}
+                    className="text-lg font-bold text-slate-800 flex items-center gap-1"
+                  >
+                    {current.text || t("viewer.questionFallback", { number: currentIndex + 1 })}
+                    {current.required && (
+                      <span
+                        className="text-rose-500"
+                        aria-label={t("viewer.requiredQuestionAriaLabel")}
+                      >
+                        *
+                      </span>
+                    )}
+                  </label>
+                  {current.description && (
+                    <p className="text-xs text-slate-400 mt-1">{current.description}</p>
+                  )}
+                </div>
+
+                <QuestionField
+                  question={current}
+                  qId={current.id || `q-${currentIndex}`}
+                  value={answers[current.id || `q-${currentIndex}`]}
+                  onChange={(value) => handleAnswerChange(current.id || `q-${currentIndex}`, value)}
+                  labelledBy={`${current.id || currentIndex}-label`}
+                  describedBy={
+                    combinedErrors[current.id || `q-${currentIndex}`]
+                      ? `${current.id || currentIndex}-error`
+                      : undefined
+                  }
+                  invalid={!!combinedErrors[current.id || `q-${currentIndex}`]}
+                />
+
+                {combinedErrors[current.id || `q-${currentIndex}`] && (
+                  <div id={`${current.id || currentIndex}-error`}>
+                    <ErrorInfo
+                      errorText={t(
+                        combinedErrors[current.id || `q-${currentIndex}`].key,
+                        combinedErrors[current.id || `q-${currentIndex}`].params,
+                      )}
+                    />
+                  </div>
+                )}
+
+                <div className="flex justify-between pt-2">
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    disabled={currentIndex === 0}
+                    className="inline-flex h-11 items-center rounded-xl px-5 text-sm font-semibold text-slate-500 hover:bg-slate-100 disabled:opacity-0 disabled:pointer-events-none transition-colors cursor-pointer"
+                  >
+                    {t("viewer.stepper.back")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="inline-flex h-11 items-center rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-white hover:bg-indigo-500 shadow-sm transition-colors cursor-pointer"
+                  >
+                    {t("viewer.stepper.next")}
+                  </button>
+                </div>
+              </div>
+            )
+          )}
+        </StepTransition>
 
         {isSubmitAttempted && Object.keys(localErrors).length > 0 && isReview && (
           <p className="text-xs text-rose-600 text-center">

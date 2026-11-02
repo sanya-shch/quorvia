@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { type FormState, type Question, type QuestionType } from "../../../types/formBuilder";
 import { validateConditionGraph } from "@quorvia/condition-engine";
@@ -14,7 +14,19 @@ const INITIAL_STATE: FormState = {
 export function useFormBuilder(initialData?: FormState) {
   const { t } = useTranslation();
   const [form, setForm] = useState<FormState>(initialData || INITIAL_STATE);
-  const [isDirty, setIsDirty] = useState(false);
+  // "Брудність" - це лічильник правок, а не булевий прапорець: збереження
+  // фіксує, скільки правок було на момент відправки (markSaved), тож правки,
+  // зроблені поки запит летів, лишаються незбереженими. З прапорцем
+  // успішна відповідь скидала б його й для них.
+  const editsRef = useRef(0);
+  const [edits, setEdits] = useState(0);
+  const [savedEdits, setSavedEdits] = useState(0);
+  const isDirty = edits !== savedEdits;
+
+  const markDirty = useCallback(() => {
+    editsRef.current += 1;
+    setEdits(editsRef.current);
+  }, []);
 
   const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -67,7 +79,11 @@ export function useFormBuilder(initialData?: FormState) {
     [form, validate],
   );
 
-  const resetDirty = useCallback(() => setIsDirty(false), []);
+  /** Позначає форму чистою відносно ПОТОЧНОГО стану (завантаження з сервера). */
+  const resetDirty = useCallback(() => setSavedEdits(editsRef.current), []);
+
+  /** Позначає чистою відносно стану на момент відправки (revision - значення `edits` тоді). */
+  const markSaved = useCallback((revision: number) => setSavedEdits(revision), []);
 
   const updateFormMeta = useCallback(
     (fields: Partial<Omit<FormState, "questions">>) => {
@@ -78,9 +94,9 @@ export function useFormBuilder(initialData?: FormState) {
         return nextState;
       });
 
-      setIsDirty(true);
+      markDirty();
     },
-    [hasAttemptedSave, validate],
+    [hasAttemptedSave, validate, markDirty],
   );
 
   // const addQuestion = useCallback((type: QuestionType) => {
@@ -106,7 +122,7 @@ export function useFormBuilder(initialData?: FormState) {
   //       questions: [...prev.questions, newQuestion],
   //     };
   //   });
-  //   setIsDirty(true);
+  //   markDirty();
   // }, []);
 
   const updateQuestion = useCallback(
@@ -121,9 +137,9 @@ export function useFormBuilder(initialData?: FormState) {
         return nextState;
       });
 
-      setIsDirty(true);
+      markDirty();
     },
-    [hasAttemptedSave, validate],
+    [hasAttemptedSave, validate, markDirty],
   );
 
   const deleteQuestion = useCallback(
@@ -138,9 +154,9 @@ export function useFormBuilder(initialData?: FormState) {
         return nextState;
       });
 
-      setIsDirty(true);
+      markDirty();
     },
-    [hasAttemptedSave, validate],
+    [hasAttemptedSave, validate, markDirty],
   );
 
   const duplicateQuestion = useCallback(
@@ -165,9 +181,9 @@ export function useFormBuilder(initialData?: FormState) {
 
         return nextState;
       });
-      setIsDirty(true);
+      markDirty();
     },
-    [hasAttemptedSave, validate],
+    [hasAttemptedSave, validate, markDirty],
   );
 
   const moveQuestion = useCallback(
@@ -184,9 +200,9 @@ export function useFormBuilder(initialData?: FormState) {
 
         return nextState;
       });
-      setIsDirty(true);
+      markDirty();
     },
-    [hasAttemptedSave, validate],
+    [hasAttemptedSave, validate, markDirty],
   );
 
   const moveOption = useCallback((questionIndex: number, fromIndex: number, toIndex: number) => {
@@ -203,8 +219,8 @@ export function useFormBuilder(initialData?: FormState) {
 
       return { ...prev, questions };
     });
-    setIsDirty(true);
-  }, []);
+    markDirty();
+  }, [markDirty]);
 
   const addQuestionAtPosition = useCallback(
     (type: QuestionType, index: number) => {
@@ -249,9 +265,9 @@ export function useFormBuilder(initialData?: FormState) {
 
         return nextState;
       });
-      setIsDirty(true);
+      markDirty();
     },
-    [hasAttemptedSave, validate, t],
+    [hasAttemptedSave, validate, t, markDirty],
   );
 
   return {
@@ -260,7 +276,10 @@ export function useFormBuilder(initialData?: FormState) {
     errors,
     trySave,
     isDirty,
+    /** Номер поточної правки: передається в markSaved після успішного збереження. */
+    revision: edits,
     resetDirty,
+    markSaved,
     updateFormMeta,
     // addQuestion,
     updateQuestion,

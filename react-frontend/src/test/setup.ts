@@ -1,6 +1,10 @@
 import "@testing-library/jest-dom/vitest";
 import { beforeAll } from "vitest";
+import { MotionGlobalConfig } from "motion/react";
 import i18n from "../i18n";
+
+// Тести перевіряють підсумковий стан DOM, а не плавність: анімації завершуються миттєво.
+MotionGlobalConfig.skipAnimations = true;
 
 if (typeof Element !== "undefined" && !Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {};
