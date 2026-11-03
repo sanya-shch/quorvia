@@ -1,3 +1,4 @@
+import { otherAnswerKey } from "@quorvia/shared-types";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type Question } from "../../types/formBuilder";
@@ -70,7 +71,7 @@ export default function FormViewer({
     if (isSubmitAttempted) {
       const question = questions.find((q) => (q.id || "") === questionId);
       if (question) {
-        const error = validateField(question, value);
+        const error = validateField(question, value, answers[otherAnswerKey(questionId)]);
         setLocalErrors((prev) => {
           const copy = { ...prev };
           if (error) {
@@ -85,6 +86,26 @@ export default function FormViewer({
       setLocalErrors((prev) => {
         const copy = { ...prev };
         delete copy[questionId];
+        return copy;
+      });
+    }
+  };
+
+  const handleOtherChange = (questionId: string, text: string) => {
+    setAnswers((prev) => ({ ...prev, [otherAnswerKey(questionId)]: text }));
+
+    if (serverErrors[questionId] && onClearServerError) {
+      onClearServerError(questionId);
+    }
+
+    const question = questions.find((q) => (q.id || "") === questionId);
+
+    if (isSubmitAttempted && question) {
+      const error = validateField(question, answers[questionId], text);
+      setLocalErrors((prev) => {
+        const copy = { ...prev };
+        if (error) copy[questionId] = error;
+        else delete copy[questionId];
         return copy;
       });
     }
@@ -165,6 +186,8 @@ export default function FormViewer({
                 qId={qId}
                 value={answers[qId]}
                 onChange={(value) => handleAnswerChange(qId, value)}
+                otherValue={answers[otherAnswerKey(qId)]}
+                onOtherChange={(text) => handleOtherChange(qId, text)}
                 labelledBy={labelId}
                 describedBy={hasError ? errorId : undefined}
                 invalid={hasError}

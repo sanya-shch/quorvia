@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Question } from "../../shared/types/questions.js";
-import { buildResponseSchema } from "./response.validation.js";
+import { buildResponseSchema, cleanAnswers } from "./response.validation.js";
 
 const makeQuestion = (overrides: Partial<Question>): Question => ({
   id: "q-1",
@@ -245,6 +245,79 @@ describe("buildResponseSchema — NUMBER зі слайдером", () => {
     ]);
 
     expect(plain.safeParse({ "q-1": 0.35 }).success).toBe(true);
+  });
+});
+
+describe("buildResponseSchema / cleanAnswers - варіант «Інше»", () => {
+  const options = [
+    { id: "a", text: "A", isDefault: false },
+    { id: "o", text: "Інше", isDefault: false, isOther: true },
+  ];
+  const single = makeQuestion({ id: "q", type: "CHOICE_SINGLE", options } as Partial<Question>);
+  const multi = makeQuestion({ id: "q", type: "CHOICE_MULTI", options } as Partial<Question>);
+
+  const firstIssue = (schema: ReturnType<typeof buildResponseSchema>, data: unknown) => {
+    const result = schema.safeParse(data);
+
+    return result.success ? null : result.error.issues[0];
+  };
+
+  it("обране «Інше» без тексту - помилка на id питання (а не на службовий ключ)", () => {
+    const schema = buildResponseSchema([single]);
+
+    for (const data of [{ q: "o" }, { q: "o", q__other: "" }, { q: "o", q__other: "   " }]) {
+      const issue = firstIssue(schema, data);
+
+      expect(issue?.path).toEqual(["q"]);
+      expect(issue?.message).toBe("VALIDATION_FIELD_REQUIRED");
+    }
+  });
+
+  it("обране «Інше» з текстом проходить; текст не рядок або задовгий - помилка", () => {
+    const schema = buildResponseSchema([single]);
+
+    expect(schema.safeParse({ q: "o", q__other: "свій варіант" }).success).toBe(true);
+    expect(firstIssue(schema, { q: "o", q__other: 5 })?.path).toEqual(["q"]);
+    expect(firstIssue(schema, { q: "o", q__other: "x".repeat(501) })?.message).toBe(
+      "VALIDATION_FORMAT_INVALID",
+    );
+  });
+
+  it("текст не потрібен, поки обрано інший варіант", () => {
+    expect(buildResponseSchema([single]).safeParse({ q: "a" }).success).toBe(true);
+  });
+
+  it("CHOICE_MULTI: «Інше» разом з іншими варіантами теж вимагає текст", () => {
+    const schema = buildResponseSchema([multi]);
+
+    expect(firstIssue(schema, { q: ["a", "o"] })?.path).toEqual(["q"]);
+    expect(schema.safeParse({ q: ["a", "o"], q__other: "x" }).success).toBe(true);
+    expect(schema.safeParse({ q: ["a"] }).success).toBe(true);
+  });
+
+  it("приховане питання не вимагає тексту", () => {
+    const schema = buildResponseSchema([single], new Set<string>());
+
+    expect(schema.safeParse({ q: "o" }).success).toBe(true);
+  });
+
+  it("cleanAnswers: зберігає текст лише якщо «Інше» обране, обрізає пробіли", () => {
+    const visible = new Set(["q"]);
+
+    expect(cleanAnswers([single], { q: "o", q__other: "  мій  " }, visible)).toEqual({
+      q: "o",
+      q__other: "мій",
+    });
+    // респондент передумав: залишковий текст не зберігаємо
+    expect(cleanAnswers([single], { q: "a", q__other: "старий" }, visible)).toEqual({ q: "a" });
+    expect(cleanAnswers([multi], { q: ["a", "o"], q__other: "x" }, visible)).toEqual({
+      q: ["a", "o"],
+      q__other: "x",
+    });
+  });
+
+  it("cleanAnswers: відкидає відповіді (і текст) прихованих питань", () => {
+    expect(cleanAnswers([single], { q: "o", q__other: "x" }, new Set())).toEqual({});
   });
 });
 

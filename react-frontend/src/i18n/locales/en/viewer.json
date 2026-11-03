@@ -40,5 +40,7 @@
   },
   "slider": {
     "notSet": "Not set"
-  }
+  },
+  "otherPlaceholder": "Please specify...",
+  "otherAriaLabel": "Your own answer"
 }

@@ -40,5 +40,7 @@
   },
   "slider": {
     "notSet": "Не вибрано"
-  }
+  },
+  "otherPlaceholder": "Вкажіть свій варіант...",
+  "otherAriaLabel": "Ваш власний варіант"
 }

@@ -20,6 +20,33 @@ const makeQuestion = (overrides: Partial<Question>): Question => ({
   ...overrides,
 });
 
+describe("formatAnswer - варіант «Інше»", () => {
+  const options = [
+    { id: "a", text: "A", isDefault: false },
+    { id: "o", text: "Інше", isDefault: false, isOther: true },
+  ];
+
+  it("CHOICE_SINGLE: «Інше: текст респондента»", () => {
+    const question = makeQuestion({ type: "CHOICE_SINGLE", options });
+
+    expect(formatAnswer(question, "o", "свій варіант")).toBe("Інше: свій варіант");
+    expect(formatAnswer(question, "a", "залишок")).toBe("A");
+  });
+
+  it("CHOICE_MULTI: текст додається лише до «Інше»", () => {
+    const question = makeQuestion({ type: "CHOICE_MULTI", options });
+
+    expect(formatAnswer(question, ["a", "o"], "x")).toBe("A; Інше: x");
+  });
+
+  it("без тексту лишається підпис варіанта", () => {
+    const question = makeQuestion({ type: "CHOICE_SINGLE", options });
+
+    expect(formatAnswer(question, "o")).toBe("Інше");
+    expect(formatAnswer(question, "o", "")).toBe("Інше");
+  });
+});
+
 describe("formatAnswer", () => {
   it("повертає порожній рядок для null/undefined/порожнього значення", () => {
     const question = makeQuestion({ type: "TEXT" });

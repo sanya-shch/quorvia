@@ -2,6 +2,7 @@ import PDFDocument from "pdfkit";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { otherAnswerKey } from "@quorvia/shared-types";
 import { ExportData, Exporter, GeneratedFile } from "./exporter.types.js";
 import { AnswerValue, formatAnswer, slugifyFileName } from "./formatAnswer.js";
 
@@ -78,7 +79,7 @@ export const exportToPdf: Exporter = (data: ExportData): Promise<GeneratedFile> 
       const answers = response.answers as Record<string, AnswerValue>;
 
       questions.forEach((question) => {
-        const value = formatAnswer(question, answers[question.id]) || "—";
+        const value = formatAnswer(question, answers[question.id], answers[otherAnswerKey(question.id)]) || "—";
 
         doc.fontSize(10).fillColor("#555").text(question.text);
 

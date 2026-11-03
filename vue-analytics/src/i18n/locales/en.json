@@ -64,7 +64,8 @@
     "detailPanel": {
       "close": "Close details panel",
       "totalAnswers": "Answers: {count}",
-      "allAnswers": "All answers:"
+      "allAnswers": "All answers:",
+      "otherAnswers": "Answers for “Other”:"
     },
     "responsesList": {
       "title": "All responses",

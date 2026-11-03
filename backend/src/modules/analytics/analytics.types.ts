@@ -140,6 +140,7 @@ export type QuestionAnalyticsDto =
       };
       totalAnswers: number;
       distribution: { optionId: string; count: number; text: string }[];
+      otherAnswers?: { value: string; count: number }[];
     }
   | {
       question: {

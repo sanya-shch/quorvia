@@ -1,5 +1,5 @@
 import { prisma } from "../../prisma/prisma.js";
-import { buildResponseSchema } from "./response.validation.js";
+import { buildResponseSchema, cleanAnswers } from "./response.validation.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
 import { ErrorCode } from "@quorvia/shared-types";
 import { Answers } from "./response.types.js";
@@ -41,11 +41,7 @@ export const submitResponse = async (shareId: string, answers: Answers, sessionK
     throw new AppError(ErrorCode.RESPONSE_VALIDATION_FAILED, 400, formattedErrors);
   }
 
-  const cleanedAnswers = Object.fromEntries(
-    Object.entries(result.data as Answers).filter(([questionId]) =>
-      visibleQuestionIds.has(questionId),
-    ),
-  ) as Answers;
+  const cleanedAnswers = cleanAnswers(form.questions, result.data as Answers, visibleQuestionIds);
 
   const response = await prisma.response.create({
     data: {

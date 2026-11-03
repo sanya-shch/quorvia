@@ -35,7 +35,7 @@ export default function QuestionDetailsPage() {
     );
   }
 
-  const { question, totalAnswers, stats, distribution, answers, nps } = data;
+  const { question, totalAnswers, stats, distribution, answers, nps, otherAnswers } = data;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -213,6 +213,22 @@ export default function QuestionDetailsPage() {
                     );
                   })}
                 </div>
+
+                {otherAnswers && otherAnswers.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      {t("analytics.detail.otherAnswers")}
+                    </h3>
+                    <ul className="flex flex-col gap-1.5 text-sm text-slate-700">
+                      {otherAnswers.map((item, idx) => (
+                        <li key={idx} className="flex justify-between gap-4">
+                          <span className="break-words">«{item.value}»</span>
+                          <span className="text-slate-400 font-mono shrink-0">×{item.count}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
 

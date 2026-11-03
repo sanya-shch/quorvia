@@ -83,6 +83,13 @@ onUnmounted(() => {
           </div>
         </div>
 
+        <div v-if="data.otherAnswers?.length" class="answers-list">
+          <p class="answers-title">{{ t("analytics.detailPanel.otherAnswers") }}</p>
+          <ul>
+            <li v-for="(a, i) in data.otherAnswers" :key="i">«{{ a.value }}» ×{{ a.count }}</li>
+          </ul>
+        </div>
+
         <div v-if="data.answers?.length" class="answers-list">
           <p class="answers-title">{{ t("analytics.detailPanel.allAnswers") }}</p>
           <ul>

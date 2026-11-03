@@ -98,7 +98,12 @@
       "displayList": "Список",
       "displayTabs": "Таби",
       "displayDropdown": "Дропдаун",
-      "dropdownDisabledHint": "Дропдаун доступний тільки для питань з одним варіантом відповіді"
+      "dropdownDisabledHint": "Дропдаун доступний тільки для питань з одним варіантом відповіді",
+      "addOther": "Додати «Інше»",
+      "otherDefaultText": "Інше",
+      "otherLabel": "Текст варіанта «Інше»",
+      "otherHint": "Респондент вводить власну відповідь",
+      "removeOther": "Видалити варіант «Інше»"
     },
     "condition": {
       "enableLabel": "Показувати лише за умовою (conditional logic)",

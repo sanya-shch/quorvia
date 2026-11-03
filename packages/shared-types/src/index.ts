@@ -98,7 +98,41 @@ export interface QuestionOption {
   id: string;
   text: string;
   isDefault: boolean;
+  /**
+   * Варіант «Інше»: коли респондент його обирає, він вписує власний текст.
+   * Не більше одного на питання і завжди останній у списку; не буває
+   * варіантом за замовчуванням. Текст лежить в `answers` окремим ключем
+   * (див. otherAnswerKey), тож відповідь на саме питання лишається id варіанта.
+   */
+  isOther?: boolean;
 }
+
+/** Суфікс ключа в `answers`, де зберігається текст варіанта «Інше». */
+export const OTHER_ANSWER_SUFFIX = "__other";
+export const OTHER_ANSWER_MAX_LENGTH = 500;
+
+export const otherAnswerKey = (questionId: string): string => `${questionId}${OTHER_ANSWER_SUFFIX}`;
+
+export const isOtherAnswerKey = (key: string): boolean => key.endsWith(OTHER_ANSWER_SUFFIX);
+
+export const getOtherOption = <T extends { isOther?: boolean }>(
+  options: readonly T[] | null | undefined,
+): T | undefined => options?.find((option) => option.isOther);
+
+/** Чи обрано у відповіді варіант «Інше» (лише для питань із вибором). */
+export const isOtherSelected = (
+  type: QuestionType,
+  options: readonly { id: string; isOther?: boolean }[] | null | undefined,
+  answer: unknown,
+): boolean => {
+  const other = getOtherOption(options);
+
+  if (!other) return false;
+  if (type === "CHOICE_SINGLE") return answer === other.id;
+  if (type === "CHOICE_MULTI") return Array.isArray(answer) && answer.includes(other.id);
+
+  return false;
+};
 
 export interface QuestionConfig {
   variant?: "input" | "textarea" | "email" | "name";
@@ -277,6 +311,8 @@ export interface QuestionAnalyticsDto {
   stats?: NumberStats;
   /** Лише для NPS. */
   nps?: NpsBreakdown;
+  /** Питання з вибором і варіантом «Інше»: власні відповіді за частотою (топ). */
+  otherAnswers?: { value: string; count: number }[];
   answers?: string[];
   trueCount?: number;
   falseCount?: number;

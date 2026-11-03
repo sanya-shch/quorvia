@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { answersSchema, MAX_ANSWER_KEYS, MAX_ANSWER_STRING_LENGTH } from "./answers.js";
+import { otherAnswerKey } from "@quorvia/shared-types";
+import {
+  answersSchema,
+  MAX_ANSWER_KEY_LENGTH,
+  MAX_ANSWER_KEYS,
+  MAX_ANSWER_STRING_LENGTH,
+} from "./answers.js";
 
 describe("answersSchema", () => {
   it("приймає звичайні відповіді", () => {
@@ -16,8 +22,15 @@ describe("answersSchema", () => {
     expect(answersSchema.safeParse(answers).success).toBe(false);
   });
 
+  it("ключ питання до 100 символів + суфікс «Інше» ще проходить", () => {
+    // id питання максимум 100 символів (FORM_LIMITS.id); ключ тексту «Інше» довший на суфікс.
+    expect(answersSchema.safeParse({ [otherAnswerKey("k".repeat(100))]: "x" }).success).toBe(true);
+  });
+
   it("відхиляє надто довгий ключ і надто великий масив", () => {
-    expect(answersSchema.safeParse({ ["k".repeat(101)]: "x" }).success).toBe(false);
+    expect(answersSchema.safeParse({ ["k".repeat(MAX_ANSWER_KEY_LENGTH + 1)]: "x" }).success).toBe(
+      false,
+    );
     expect(answersSchema.safeParse({ a: Array.from({ length: 201 }, () => "x") }).success).toBe(false);
   });
 });

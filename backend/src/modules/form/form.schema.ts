@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ErrorCode, SCALE_LIMITS } from "@quorvia/shared-types";
+import { ErrorCode, OTHER_ANSWER_SUFFIX, SCALE_LIMITS } from "@quorvia/shared-types";
 import { compileSafePattern, MAX_PATTERN_LENGTH } from "../../shared/utils/safeRegex.js";
 
 /**
@@ -44,7 +44,13 @@ export const conditionSchema = z.object({
 });
 
 const base = {
-  id: z.string().max(FORM_LIMITS.id).optional(),
+  // Суфікс зарезервований під ключ тексту «Інше» в answers (otherAnswerKey):
+  // id питання, що ним закінчується, міг би зіткнутися з чужим ключем.
+  id: z
+    .string()
+    .max(FORM_LIMITS.id)
+    .refine((id) => !id.endsWith(OTHER_ANSWER_SUFFIX), ErrorCode.REQUEST_BODY_INVALID)
+    .optional(),
   text: z.string().min(1).max(FORM_LIMITS.questionText),
   description: z.string().max(FORM_LIMITS.description).optional(),
   required: z.boolean().optional(),
@@ -69,7 +75,23 @@ const optionSchema = z.object({
   id: z.string().max(FORM_LIMITS.id),
   text: z.string().min(1).max(FORM_LIMITS.optionText),
   isDefault: z.boolean().optional(),
+  isOther: z.boolean().optional(),
 });
+
+// «Інше»: не більше одного, завжди останнім (так його легко "закріпити" при
+// рандомізації варіантів), і не може бути варіантом за замовчуванням -
+// інакше форма стартувала б з обраним «Інше» і порожнім обов'язковим текстом.
+const optionsSchema = z
+  .array(optionSchema)
+  .min(1)
+  .max(FORM_LIMITS.options)
+  .refine((options) => {
+    const others = options.filter((o) => o.isOther);
+
+    if (others.length === 0) return true;
+
+    return others.length === 1 && options[options.length - 1].isOther && !others[0].isDefault;
+  }, ErrorCode.REQUEST_BODY_INVALID);
 
 export const questionSchema = z.discriminatedUnion("type", [
   z.object({
@@ -81,7 +103,7 @@ export const questionSchema = z.discriminatedUnion("type", [
   z.object({
     ...base,
     type: z.literal("CHOICE_SINGLE"),
-    options: z.array(optionSchema).min(1).max(FORM_LIMITS.options),
+    options: optionsSchema,
     config: z
       .object({
         displayVariant: z.enum(["list", "tabs", "dropdown"]).optional(),
@@ -92,7 +114,7 @@ export const questionSchema = z.discriminatedUnion("type", [
   z.object({
     ...base,
     type: z.literal("CHOICE_MULTI"),
-    options: z.array(optionSchema).min(1).max(FORM_LIMITS.options),
+    options: optionsSchema,
     config: z
       .object({
         displayVariant: z.enum(["list", "tabs", "dropdown"]).optional(),

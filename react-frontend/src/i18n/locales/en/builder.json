@@ -98,7 +98,12 @@
       "displayList": "List",
       "displayTabs": "Tabs",
       "displayDropdown": "Dropdown",
-      "dropdownDisabledHint": "Dropdown is only available for single-choice questions"
+      "dropdownDisabledHint": "Dropdown is only available for single-choice questions",
+      "addOther": "Add “Other”",
+      "otherDefaultText": "Other",
+      "otherLabel": "Text of the “Other” option",
+      "otherHint": "Respondent types their own answer",
+      "removeOther": "Remove “Other” option"
     },
     "condition": {
       "enableLabel": "Show only if a condition is met (conditional logic)",

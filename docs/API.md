@@ -57,6 +57,18 @@ Exceeding a limit returns `429 RATE_LIMITED`. Limits are per IP unless noted (in
 | `SCALE` | integer `min..max` | `min`: 0 or 1 (default 1), `max`: integer 2-10, strictly greater than `min` (default 5), `minLabel`/`maxLabel` (up to 100 chars) |
 | `NPS` | integer `0..10` | - (fixed) |
 
+### “Other” option
+
+A choice question (`CHOICE_SINGLE` / `CHOICE_MULTI`) may contain one option with `isOther: true`. It must be the **last** option and cannot be `isDefault`. When the respondent picks it, they also send the free text under a sibling key `<questionId>__other` (max 500 chars, required and non-blank while “Other” is selected):
+
+```json
+{ "answers": { "q1": "opt-other", "q1__other": "Matcha" } }
+```
+
+The answer to the question itself stays the option id, so conditions (`equals`/`in`) work as for any option. The text is stored only while “Other” is selected (stale text is dropped, the rest is trimmed). The suffix `__other` is reserved: question ids cannot end with it. Validation errors for the text are reported on the question id, not on the `__other` key.
+
+Responses, exports (`Other: Matcha`) and the per-question analytics (`otherAnswers`: top texts by frequency) include the text.
+
 Scale answers (`RATING`, `SCALE`, `NPS`) are plain numbers, so `0` is a real answer, and conditions can use `equals`, `notEquals`, `gt`, `lt` on them. Exports contain the raw number.
 
 ## Public form (anonymous)

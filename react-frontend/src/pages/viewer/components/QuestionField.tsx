@@ -1,11 +1,18 @@
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { assertNever, getScaleBounds } from "@quorvia/shared-types";
+import {
+  assertNever,
+  getOtherOption,
+  getScaleBounds,
+  isOtherSelected,
+  OTHER_ANSWER_MAX_LENGTH,
+} from "@quorvia/shared-types";
 import ScaleField from "./ScaleField";
 import NumberSlider from "./NumberSlider";
 import { type Question } from "../../../types/formBuilder";
 import { type AnswerValue } from "../../../types/formViewer";
 
-interface QuestionFieldProps {
+interface QuestionControlProps {
   question: Question;
   qId: string;
   value: AnswerValue;
@@ -15,7 +22,13 @@ interface QuestionFieldProps {
   invalid?: boolean;
 }
 
-export default function QuestionField({
+interface QuestionFieldProps extends QuestionControlProps {
+  /** Текст варіанта «Інше» (answers[otherAnswerKey(qId)]). */
+  otherValue?: AnswerValue;
+  onOtherChange?: (text: string) => void;
+}
+
+function QuestionControl({
   question,
   qId,
   value,
@@ -23,7 +36,7 @@ export default function QuestionField({
   labelledBy,
   describedBy,
   invalid,
-}: QuestionFieldProps) {
+}: QuestionControlProps) {
   const { t } = useTranslation();
   const displayVariant = question.config?.displayVariant || "list";
 
@@ -326,4 +339,54 @@ export default function QuestionField({
   // Усі типи питань оброблені вище: тут question.type має звузитись до never.
   // Новий тип у QUESTION_TYPES без власної гілки зламає компіляцію.
   return assertNever(question.type, "question type");
+}
+
+/**
+ * Поле відповіді + (для питань із варіантом «Інше») текстове поле, яке
+ * з'являється, коли «Інше» обрано. Саме керування (QuestionControl) про
+ * «Інше» нічого не знає - так варіанти list/tabs/dropdown не дублюють логіку.
+ */
+export default function QuestionField({
+  otherValue,
+  onOtherChange,
+  ...controlProps
+}: QuestionFieldProps) {
+  const { t } = useTranslation();
+  const { question, qId, value, describedBy, invalid } = controlProps;
+  const showOther = isOtherSelected(question.type, question.options, value);
+  const inputRef = useRef<HTMLInputElement>(null);
+  // Фокус на поле лише коли воно щойно з'явилось через вибір, а не при першому
+  // рендері (напр. після повернення на крок зі вже обраним «Інше»).
+  const wasShown = useRef(showOther);
+
+  useEffect(() => {
+    if (showOther && !wasShown.current) inputRef.current?.focus();
+    wasShown.current = showOther;
+  }, [showOther]);
+
+  if (!getOtherOption(question.options)) {
+    return <QuestionControl {...controlProps} />;
+  }
+
+  return (
+    <div className="space-y-3">
+      <QuestionControl {...controlProps} />
+
+      {showOther && (
+        <input
+          ref={inputRef}
+          id={`${qId}-other`}
+          type="text"
+          maxLength={OTHER_ANSWER_MAX_LENGTH}
+          value={typeof otherValue === "string" ? otherValue : ""}
+          onChange={(e) => onOtherChange?.(e.target.value)}
+          aria-label={t("viewer.otherAriaLabel")}
+          aria-invalid={invalid}
+          aria-describedby={describedBy}
+          placeholder={t("viewer.otherPlaceholder")}
+          className="w-full h-10 rounded-xl border border-slate-200 px-3 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none"
+        />
+      )}
+    </div>
+  );
 }

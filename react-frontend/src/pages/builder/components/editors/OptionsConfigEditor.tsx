@@ -1,5 +1,6 @@
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { useTranslation } from "react-i18next";
+import { getOtherOption } from "@quorvia/shared-types";
 import { type QuestionOption, type QuestionDisplayVariant } from "../../../../types/formBuilder";
 
 interface OptionsConfigEditorProps {
@@ -21,13 +22,41 @@ export default function OptionsConfigEditor({
 }: OptionsConfigEditorProps) {
   const { t } = useTranslation();
 
+  // «Інше» завжди останнє (так вимагає й схема форми на сервері), тому звичайні
+  // варіанти - це префікс масиву, і їхні індекси збігаються з індексами в options
+  // (саме їх використовує drag-and-drop: «Інше» у Droppable не входить).
+  const otherOption = getOtherOption(options);
+  const regularOptions = options.filter((option) => !option.isOther);
+
   const handleAddOption = () => {
     const newOption: QuestionOption = {
       id: `opt-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      text: t("builder.editors.options.newOptionText", { number: options.length + 1 }),
+      text: t("builder.editors.options.newOptionText", { number: regularOptions.length + 1 }),
       isDefault: false,
     };
-    onChangeOptions([...options, newOption]);
+    onChangeOptions([...regularOptions, newOption, ...(otherOption ? [otherOption] : [])]);
+  };
+
+  const handleAddOther = () => {
+    if (otherOption) return;
+
+    onChangeOptions([
+      ...options,
+      {
+        id: `opt-other-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        text: t("builder.editors.options.otherDefaultText"),
+        isDefault: false,
+        isOther: true,
+      },
+    ]);
+  };
+
+  const handleOtherTextChange = (text: string) => {
+    onChangeOptions(options.map((option) => (option.isOther ? { ...option, text } : option)));
+  };
+
+  const handleRemoveOther = () => {
+    onChangeOptions(regularOptions);
   };
 
   const handleTextChange = (index: number, text: string) => {
@@ -37,7 +66,7 @@ export default function OptionsConfigEditor({
   };
 
   const handleRemoveOption = (index: number) => {
-    if (options.length <= 1) return;
+    if (regularOptions.length <= 1) return;
     onChangeOptions(options.filter((_, i) => i !== index));
   };
 
@@ -62,7 +91,7 @@ export default function OptionsConfigEditor({
         <Droppable droppableId={`options-${questionIndex}`} type="OPTIONS">
           {(provided) => (
             <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-2">
-              {options.map((option, index) => (
+              {regularOptions.map((option, index) => (
                 <Draggable key={option.id} draggableId={option.id} index={index}>
                   {(draggableProvided) => (
                     <div
@@ -136,7 +165,7 @@ export default function OptionsConfigEditor({
                       <button
                         type="button"
                         onClick={() => handleRemoveOption(index)}
-                        disabled={options.length <= 1}
+                        disabled={regularOptions.length <= 1}
                         className="opacity-0 group-hover:opacity-100 rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer disabled:opacity-0"
                       >
                         <svg
@@ -162,22 +191,70 @@ export default function OptionsConfigEditor({
           )}
         </Droppable>
 
-        <button
-          type="button"
-          onClick={handleAddOption}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-500 bg-indigo-50/50 hover:bg-indigo-50 px-3 py-2 rounded-xl border border-dashed border-indigo-200 transition-all mt-1 cursor-pointer"
-        >
-          <svg
-            className="h-3.5 w-3.5"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="2.5"
-            stroke="currentColor"
+        {otherOption && (
+          <div className="flex items-center gap-2 bg-slate-50/50 border border-dashed border-slate-300 rounded-xl p-2 group">
+            <span
+              aria-hidden="true"
+              className="ml-6 h-5 w-5 shrink-0 border border-dashed border-slate-300 bg-white rounded-full"
+            />
+            <input
+              type="text"
+              value={otherOption.text}
+              onChange={(e) => handleOtherTextChange(e.target.value)}
+              aria-label={t("builder.editors.options.otherLabel")}
+              className="flex-1 min-w-0 bg-transparent text-sm font-medium text-slate-700 focus:outline-none placeholder-slate-400"
+              placeholder={t("builder.editors.options.otherDefaultText")}
+            />
+            <span className="shrink-0 text-xs text-slate-400">
+              {t("builder.editors.options.otherHint")}
+            </span>
+            <button
+              type="button"
+              onClick={handleRemoveOther}
+              aria-label={t("builder.editors.options.removeOther")}
+              className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="2"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2 mt-1">
+          <button
+            type="button"
+            onClick={handleAddOption}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-500 bg-indigo-50/50 hover:bg-indigo-50 px-3 py-2 rounded-xl border border-dashed border-indigo-200 transition-all cursor-pointer"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5H4.5" />
-          </svg>
-          {t("builder.editors.options.addOption")}
-        </button>
+            <svg
+              className="h-3.5 w-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="2.5"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5H4.5" />
+            </svg>
+            {t("builder.editors.options.addOption")}
+          </button>
+
+          {!otherOption && (
+            <button
+              type="button"
+              onClick={handleAddOther}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-700 bg-slate-50 hover:bg-slate-100 px-3 py-2 rounded-xl border border-dashed border-slate-300 transition-all cursor-pointer"
+            >
+              {t("builder.editors.options.addOther")}
+            </button>
+          )}
+        </div>
       </div>
 
       <hr className="border-slate-100" />

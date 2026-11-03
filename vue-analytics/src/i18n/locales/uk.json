@@ -64,7 +64,8 @@
     "detailPanel": {
       "close": "Закрити панель деталей",
       "totalAnswers": "Відповідей: {count}",
-      "allAnswers": "Усі відповіді:"
+      "allAnswers": "Усі відповіді:",
+      "otherAnswers": "Відповіді «Інше»:"
     },
     "responsesList": {
       "title": "Всі відповіді",

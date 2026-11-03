@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { OTHER_ANSWER_SUFFIX } from "@quorvia/shared-types";
 
 /**
  * Спільна схема "answers" для публічних ендпоінтів (відправка відповіді та
@@ -9,6 +10,8 @@ import { z } from "zod";
  * накладає buildResponseSchema; тут - лише загальна "стеля".
  */
 export const MAX_ANSWER_KEYS = 500;
+// id питання (до 100 символів) + суфікс ключа тексту «Інше».
+export const MAX_ANSWER_KEY_LENGTH = 100 + OTHER_ANSWER_SUFFIX.length;
 export const MAX_ANSWER_STRING_LENGTH = 10_000;
 export const MAX_ANSWER_ARRAY_ITEMS = 200;
 export const MAX_SESSION_KEY_LENGTH = 100;
@@ -22,7 +25,7 @@ const answerValueSchema = z.union([
 ]);
 
 export const answersSchema = z
-  .record(z.string().max(100), answerValueSchema)
+  .record(z.string().max(MAX_ANSWER_KEY_LENGTH), answerValueSchema)
   .refine((answers) => Object.keys(answers).length <= MAX_ANSWER_KEYS, {
     message: "Too many answers",
   });

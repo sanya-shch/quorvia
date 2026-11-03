@@ -1,11 +1,22 @@
 import { z } from "zod";
 import { Question } from "../../shared/types/questions.js";
-import { assertNever, ErrorCode, getScaleBounds } from "@quorvia/shared-types";
+import {
+  assertNever,
+  ErrorCode,
+  getOtherOption,
+  getScaleBounds,
+  isOtherSelected,
+  OTHER_ANSWER_MAX_LENGTH,
+  otherAnswerKey,
+} from "@quorvia/shared-types";
+import type { Answers } from "./response.types.js";
 import { compileSafePattern } from "../../shared/utils/safeRegex.js";
 import { MAX_ANSWER_STRING_LENGTH } from "../../shared/schemas/answers.js";
 
 export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set<string>) => {
   const shape: Record<string, z.ZodTypeAny> = {};
+  // Питання з «Інше», яким потрібна перевірка тексту (див. superRefine нижче).
+  const withOther: Question[] = [];
 
   for (const q of questions as Question[]) {
     let schema;
@@ -134,7 +145,72 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
     }
 
     shape[q.id] = schema;
+
+    if (
+      (q.type === "CHOICE_SINGLE" || q.type === "CHOICE_MULTI") &&
+      getOtherOption(q.options) &&
+      isVisible
+    ) {
+      // Значення перевіряє superRefine (помилку треба віддати на id питання,
+      // а не на службовий ключ - саме за ним клієнт показує повідомлення).
+      shape[otherAnswerKey(q.id)] = z.unknown().optional();
+      withOther.push(q);
+    }
   }
 
-  return z.object(shape);
+  return z.object(shape).superRefine((data, ctx) => {
+    for (const q of withOther) {
+      const answer = (data as Answers)[q.id];
+
+      if (!isOtherSelected(q.type, q.options, answer)) continue;
+
+      const text = (data as Record<string, unknown>)[otherAnswerKey(q.id)];
+      const trimmed = typeof text === "string" ? text.trim() : "";
+
+      if (trimmed === "") {
+        ctx.addIssue({
+          code: "custom",
+          path: [q.id],
+          message: ErrorCode.VALIDATION_FIELD_REQUIRED,
+        });
+      } else if (trimmed.length > OTHER_ANSWER_MAX_LENGTH) {
+        ctx.addIssue({
+          code: "custom",
+          path: [q.id],
+          message: ErrorCode.VALIDATION_FORMAT_INVALID,
+        });
+      }
+    }
+  });
+};
+
+/**
+ * Залишає в зберігаємих відповідях лише видимі питання; текст «Інше»
+ * потрапляє, тільки якщо «Інше» справді обране (залишок від попереднього
+ * вибору респондента не зберігаємо) - і вже обрізаним від пробілів.
+ */
+export const cleanAnswers = (
+  questions: unknown,
+  data: Answers,
+  visibleQuestionIds: Set<string>,
+): Answers => {
+  const cleaned: Answers = {};
+
+  for (const q of questions as Question[]) {
+    if (!visibleQuestionIds.has(q.id)) continue;
+
+    if (data[q.id] !== undefined) {
+      cleaned[q.id] = data[q.id];
+    }
+
+    if (isOtherSelected(q.type, q.options, data[q.id])) {
+      const text = (data as Record<string, unknown>)[otherAnswerKey(q.id)];
+
+      if (typeof text === "string") {
+        cleaned[otherAnswerKey(q.id)] = text.trim();
+      }
+    }
+  }
+
+  return cleaned;
 };

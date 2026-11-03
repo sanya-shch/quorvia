@@ -1,6 +1,11 @@
 import { type Question } from "../../types/formBuilder";
 import { type AnswerValue } from "../../types/formViewer";
-import { assertNever, ErrorCode } from "@quorvia/shared-types";
+import {
+  assertNever,
+  ErrorCode,
+  isOtherSelected,
+  otherAnswerKey,
+} from "@quorvia/shared-types";
 
 /**
  * Результат валідації - НЕ готовий текст, а ключ перекладу i18next (+
@@ -20,7 +25,12 @@ export type FieldValidationError = { key: string; params?: Record<string, unknow
  * (QuestionStepper). Дублювання цих правил у двох місцях рано чи пізно
  * розійшлося б (наприклад, поправили regex email в одному, забули в іншому).
  */
-export const validateField = (q: Question, value: AnswerValue): FieldValidationError | null => {
+export const validateField = (
+  q: Question,
+  value: AnswerValue,
+  /** Текст варіанта «Інше» (answers[otherAnswerKey(id)]) - потрібен лише питанням із вибором. */
+  otherText?: AnswerValue,
+): FieldValidationError | null => {
   const isEmptyText = typeof value === "string" && value.trim() === "";
   const isEmptyArray = Array.isArray(value) && value.length === 0;
   const isUndefinedOrNull = value === undefined || value === null || value === "";
@@ -31,6 +41,13 @@ export const validateField = (q: Question, value: AnswerValue): FieldValidationE
   }
 
   if (isEmpty) return null;
+
+  // Обране «Інше» без тексту - порожня відповідь, навіть якщо питання не обов'язкове.
+  if (isOtherSelected(q.type, q.options, value)) {
+    const text = typeof otherText === "string" ? otherText.trim() : "";
+
+    if (text === "") return { key: `errors.${ErrorCode.VALIDATION_FIELD_REQUIRED}` };
+  }
 
   if (q.type === "NUMBER" && typeof value === "number") {
     if (q.config?.min !== undefined && value < q.config.min)
@@ -110,7 +127,7 @@ export const validateAll = (
   const errors: Record<string, FieldValidationError> = {};
   questions.forEach((q, index) => {
     const qId = q.id || `q-${index}`;
-    const error = validateField(q, answers[qId]);
+    const error = validateField(q, answers[qId], answers[otherAnswerKey(qId)]);
     if (error) errors[qId] = error;
   });
   return errors;
@@ -142,6 +159,12 @@ export const buildCleanedAnswers = (
     }
 
     cleaned[qId] = value;
+
+    // Текст «Інше» - лише якщо воно зараз обране (старий текст після зміни вибору не шлемо).
+    if (isOtherSelected(question.type, question.options, value)) {
+      const text = answers[otherAnswerKey(qId)];
+      cleaned[otherAnswerKey(qId)] = typeof text === "string" ? text.trim() : "";
+    }
   });
   return cleaned;
 };

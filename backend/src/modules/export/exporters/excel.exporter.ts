@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import { otherAnswerKey } from "@quorvia/shared-types";
 import { ExportData, Exporter, GeneratedFile } from "./exporter.types.js";
 import { AnswerValue, formatAnswer, slugifyFileName } from "./formatAnswer.js";
 
@@ -44,7 +45,11 @@ export const exportToExcel: Exporter = async (data: ExportData): Promise<Generat
     };
 
     for (const question of questions) {
-      row[question.id] = formatAnswer(question, answers[question.id]);
+      row[question.id] = formatAnswer(
+        question,
+        answers[question.id],
+        answers[otherAnswerKey(question.id)],
+      );
     }
 
     responsesSheet.addRow(row);

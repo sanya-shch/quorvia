@@ -1,17 +1,29 @@
 import { Question } from "@prisma/client";
 import { assertNever } from "@quorvia/shared-types";
 
+// Відповідь на «Інше» - окремий ключ в answers; експортер передає його третім аргументом.
+
 export type AnswerValue = string | number | boolean | string[] | null | undefined;
 
-const optionLabelsById = (question: Question): Record<string, string> => {
+const optionLabelsById = (question: Question, otherText?: AnswerValue): Record<string, string> => {
   const options = Array.isArray(question.options)
-    ? (question.options as { id: string; text: string }[])
+    ? (question.options as { id: string; text: string; isOther?: boolean }[])
     : [];
 
-  return Object.fromEntries(options.map((o) => [o.id, o.text]));
+  return Object.fromEntries(
+    options.map((o) => [
+      o.id,
+      // "Інше: свій варіант" - у колонці експорту видно і вибір, і текст.
+      o.isOther && typeof otherText === "string" && otherText ? `${o.text}: ${otherText}` : o.text,
+    ]),
+  );
 };
 
-export const formatAnswer = (question: Question, value: AnswerValue): string => {
+export const formatAnswer = (
+  question: Question,
+  value: AnswerValue,
+  otherText?: AnswerValue,
+): string => {
   if (value === null || value === undefined || value === "") {
     return "";
   }
@@ -21,7 +33,7 @@ export const formatAnswer = (question: Question, value: AnswerValue): string => 
       return value ? "Так" : "Ні";
     case "CHOICE_SINGLE":
     case "CHOICE_MULTI": {
-      const labels = optionLabelsById(question);
+      const labels = optionLabelsById(question, otherText);
       const ids = Array.isArray(value) ? value : [value as string];
       return ids.map((id) => labels[id] ?? String(id)).join("; ");
     }

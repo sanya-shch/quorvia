@@ -116,6 +116,40 @@ describe("questionSchema — discriminated union за type", () => {
     expect(number({ numberVariant: "input" })).toBe(true);
   });
 
+  describe("варіант «Інше»", () => {
+    const choice = (options: unknown[], extra: Record<string, unknown> = {}) =>
+      questionSchema.safeParse({ ...base, type: "CHOICE_SINGLE", options, ...extra }).success;
+
+    const a = { id: "a", text: "A" };
+    const b = { id: "b", text: "B" };
+    const other = { id: "o", text: "Інше", isOther: true };
+
+    it("допускає один «Інше» в кінці списку", () => {
+      expect(choice([a, b, other])).toBe(true);
+      expect(choice([other])).toBe(true);
+      expect(choice([a, b])).toBe(true);
+    });
+
+    it("відхиляє «Інше» не в кінці, дві штуки або як варіант за замовчуванням", () => {
+      expect(choice([other, a])).toBe(false);
+      expect(choice([a, other, { ...other, id: "o2" }])).toBe(false);
+      expect(choice([a, { ...other, isDefault: true }])).toBe(false);
+    });
+
+    it("діє і для CHOICE_MULTI", () => {
+      const multi = (options: unknown[]) =>
+        questionSchema.safeParse({ ...base, type: "CHOICE_MULTI", options }).success;
+
+      expect(multi([a, other])).toBe(true);
+      expect(multi([other, a])).toBe(false);
+    });
+
+    it("id питання не може закінчуватись на зарезервований суфікс", () => {
+      expect(choice([a], { id: "question__other" })).toBe(false);
+      expect(choice([a], { id: "question" })).toBe(true);
+    });
+  });
+
   it("text обов'язковий і не може бути порожнім", () => {
     const result = questionSchema.safeParse({ type: "TEXT", text: "", order: 0 });
     expect(result.success).toBe(false);

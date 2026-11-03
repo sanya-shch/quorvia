@@ -1,3 +1,4 @@
+import { otherAnswerKey } from "@quorvia/shared-types";
 import { ExportData, Exporter, GeneratedFile } from "./exporter.types.js";
 import { AnswerValue, formatAnswer, slugifyFileName } from "./formatAnswer.js";
 
@@ -36,7 +37,7 @@ export const exportToCsv: Exporter = async (data: ExportData): Promise<Generated
 
     const cells = [
       response.createdAt.toLocaleString("uk-UA"),
-      ...questions.map((q) => formatAnswer(q, answers[q.id])),
+      ...questions.map((q) => formatAnswer(q, answers[q.id], answers[otherAnswerKey(q.id)])),
     ];
 
     return toCsvRow(cells);

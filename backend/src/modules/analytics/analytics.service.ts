@@ -3,8 +3,11 @@ import { AppError } from "../../shared/middleware/errorHandler.js";
 import {
   assertNever,
   ErrorCode,
+  getOtherOption,
   getScaleBounds,
+  isOtherSelected,
   isScaleQuestionType,
+  otherAnswerKey,
   type NpsBreakdown,
   type QuestionConfig,
   type QuestionType,
@@ -46,7 +49,7 @@ const resolveVisibleIdsForResponse = (
   return new Set(allQuestionIds.filter((id) => answers?.[id] !== undefined));
 };
 
-type StoredOption = { id: string; text: string };
+type StoredOption = { id: string; text: string; isOther?: boolean };
 
 /**
  * Відповіді форми порціями (keyset-пагінація), а не одним findMany на всю
@@ -534,6 +537,8 @@ export const getQuestionAnalytics = async (
   let numberMin = Infinity;
   let numberMax = -Infinity;
   const choiceCounts = new Map<string, number>();
+  // Власні відповіді «Інше» - так само Map і з обмеженням унікальних значень.
+  const otherCounts = new Map<string, number>();
   const scaleBounds = isScaleQuestionType(question.type)
     ? getScaleBounds(question.type, question.config as QuestionConfig | null)
     : undefined;
@@ -571,6 +576,17 @@ export const getQuestionAnalytics = async (
         case "CHOICE_MULTI":
           for (const v of Array.isArray(value) ? value : [value]) {
             if (typeof v === "string" && v) choiceCounts.set(v, (choiceCounts.get(v) ?? 0) + 1);
+          }
+          if (isOtherSelected(question.type, question.options as StoredOption[], value)) {
+            const text = (response.answers as Record<string, unknown>)[otherAnswerKey(questionId)];
+
+            if (
+              typeof text === "string" &&
+              text &&
+              (otherCounts.has(text) || otherCounts.size < analyticsConfig.maxTrackedTextValues)
+            ) {
+              otherCounts.set(text, (otherCounts.get(text) ?? 0) + 1);
+            }
           }
           break;
         case "BOOLEAN":
@@ -639,6 +655,13 @@ export const getQuestionAnalytics = async (
         text: opt.text,
         count: choiceCounts.get(opt.id) ?? 0,
       })),
+      ...(getOtherOption(options)
+        ? {
+            otherAnswers: Array.from(otherCounts, ([value, count]) => ({ value, count }))
+              .sort((a, b) => b.count - a.count)
+              .slice(0, analyticsConfig.maxTextDistribution),
+          }
+        : {}),
     };
   }
 
@@ -744,16 +767,23 @@ export const getResponseById = async (
 
     let displayValue: string | number | string[] = "";
 
+    const otherText = rawAnswers[otherAnswerKey(q.id)];
+    // «Інше» показуємо разом із текстом респондента: "Інше: свій варіант".
+    const withOtherText = (opt: StoredOption) =>
+      opt.isOther && typeof otherText === "string" && otherText
+        ? `${opt.text}: ${otherText}`
+        : opt.text;
+
     if (q.type === "CHOICE_SINGLE") {
       const option = (q.options as StoredOption[] | null)?.find((o) => o.id === userValue);
-      displayValue = option ? option.text : `Опція видалена (${userValue})`;
+      displayValue = option ? withOtherText(option) : `Опція видалена (${userValue})`;
     } else if (q.type === "CHOICE_MULTI") {
       const optionIds = userValue as string[];
       const options = q.options as StoredOption[] | null;
 
       displayValue = optionIds.map((id) => {
         const opt = options?.find((o) => o.id === id);
-        return opt ? opt.text : `Невідома опція (${id})`;
+        return opt ? withOtherText(opt) : `Невідома опція (${id})`;
       });
     } else if (q.type === "BOOLEAN") {
       displayValue = userValue === true ? "Так" : "Ні";

@@ -1,3 +1,4 @@
+import { otherAnswerKey } from "@quorvia/shared-types";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type Question } from "../../types/formBuilder";
@@ -108,11 +109,23 @@ export default function QuestionStepper({
     }
   };
 
+  const handleOtherChange = (questionId: string, text: string) => {
+    setAnswers((prev) => ({ ...prev, [otherAnswerKey(questionId)]: text }));
+    if (serverErrors[questionId] && onClearServerError) onClearServerError(questionId);
+    if (localErrors[questionId]) {
+      setLocalErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[questionId];
+        return copy;
+      });
+    }
+  };
+
   const handleNext = () => {
     if (!current) return;
     const qId = current.id || `q-${currentIndex}`;
 
-    const error = validateField(current, answers[qId]);
+    const error = validateField(current, answers[qId], answers[otherAnswerKey(qId)]);
     if (error) {
       setLocalErrors({ [qId]: error });
       return;
@@ -274,6 +287,10 @@ export default function QuestionStepper({
                   qId={current.id || `q-${currentIndex}`}
                   value={answers[current.id || `q-${currentIndex}`]}
                   onChange={(value) => handleAnswerChange(current.id || `q-${currentIndex}`, value)}
+                  otherValue={answers[otherAnswerKey(current.id || `q-${currentIndex}`)]}
+                  onOtherChange={(text) =>
+                    handleOtherChange(current.id || `q-${currentIndex}`, text)
+                  }
                   labelledBy={`${current.id || currentIndex}-label`}
                   describedBy={
                     combinedErrors[current.id || `q-${currentIndex}`]
