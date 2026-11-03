@@ -12,7 +12,10 @@
       "nps": "NPS",
       "npsPromoters": "Промоутери (9–10)",
       "npsPassives": "Нейтральні (7–8)",
-      "npsDetractors": "Критики (0–6)"
+      "npsDetractors": "Критики (0–6)",
+      "rankingAvg": "Сер. позиція",
+      "rankingFirst": "1-ше місце",
+      "rankingRanked": "Повних ранжувань: {count}"
     },
     "errors": {
       "accessDenied": "Немає доступу до аналітики цієї форми",

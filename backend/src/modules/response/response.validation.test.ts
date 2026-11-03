@@ -321,6 +321,35 @@ describe("buildResponseSchema / cleanAnswers - варіант «Інше»", () 
   });
 });
 
+describe("buildResponseSchema - RANKING", () => {
+  const options = ["a", "b", "c"].map((id) => ({ id, text: id, isDefault: false }));
+  const build = (extra: Partial<Question> = {}) =>
+    buildResponseSchema([makeQuestion({ id: "q", type: "RANKING", options, ...extra } as Partial<Question>)]);
+
+  it("приймає будь-яку повну перестановку варіантів", () => {
+    const schema = build();
+
+    expect(schema.safeParse({ q: ["a", "b", "c"] }).success).toBe(true);
+    expect(schema.safeParse({ q: ["c", "a", "b"] }).success).toBe(true);
+  });
+
+  it("відхиляє неповне ранжування, дублікати, зайві й чужі id", () => {
+    const schema = build();
+
+    expect(schema.safeParse({ q: ["a", "b"] }).success).toBe(false);
+    expect(schema.safeParse({ q: ["a", "a", "b"] }).success).toBe(false);
+    expect(schema.safeParse({ q: ["a", "b", "c", "a"] }).success).toBe(false);
+    expect(schema.safeParse({ q: ["a", "b", "x"] }).success).toBe(false);
+    expect(schema.safeParse({ q: "a" }).success).toBe(false);
+    expect(schema.safeParse({ q: [] }).success).toBe(false);
+  });
+
+  it("обов'язкове питання не можна пропустити, необов'язкове - можна", () => {
+    expect(build({ required: true }).safeParse({}).success).toBe(false);
+    expect(build({ required: false }).safeParse({}).success).toBe(true);
+  });
+});
+
 describe("buildResponseSchema — загальне", () => {
   it("кидає для непідтримуваного типу питання", () => {
     expect(() => buildResponseSchema([makeQuestion({ type: "UNKNOWN" as any })])).toThrow(

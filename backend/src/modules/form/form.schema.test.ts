@@ -150,6 +150,37 @@ describe("questionSchema — discriminated union за type", () => {
     });
   });
 
+  describe("RANKING", () => {
+    const ranking = (options: unknown[]) =>
+      questionSchema.safeParse({ ...base, type: "RANKING", options }).success;
+    const opt = (id: string) => ({ id, text: id.toUpperCase() });
+
+    it("від 2 до 20 варіантів", () => {
+      expect(ranking([opt("a"), opt("b")])).toBe(true);
+      expect(ranking([opt("a")])).toBe(false);
+      expect(ranking([])).toBe(false);
+      expect(ranking(Array.from({ length: 20 }, (_, i) => opt(`o${i}`)))).toBe(true);
+      expect(ranking(Array.from({ length: 21 }, (_, i) => opt(`o${i}`)))).toBe(false);
+    });
+
+    it("id варіантів мають бути унікальними (відповідь - перестановка id)", () => {
+      expect(ranking([opt("a"), opt("a")])).toBe(false);
+    });
+
+    it("«Інше» для ранжування відкидається схемою (немає в результаті parse)", () => {
+      const result = questionSchema.safeParse({
+        ...base,
+        type: "RANKING",
+        options: [opt("a"), { ...opt("b"), isOther: true }],
+      });
+
+      expect(result.success).toBe(true);
+      if (result.success && result.data.type === "RANKING") {
+        expect(result.data.options.some((o) => "isOther" in o)).toBe(false);
+      }
+    });
+  });
+
   it("text обов'язковий і не може бути порожнім", () => {
     const result = questionSchema.safeParse({ type: "TEXT", text: "", order: 0 });
     expect(result.success).toBe(false);

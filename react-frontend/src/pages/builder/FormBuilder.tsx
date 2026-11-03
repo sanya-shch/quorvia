@@ -20,7 +20,7 @@ import OptionsConfigEditor from "./components/editors/OptionsConfigEditor";
 import BooleanConfigEditor from "./components/editors/BooleanConfigEditor";
 import ConditionEditor from "./components/editors/ConditionEditor";
 import { calendarIcon } from "../../components/ui/icons";
-import { questionTypeUsesConfig } from "./questionConfig";
+import { questionTypeUsesConfig, questionTypeUsesOptions } from "./questionConfig";
 import { ErrorInfo } from "../../components/ui/ErrorInfo";
 import { getApiErrorCode } from "../../i18n/errorCodes";
 import { useToast } from "../../components/ui/Toast";
@@ -119,10 +119,9 @@ export default function FormBuilder() {
   const saveMutation = useMutation<UpdateFormResult, unknown, number>({
     mutationFn: () => {
       const normalizedQuestions = form.questions.map((q) => {
-        const isChoice = ["CHOICE_SINGLE", "CHOICE_MULTI"].includes(q.type);
         return {
           ...q,
-          options: isChoice ? q.options : [],
+          options: questionTypeUsesOptions(q.type) ? q.options : [],
           config: questionTypeUsesConfig(q.type) ? q.config : null,
         };
       });
@@ -364,7 +363,8 @@ export default function FormBuilder() {
                               )}
 
                               {(question.type === "CHOICE_SINGLE" ||
-                                question.type === "CHOICE_MULTI") && (
+                                question.type === "CHOICE_MULTI" ||
+                                question.type === "RANKING") && (
                                 <OptionsConfigEditor
                                   questionIndex={index}
                                   questionType={question.type}

@@ -113,6 +113,8 @@ export const getDefaultAnswer = (q: Question): AnswerValue => {
     case "RATING":
     case "SCALE":
     case "NPS":
+    case "RANKING":
+      // Ранжування - без відповіді, доки респондент не взаємодіяв зі списком.
       return "";
     default:
       return assertNever(q.type, "question type");

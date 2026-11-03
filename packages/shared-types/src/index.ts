@@ -88,6 +88,7 @@ export const QUESTION_TYPES = [
   "RATING",
   "SCALE",
   "NPS",
+  "RANKING",
 ] as const;
 
 export type QuestionType = (typeof QUESTION_TYPES)[number];
@@ -152,6 +153,22 @@ export interface QuestionConfig {
 }
 
 export type NumberVariant = "input" | "slider";
+
+/**
+ * RANKING: респондент розставляє ВСІ варіанти за порядком. Відповідь - масив
+ * id варіантів від найвищої позиції до найнижчої (повна перестановка).
+ */
+export const RANKING_LIMITS = { minOptions: 2, maxOptions: 20 } as const;
+
+/** Статистика позицій одного варіанта в питанні RANKING. */
+export interface RankingOptionStats {
+  optionId: string;
+  text: string;
+  /** Середня позиція (1 - найвища); null, якщо ще немає жодного ранжування. */
+  avgPosition: number | null;
+  /** positions[i] - скільки респондентів поставили варіант на позицію i + 1. */
+  positions: number[];
+}
 
 /**
  * Шкальні типи: відповідь - ціле число в межах [min, max], які визначаються
@@ -290,6 +307,9 @@ export interface QuestionOverview extends Partial<QuestionVisibilityStats> {
   distribution?: ChoiceDistribution[];
   /** Лише для NPS. */
   nps?: NpsBreakdown;
+  /** Лише для RANKING: по варіанту, у порядку options, і кількість повних ранжувань. */
+  ranking?: RankingOptionStats[];
+  rankedCount?: number;
   trueCount?: number;
   falseCount?: number;
 }
@@ -311,6 +331,9 @@ export interface QuestionAnalyticsDto {
   stats?: NumberStats;
   /** Лише для NPS. */
   nps?: NpsBreakdown;
+  /** Лише для RANKING: по варіанту, у порядку options, і кількість повних ранжувань. */
+  ranking?: RankingOptionStats[];
+  rankedCount?: number;
   /** Питання з вибором і варіантом «Інше»: власні відповіді за частотою (топ). */
   otherAnswers?: { value: string; count: number }[];
   answers?: string[];

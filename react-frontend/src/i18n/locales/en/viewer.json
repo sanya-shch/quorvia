@@ -42,5 +42,13 @@
     "notSet": "Not set"
   },
   "otherPlaceholder": "Please specify...",
-  "otherAriaLabel": "Your own answer"
+  "otherAriaLabel": "Your own answer",
+  "ranking": {
+    "hint": "Use the arrows to put the options in your order of preference.",
+    "confirm": "Keep this order",
+    "clear": "Clear answer",
+    "moveUp": "Move “{{option}}” up",
+    "moveDown": "Move “{{option}}” down",
+    "moved": "“{{option}}” is now number {{position}} of {{total}}"
+  }
 }

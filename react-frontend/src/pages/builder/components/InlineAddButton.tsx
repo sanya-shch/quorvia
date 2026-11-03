@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { QUESTION_TYPES } from "@quorvia/shared-types";
 import { type QuestionType } from "../../../types/formBuilder";
 import { QUESTION_TYPE_LABEL_KEYS } from "../../../constants";
 
@@ -7,14 +8,9 @@ interface InlineAddButtonProps {
   onAdd: (type: QuestionType) => void;
 }
 
-const TYPES: QuestionType[] = [
-  "TEXT",
-  "NUMBER",
-  "CHOICE_SINGLE",
-  "CHOICE_MULTI",
-  "BOOLEAN",
-  "DATE",
-];
+// Усі типи питань - з єдиного джерела (а не ручним списком, який легко
+// забути оновити: так нові типи кілька разів не потрапляли в це меню).
+const TYPES: readonly QuestionType[] = QUESTION_TYPES;
 
 export default function InlineAddButton({ onAdd }: InlineAddButtonProps) {
   const [isOpen, setIsOpen] = useState(false);

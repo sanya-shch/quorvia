@@ -35,7 +35,17 @@ export default function QuestionDetailsPage() {
     );
   }
 
-  const { question, totalAnswers, stats, distribution, answers, nps, otherAnswers } = data;
+  const {
+    question,
+    totalAnswers,
+    stats,
+    distribution,
+    answers,
+    nps,
+    otherAnswers,
+    ranking,
+    rankedCount,
+  } = data;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -231,6 +241,65 @@ export default function QuestionDetailsPage() {
                 )}
               </div>
             )}
+
+          {question.type === "RANKING" && ranking && (
+            <div className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  {t("analytics.detail.ranking.title")}
+                </h3>
+                <span className="text-xs text-slate-400">
+                  {t("analytics.detail.ranking.ranked", { count: rankedCount ?? 0 })}
+                </span>
+              </div>
+
+              {(rankedCount ?? 0) === 0 ? (
+                <p className="text-sm text-slate-400">{t("analytics.detail.ranking.noData")}</p>
+              ) : (
+                <ol className="flex flex-col gap-3">
+                  {[...ranking]
+                    .sort(
+                      (a, b) =>
+                        (a.avgPosition ?? Number.POSITIVE_INFINITY) -
+                        (b.avgPosition ?? Number.POSITIVE_INFINITY),
+                    )
+                    .map((item, idx) => {
+                      const n = ranking.length;
+                      // Найкращий варіант (позиція 1) = повна смуга, найгірший = порожня.
+                      const score =
+                        item.avgPosition === null || n < 2
+                          ? 0
+                          : ((n - item.avgPosition) / (n - 1)) * 100;
+
+                      return (
+                        <li
+                          key={item.optionId}
+                          className="bg-slate-50/60 border border-slate-200/60 rounded-xl p-4 flex flex-col gap-2"
+                        >
+                          <div className="flex justify-between items-center text-sm font-bold text-slate-700 gap-3">
+                            <span className="truncate">
+                              {idx + 1}. {item.text}
+                            </span>
+                            <span className="shrink-0 text-xs font-medium text-slate-500">
+                              {t("analytics.detail.ranking.avg")}:{" "}
+                              <b className="text-indigo-600">{item.avgPosition?.toFixed(2)}</b>
+                              {" · "}
+                              {t("analytics.detail.ranking.first")}: <b>{item.positions[0]}</b>
+                            </span>
+                          </div>
+                          <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                              style={{ width: `${score}%` }}
+                            />
+                          </div>
+                        </li>
+                      );
+                    })}
+                </ol>
+              )}
+            </div>
+          )}
 
           {question.type === "BOOLEAN" && (
             <div className="space-y-4">

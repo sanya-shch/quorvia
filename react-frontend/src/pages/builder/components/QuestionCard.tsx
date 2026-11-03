@@ -7,6 +7,7 @@ import {
   choiceSingleIcon,
   npsIcon,
   numberIcon,
+  rankingIcon,
   ratingIcon,
   scaleIcon,
   textIcon,
@@ -137,6 +138,11 @@ export default function QuestionCard({
             {question.type === "NPS" && (
               <>
                 {npsIcon} {t(QUESTION_TYPE_LABEL_KEYS.NPS)}
+              </>
+            )}
+            {question.type === "RANKING" && (
+              <>
+                {rankingIcon} {t(QUESTION_TYPE_LABEL_KEYS.RANKING)}
               </>
             )}
           </span>

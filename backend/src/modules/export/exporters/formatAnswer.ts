@@ -37,6 +37,12 @@ export const formatAnswer = (
       const ids = Array.isArray(value) ? value : [value as string];
       return ids.map((id) => labels[id] ?? String(id)).join("; ");
     }
+    case "RANKING": {
+      // "1. Кава; 2. Чай" - позиція видна в одній клітинці експорту.
+      const labels = optionLabelsById(question);
+      const ids = Array.isArray(value) ? value : [value as string];
+      return ids.map((id, i) => `${i + 1}. ${labels[id] ?? String(id)}`).join("; ");
+    }
     case "TEXT":
     case "DATE":
     case "NUMBER":

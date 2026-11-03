@@ -1,5 +1,5 @@
-import { assertNever, SCALE_LIMITS } from "@quorvia/shared-types";
-import type { QuestionConfig, QuestionType } from "../../types/formBuilder";
+import { assertNever, RANKING_LIMITS, SCALE_LIMITS } from "@quorvia/shared-types";
+import type { QuestionConfig, QuestionOption, QuestionType } from "../../types/formBuilder";
 
 /**
  * Типовий config нового питання. switch без default: новий тип питання
@@ -21,7 +21,72 @@ export const createDefaultQuestionConfig = (type: QuestionType): QuestionConfig 
     case "NUMBER":
     case "DATE":
     case "NPS":
+    case "RANKING":
       return null;
+    default:
+      return assertNever(type, "question type");
+  }
+};
+
+/** Чи має питання список варіантів (options); для решти типів options - порожній масив. */
+export const questionTypeUsesOptions = (type: QuestionType): boolean => {
+  switch (type) {
+    case "CHOICE_SINGLE":
+    case "CHOICE_MULTI":
+    case "RANKING":
+      return true;
+    case "TEXT":
+    case "NUMBER":
+    case "BOOLEAN":
+    case "DATE":
+    case "RATING":
+    case "SCALE":
+    case "NPS":
+      return false;
+    default:
+      return assertNever(type, "question type");
+  }
+};
+
+/**
+ * Варіанти нового питання. Для вибору - один, для ранжування - мінімально
+ * допустима кількість (інакше форма не збережеться).
+ */
+export const createDefaultOptions = (
+  type: QuestionType,
+  label: (number: number) => string,
+): QuestionOption[] => {
+  if (!questionTypeUsesOptions(type)) return [];
+
+  const count = type === "RANKING" ? RANKING_LIMITS.minOptions : 1;
+  const stamp = Date.now();
+
+  return Array.from({ length: count }, (_, i) => ({
+    id: `opt-${stamp}-${i}`,
+    text: label(i + 1),
+    isDefault: false,
+  }));
+};
+
+/**
+ * Чи можна використовувати відповідь на питання в умовах показу інших питань.
+ * Ранжування в умовах не підтримується: масив порядку не зводиться до
+ * простих операторів (equals/gt/...), а "перший у списку" - окрема функція.
+ */
+export const questionTypeSupportsConditions = (type: QuestionType): boolean => {
+  switch (type) {
+    case "TEXT":
+    case "NUMBER":
+    case "CHOICE_SINGLE":
+    case "CHOICE_MULTI":
+    case "BOOLEAN":
+    case "DATE":
+    case "RATING":
+    case "SCALE":
+    case "NPS":
+      return true;
+    case "RANKING":
+      return false;
     default:
       return assertNever(type, "question type");
   }
@@ -43,6 +108,7 @@ export const questionTypeUsesConfig = (type: QuestionType): boolean => {
       return true;
     case "DATE":
     case "NPS":
+    case "RANKING":
       return false;
     default:
       return assertNever(type, "question type");

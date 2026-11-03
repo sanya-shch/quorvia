@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { QUESTION_TYPES } from "@quorvia/shared-types";
-import { createDefaultQuestionConfig, questionTypeUsesConfig } from "./questionConfig";
+import {
+  createDefaultOptions,
+  createDefaultQuestionConfig,
+  questionTypeSupportsConditions,
+  questionTypeUsesConfig,
+  questionTypeUsesOptions,
+} from "./questionConfig";
 
 describe("createDefaultQuestionConfig", () => {
   it("зберігає типові конфіги наявних типів", () => {
@@ -31,5 +37,40 @@ describe("createDefaultQuestionConfig", () => {
 
       expect(createDefaultQuestionConfig(type), type).not.toBeNull();
     }
+  });
+});
+
+describe("варіанти та умови для типів питань", () => {
+  const label = (n: number) => `Варіант ${n}`;
+
+  it("тип із варіантами отримує стартовий набір: вибір - 1, ранжування - 2 (мінімум)", () => {
+    expect(createDefaultOptions("CHOICE_SINGLE", label).map((o) => o.text)).toEqual(["Варіант 1"]);
+    expect(createDefaultOptions("CHOICE_MULTI", label)).toHaveLength(1);
+    expect(createDefaultOptions("RANKING", label).map((o) => o.text)).toEqual([
+      "Варіант 1",
+      "Варіант 2",
+    ]);
+  });
+
+  it("id стартових варіантів унікальні (ранжування вимагає унікальності)", () => {
+    const ids = createDefaultOptions("RANKING", label).map((o) => o.id);
+
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("типи без варіантів не отримують options", () => {
+    for (const type of ["TEXT", "NUMBER", "BOOLEAN", "DATE", "RATING", "SCALE", "NPS"] as const) {
+      expect(questionTypeUsesOptions(type), type).toBe(false);
+      expect(createDefaultOptions(type, label), type).toEqual([]);
+    }
+  });
+
+  it("ранжування не зберігає config і не використовується в умовах", () => {
+    expect(createDefaultQuestionConfig("RANKING")).toBeNull();
+    expect(questionTypeUsesConfig("RANKING")).toBe(false);
+    expect(questionTypeUsesOptions("RANKING")).toBe(true);
+    expect(questionTypeSupportsConditions("RANKING")).toBe(false);
+    expect(questionTypeSupportsConditions("CHOICE_SINGLE")).toBe(true);
+    expect(questionTypeSupportsConditions("NPS")).toBe(true);
   });
 });

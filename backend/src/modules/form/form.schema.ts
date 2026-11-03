@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { ErrorCode, OTHER_ANSWER_SUFFIX, SCALE_LIMITS } from "@quorvia/shared-types";
+import {
+  ErrorCode,
+  OTHER_ANSWER_SUFFIX,
+  RANKING_LIMITS,
+  SCALE_LIMITS,
+} from "@quorvia/shared-types";
 import { compileSafePattern, MAX_PATTERN_LENGTH } from "../../shared/utils/safeRegex.js";
 
 /**
@@ -92,6 +97,18 @@ const optionsSchema = z
 
     return others.length === 1 && options[options.length - 1].isOther && !others[0].isDefault;
   }, ErrorCode.REQUEST_BODY_INVALID);
+
+// RANKING: від 2 до 20 варіантів; id унікальні, бо відповідь - перестановка id
+// (дублікат зробив би валідну відповідь неможливою). «Інше»/isDefault для
+// ранжування не мають сенсу: isOther відкидається схемою (omit).
+const rankingOptionsSchema = z
+  .array(optionSchema.omit({ isOther: true }))
+  .min(RANKING_LIMITS.minOptions)
+  .max(RANKING_LIMITS.maxOptions)
+  .refine(
+    (options) => new Set(options.map((o) => o.id)).size === options.length,
+    ErrorCode.REQUEST_BODY_INVALID,
+  );
 
 export const questionSchema = z.discriminatedUnion("type", [
   z.object({
@@ -205,6 +222,12 @@ export const questionSchema = z.discriminatedUnion("type", [
   z.object({
     ...base,
     type: z.literal("NPS"),
+  }),
+
+  z.object({
+    ...base,
+    type: z.literal("RANKING"),
+    options: rankingOptionsSchema,
   }),
 ]);
 

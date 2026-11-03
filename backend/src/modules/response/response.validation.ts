@@ -132,6 +132,18 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
         break;
       }
 
+      case "RANKING": {
+        const optionIds = (q.options as { id: string }[]).map((o) => o.id);
+
+        // Повна перестановка варіантів: усі id, без дублікатів і зайвих.
+        schema = z
+          .array(z.enum(optionIds as [string, ...string[]]))
+          .length(optionIds.length)
+          .refine((ids) => new Set(ids).size === ids.length, ErrorCode.VALIDATION_FORMAT_INVALID);
+
+        break;
+      }
+
       default:
         return assertNever(q.type, "question type");
     }

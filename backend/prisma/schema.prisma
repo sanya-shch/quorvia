@@ -16,6 +16,7 @@ enum QuestionType {
   RATING
   SCALE
   NPS
+  RANKING
 }
 
 enum ResponseMode {

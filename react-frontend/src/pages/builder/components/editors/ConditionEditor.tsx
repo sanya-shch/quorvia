@@ -1,4 +1,5 @@
 import { isScaleQuestionType } from "@quorvia/shared-types";
+import { questionTypeSupportsConditions } from "../../questionConfig";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import type {
@@ -25,6 +26,8 @@ const OPERATORS_BY_TYPE: Record<Question["type"], ConditionOperator[]> = {
   RATING: ["equals", "notEquals", "gt", "lt"],
   SCALE: ["equals", "notEquals", "gt", "lt"],
   NPS: ["equals", "notEquals", "gt", "lt"],
+  // Ранжування в умовах не підтримується (див. questionTypeSupportsConditions).
+  RANKING: [],
   CHOICE_SINGLE: ["equals", "notEquals", "in"],
   CHOICE_MULTI: ["contains"],
 };
@@ -43,7 +46,9 @@ export default function ConditionEditor({
   error,
 }: ConditionEditorProps) {
   const { t } = useTranslation();
-  const availableTargets = allQuestions.filter((q) => q.id && q.order < currentOrder);
+  const availableTargets = allQuestions.filter(
+    (q) => q.id && q.order < currentOrder && questionTypeSupportsConditions(q.type),
+  );
 
   if (availableTargets.length === 0) {
     return (

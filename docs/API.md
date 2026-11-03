@@ -56,6 +56,7 @@ Exceeding a limit returns `429 RATE_LIMITED`. Limits are per IP unless noted (in
 | `RATING` | integer `1..max` | `max`: integer 3-10 (default 5) |
 | `SCALE` | integer `min..max` | `min`: 0 or 1 (default 1), `max`: integer 2-10, strictly greater than `min` (default 5), `minLabel`/`maxLabel` (up to 100 chars) |
 | `NPS` | integer `0..10` | - (fixed) |
+| `RANKING` | array of option ids: a full permutation of the question's options, best first | `options`: 2-20, unique ids (`isOther` is dropped) |
 
 ### “Other” option
 
@@ -68,6 +69,8 @@ A choice question (`CHOICE_SINGLE` / `CHOICE_MULTI`) may contain one option with
 The answer to the question itself stays the option id, so conditions (`equals`/`in`) work as for any option. The text is stored only while “Other” is selected (stale text is dropped, the rest is trimmed). The suffix `__other` is reserved: question ids cannot end with it. Validation errors for the text are reported on the question id, not on the `__other` key.
 
 Responses, exports (`Other: Matcha`) and the per-question analytics (`otherAnswers`: top texts by frequency) include the text.
+
+`RANKING` answers must contain every option exactly once; partial rankings, duplicates and unknown ids are rejected. The builder does not offer ranking questions as a condition source (an array order does not map to the simple operators); the server does not block such a condition, but its behaviour is not defined. Exports contain `1. First; 2. Second; ...`.
 
 Scale answers (`RATING`, `SCALE`, `NPS`) are plain numbers, so `0` is a real answer, and conditions can use `equals`, `notEquals`, `gt`, `lt` on them. Exports contain the raw number.
 
@@ -88,7 +91,7 @@ Scale answers (`RATING`, `SCALE`, `NPS`) are plain numbers, so `0` is a real ans
 | GET | `/forms/:formId/analytics` | Overview. |
 | GET | `/forms/:formId/analytics/funnel` | Funnel of reached/answered questions. |
 | GET | `/forms/:formId/analytics/paths` | Branch/path statistics. |
-| GET | `/forms/:formId/questions/:questionId/analytics` | Per-question statistics. |
+| GET | `/forms/:formId/questions/:questionId/analytics` | Per-question statistics (the overview endpoint returns the same fields per question). `RATING`/`SCALE`/`NPS`: `stats` (`avg`/`min`/`max` over in-range answers), `distribution` covering every value of the scale (zeros included) and, for `NPS`, `nps: { promoters, passives, detractors, score }` (`score = %promoters - %detractors`, one decimal, `null` without answers). Answers outside the current scale (config changed after collecting) are excluded from the distribution and the average but counted in `totalAnswers`. `RANKING`: `ranking` (per option, in option order: `avgPosition`, `positions[i]` = respondents who put it at place `i + 1`) and `rankedCount`; only full permutations of the current options are counted, so changing the options after collecting does not skew the averages. Choice questions with an “Other” option also return `otherAnswers`. |
 | GET | `/forms/:formId/responses?page=&limit=` | Paginated responses (`limit` max 100, default 10). |
 | GET | `/forms/:formId/responses/:responseId` | One response. |
 

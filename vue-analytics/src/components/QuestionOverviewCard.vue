@@ -18,6 +18,13 @@ const hasVisibilityInfo = computed(
 
 const isScale = computed(() => isScaleQuestionType(props.question.type));
 
+const topRanking = computed(() =>
+  [...(props.question.ranking ?? [])]
+    .filter((item) => item.avgPosition !== null)
+    .sort((a, b) => (a.avgPosition as number) - (b.avgPosition as number))
+    .slice(0, 3),
+);
+
 const topPreview = computed(() => props.question.preview?.slice(0, 3) ?? []);
 const topDistribution = computed(() => props.question.distribution ?? []);
 const maxDistributionCount = computed(
@@ -66,6 +73,18 @@ const maxDistributionCount = computed(
             <span class="hist-label">{{ d.text }}</span>
           </div>
         </div>
+      </template>
+
+      <template v-else-if="question.type === 'RANKING' && question.ranking">
+        <div v-for="(item, i) in topRanking" :key="item.optionId" class="dist-row">
+          <span class="dist-label">{{ i + 1 }}. {{ item.text }}</span>
+          <span class="dist-count" :title="t('analytics.common.rankingAvg')">
+            {{ (item.avgPosition as number).toFixed(1) }}
+          </span>
+        </div>
+        <span class="stat-label">
+          {{ t("analytics.common.rankingRanked", { count: question.rankedCount ?? 0 }) }}
+        </span>
       </template>
 
       <template v-else-if="question.type === 'NUMBER' && question.stats">

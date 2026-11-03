@@ -16,6 +16,8 @@
 | Палітра конструктора, підписи, переклади uk/en | `vitest`: `questionTypes.coverage.test.ts` |
 | Типовий config нового питання, чи зберігається config | `tsc`: `switch` без `default` у `pages/builder/questionConfig.ts` |
 | Оператори в редакторі умов | `tsc`: `Record<QuestionType, ...>` у `ConditionEditor.tsx` |
+| Чи є в типу варіанти, чи годиться для умов | `tsc`: `questionTypeUsesOptions`, `questionTypeSupportsConditions` (`questionConfig.ts`) |
+| Швидке додавання «+» між питаннями | береться з `QUESTION_TYPES`; перевіряє `questionTypes.coverage.test.tsx` |
 
 ## Що робиться вручну
 

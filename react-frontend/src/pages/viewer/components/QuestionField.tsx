@@ -9,6 +9,7 @@ import {
 } from "@quorvia/shared-types";
 import ScaleField from "./ScaleField";
 import NumberSlider from "./NumberSlider";
+import RankingField from "./RankingField";
 import { type Question } from "../../../types/formBuilder";
 import { type AnswerValue } from "../../../types/formViewer";
 
@@ -61,6 +62,19 @@ function QuestionControl({
         onChange={(e) => onChange(e.target.value)}
         className="w-full h-10 rounded-xl border border-slate-200 px-3 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none placeholder-slate-400"
         placeholder={t("viewer.textInputPlaceholder")}
+      />
+    );
+  }
+
+  if (question.type === "RANKING") {
+    return (
+      <RankingField
+        options={question.options}
+        value={value}
+        onChange={onChange}
+        required={question.required}
+        labelledBy={labelledBy}
+        describedBy={describedBy}
       />
     );
   }

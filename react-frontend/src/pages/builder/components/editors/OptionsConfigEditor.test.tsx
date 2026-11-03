@@ -122,3 +122,71 @@ describe("OptionsConfigEditor - варіант «Інше»", () => {
     expect(last.find((o) => o.isOther)?.text).toBe("Свій");
   });
 });
+
+describe("OptionsConfigEditor - RANKING", () => {
+  const rankingOptions: QuestionOption[] = [
+    { id: "a", text: "Кава", isDefault: false },
+    { id: "b", text: "Чай", isDefault: false },
+  ];
+
+  const renderRanking = (start: QuestionOption[] = rankingOptions, spy?: (o: QuestionOption[]) => void) => {
+    function RankingHarness() {
+      const [options, setOptions] = useState(start);
+
+      return (
+        <DragDropContext onDragEnd={vi.fn()}>
+          <OptionsConfigEditor
+            questionIndex={0}
+            questionType="RANKING"
+            options={options}
+            displayVariant="list"
+            onChangeOptions={(next) => {
+              setOptions(next);
+              spy?.(next);
+            }}
+            onChangeDisplayVariant={vi.fn()}
+          />
+        </DragDropContext>
+      );
+    }
+
+    return render(<RankingHarness />);
+  };
+
+  it("не показує «Інше», стиль відображення і перемикач «за замовчуванням»", () => {
+    renderRanking();
+
+    expect(screen.queryByRole("button", { name: "Додати «Інше»" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Стиль відображення")).not.toBeInTheDocument();
+    expect(screen.queryByTitle(/за замовчуванням/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/2–20 варіантів/)).toBeInTheDocument();
+  });
+
+  it("не дозволяє опуститися нижче двох варіантів", () => {
+    renderRanking();
+
+    const removeButtons = screen
+      .getAllByRole("button")
+      .filter((b) => b.className.includes("hover:text-rose-600"));
+
+    expect(removeButtons).toHaveLength(2);
+    expect(removeButtons.every((b) => (b as HTMLButtonElement).disabled)).toBe(true);
+  });
+
+  it("додає варіанти аж до 20, далі кнопка заблокована", async () => {
+    const user = userEvent.setup();
+    const start = Array.from({ length: 19 }, (_, i) => ({
+      id: `o${i}`,
+      text: `V${i}`,
+      isDefault: false,
+    }));
+
+    renderRanking(start);
+
+    const add = screen.getByRole("button", { name: "Додати варіант" });
+    expect(add).toBeEnabled();
+
+    await user.click(add);
+    expect(screen.getByRole("button", { name: "Додати варіант" })).toBeDisabled();
+  });
+});

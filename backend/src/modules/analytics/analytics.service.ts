@@ -11,6 +11,7 @@ import {
   type NpsBreakdown,
   type QuestionConfig,
   type QuestionType,
+  type RankingOptionStats,
   type ScaleBounds,
 } from "@quorvia/shared-types";
 import { Answers } from "../response/response.types.js";
@@ -123,8 +124,58 @@ const computeNps = (counts: Map<number, number>): NpsBreakdown => {
   };
 };
 
+/**
+ * RANKING: лічильники позицій по варіантах. Враховуємо лише повні ранжування
+ * поточних варіантів (перестановка всіх id без дублікатів): якщо варіанти
+ * змінили вже після збору відповідей, старі ранжування не спотворюють
+ * середні позиції (у totalAnswers вони все одно є).
+ */
+type RankingAccumulator = {
+  optionCount: number;
+  positions: Map<string, number[]>;
+  rankedCount: number;
+};
+
+const createRankingAccumulator = (options: StoredOption[]): RankingAccumulator => ({
+  optionCount: options.length,
+  positions: new Map(options.map((o) => [o.id, new Array<number>(options.length).fill(0)])),
+  rankedCount: 0,
+});
+
+const recordRanking = (acc: RankingAccumulator, value: unknown): void => {
+  if (!Array.isArray(value) || value.length !== acc.optionCount) return;
+
+  const seen = new Set<string>();
+
+  // Спершу перевіряємо всю відповідь, і лише потім рахуємо - щоб частково
+  // некоректне ранжування не лишило половину лічильників.
+  for (const id of value) {
+    if (typeof id !== "string" || !acc.positions.has(id) || seen.has(id)) return;
+    seen.add(id);
+  }
+
+  value.forEach((id: string, index) => {
+    acc.positions.get(id)![index] += 1;
+  });
+  acc.rankedCount += 1;
+};
+
+const rankingStats = (options: StoredOption[], acc: RankingAccumulator): RankingOptionStats[] =>
+  options.map((option) => {
+    const positions = acc.positions.get(option.id)!;
+    const weighted = positions.reduce((sum, count, index) => sum + count * (index + 1), 0);
+
+    return {
+      optionId: option.id,
+      text: option.text,
+      avgPosition: acc.rankedCount > 0 ? weighted / acc.rankedCount : null,
+      positions,
+    };
+  });
+
 type QuestionAccumulator = {
   type: QuestionType;
+  ranking?: RankingAccumulator;
   scaleBounds?: ScaleBounds;
   scaleCounts?: Map<number, number>;
   shownCount: number;
@@ -170,6 +221,10 @@ export const getFormAnalytics = async (
         ? getScaleBounds(q.type, q.config as QuestionConfig | null)
         : undefined,
       scaleCounts: isScaleQuestionType(q.type) ? new Map() : undefined,
+      ranking:
+        q.type === "RANKING"
+          ? createRankingAccumulator((q.options ?? []) as StoredOption[])
+          : undefined,
       trueCount: 0,
       falseCount: 0,
     });
@@ -226,6 +281,8 @@ export const getFormAnalytics = async (
             acc.numberMin = acc.numberMin === undefined ? value : Math.min(acc.numberMin, value);
             acc.numberMax = acc.numberMax === undefined ? value : Math.max(acc.numberMax, value);
           }
+        } else if (acc.type === "RANKING") {
+          recordRanking(acc.ranking!, value);
         } else {
           assertNever(acc.type, "question type");
         }
@@ -312,6 +369,15 @@ export const getFormAnalytics = async (
           count: acc.scaleCounts!.get(value) ?? 0,
         })),
         ...(q.type === "NPS" ? { nps: computeNps(acc.scaleCounts!) } : {}),
+        ...visibility,
+      });
+    } else if (q.type === "RANKING") {
+      questions.push({
+        id: q.id,
+        text: q.text,
+        type: "RANKING",
+        ranking: rankingStats((q.options ?? []) as StoredOption[], acc.ranking!),
+        rankedCount: acc.ranking!.rankedCount,
         ...visibility,
       });
     } else {
@@ -502,6 +568,7 @@ const DETAIL_ANALYTICS_SUPPORT: Record<QuestionType, boolean> = {
   RATING: true,
   SCALE: true,
   NPS: true,
+  RANKING: true,
 };
 
 export const getQuestionAnalytics = async (
@@ -539,6 +606,10 @@ export const getQuestionAnalytics = async (
   const choiceCounts = new Map<string, number>();
   // Власні відповіді «Інше» - так само Map і з обмеженням унікальних значень.
   const otherCounts = new Map<string, number>();
+  const ranking =
+    question.type === "RANKING"
+      ? createRankingAccumulator((question.options ?? []) as StoredOption[])
+      : undefined;
   const scaleBounds = isScaleQuestionType(question.type)
     ? getScaleBounds(question.type, question.config as QuestionConfig | null)
     : undefined;
@@ -602,6 +673,9 @@ export const getQuestionAnalytics = async (
           numberCount++;
           if (value < numberMin) numberMin = value;
           if (value > numberMax) numberMax = value;
+          break;
+        case "RANKING":
+          recordRanking(ranking!, value);
           break;
         default:
           assertNever(question.type, "question type");
@@ -679,6 +753,15 @@ export const getQuestionAnalytics = async (
         count: numberCounts.get(value) ?? 0,
       })),
       ...(question.type === "NPS" ? { nps: computeNps(numberCounts) } : {}),
+    };
+  }
+
+  if (question.type === "RANKING") {
+    return {
+      question: { ...base, type: "RANKING" },
+      totalAnswers,
+      ranking: rankingStats((question.options ?? []) as StoredOption[], ranking!),
+      rankedCount: ranking!.rankedCount,
     };
   }
 
@@ -784,6 +867,14 @@ export const getResponseById = async (
       displayValue = optionIds.map((id) => {
         const opt = options?.find((o) => o.id === id);
         return opt ? withOtherText(opt) : `Невідома опція (${id})`;
+      });
+    } else if (q.type === "RANKING") {
+      const options = q.options as StoredOption[] | null;
+
+      // "1. Кава", "2. Чай" - порядок у масиві і є порядком ранжування.
+      displayValue = (userValue as string[]).map((id, index) => {
+        const opt = options?.find((o) => o.id === id);
+        return `${index + 1}. ${opt ? opt.text : `Невідома опція (${id})`}`;
       });
     } else if (q.type === "BOOLEAN") {
       displayValue = userValue === true ? "Так" : "Ні";

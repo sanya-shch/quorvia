@@ -15,4 +15,5 @@ export const QUESTION_TYPE_LABEL_KEYS: Record<QuestionType, string> = {
   RATING: "builder.questionTypes.RATING",
   SCALE: "builder.questionTypes.SCALE",
   NPS: "builder.questionTypes.NPS",
+  RANKING: "builder.questionTypes.RANKING",
 } as const;

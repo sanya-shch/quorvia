@@ -1,4 +1,4 @@
-import type { NpsBreakdown } from "@quorvia/shared-types";
+import type { NpsBreakdown, RankingOptionStats } from "@quorvia/shared-types";
 import type { Answer, Answers } from "../response/response.types.js";
 
 /**
@@ -54,6 +54,15 @@ export type QuestionOverview =
       distribution: { optionId: string; count: number; text: string }[];
       /** Лише для NPS. */
       nps?: NpsBreakdown;
+    } & QuestionVisibilityStats)
+  | ({
+      id: string;
+      type: "RANKING";
+      text: string;
+      /** По варіанту, у порядку options. */
+      ranking: RankingOptionStats[];
+      /** Скільки відповідей є повним ранжуванням поточних варіантів. */
+      rankedCount: number;
     } & QuestionVisibilityStats)
   | ({
       id: string;
@@ -159,6 +168,17 @@ export type QuestionAnalyticsDto =
       distribution: { value: number; count: number }[];
       /** Лише для NPS. */
       nps?: NpsBreakdown;
+    }
+  | {
+      question: {
+        id: string;
+        text: string;
+        description: string | null;
+        type: "RANKING";
+      };
+      totalAnswers: number;
+      ranking: RankingOptionStats[];
+      rankedCount: number;
     }
   | {
       question: {

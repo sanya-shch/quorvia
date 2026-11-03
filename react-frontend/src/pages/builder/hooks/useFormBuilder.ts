@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { type FormState, type Question, type QuestionType } from "../../../types/formBuilder";
 import { validateConditionGraph } from "@quorvia/condition-engine";
 import { ErrorCode } from "@quorvia/shared-types";
-import { createDefaultQuestionConfig } from "../questionConfig";
+import { createDefaultOptions, createDefaultQuestionConfig } from "../questionConfig";
 
 const INITIAL_STATE: FormState = {
   title: "",
@@ -225,8 +225,6 @@ export function useFormBuilder(initialData?: FormState) {
 
   const addQuestionAtPosition = useCallback(
     (type: QuestionType, index: number) => {
-      const isChoice = ["CHOICE_SINGLE", "CHOICE_MULTI"].includes(type);
-
       setForm((prev) => {
         const newQuestion: Question = {
           id: crypto.randomUUID(),
@@ -235,15 +233,9 @@ export function useFormBuilder(initialData?: FormState) {
           description: "",
           required: false,
           order: index,
-          options: isChoice
-            ? [
-                {
-                  id: `opt-${Date.now()}`,
-                  text: t("builder.editors.options.newOptionText", { number: 1 }),
-                  isDefault: false,
-                },
-              ]
-            : [],
+          options: createDefaultOptions(type, (number) =>
+            t("builder.editors.options.newOptionText", { number }),
+          ),
           config: createDefaultQuestionConfig(type),
         };
 

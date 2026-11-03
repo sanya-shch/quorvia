@@ -29,6 +29,13 @@
       "detractors": "Detractors (0–6)",
       "noData": "No answers yet"
     },
-    "otherAnswers": "Answers for “Other”:"
+    "otherAnswers": "Answers for “Other”:",
+    "ranking": {
+      "title": "Option ranking",
+      "avg": "Avg position",
+      "first": "1st place",
+      "ranked": "Full rankings: {{count}}",
+      "noData": "No rankings yet"
+    }
   }
 }

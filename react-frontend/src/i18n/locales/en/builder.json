@@ -59,7 +59,8 @@
     "DATE": "Date picker",
     "RATING": "Rating (stars)",
     "SCALE": "Linear scale",
-    "NPS": "NPS (0–10)"
+    "NPS": "NPS (0–10)",
+    "RANKING": "Ranking"
   },
   "editors": {
     "text": {
@@ -103,7 +104,8 @@
       "otherDefaultText": "Other",
       "otherLabel": "Text of the “Other” option",
       "otherHint": "Respondent types their own answer",
-      "removeOther": "Remove “Other” option"
+      "removeOther": "Remove “Other” option",
+      "rankingHint": "Respondents put all options in their order of preference (2–20 options)."
     },
     "condition": {
       "enableLabel": "Show only if a condition is met (conditional logic)",

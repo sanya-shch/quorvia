@@ -131,3 +131,15 @@ export const npsIcon = (
     />
   </svg>
 );
+
+export const rankingIcon = (
+  <svg
+    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth="2"
+    stroke="currentColor"
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h10M4 12h7M4 18h4M18 5v14m0 0l-3-3m3 3l3-3" />
+  </svg>
+);

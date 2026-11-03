@@ -47,6 +47,26 @@ describe("formatAnswer - варіант «Інше»", () => {
   });
 });
 
+describe("formatAnswer - RANKING", () => {
+  const options = [
+    { id: "a", text: "Кава", isDefault: false },
+    { id: "b", text: "Чай", isDefault: false },
+    { id: "c", text: "Какао", isDefault: false },
+  ];
+
+  it("нумерує варіанти в порядку ранжування", () => {
+    const question = makeQuestion({ type: "RANKING", options });
+
+    expect(formatAnswer(question, ["b", "c", "a"])).toBe("1. Чай; 2. Какао; 3. Кава");
+  });
+
+  it("невідомий id (варіант видалили) лишається як є, а не ламає експорт", () => {
+    const question = makeQuestion({ type: "RANKING", options });
+
+    expect(formatAnswer(question, ["b", "gone"])).toBe("1. Чай; 2. gone");
+  });
+});
+
 describe("formatAnswer", () => {
   it("повертає порожній рядок для null/undefined/порожнього значення", () => {
     const question = makeQuestion({ type: "TEXT" });

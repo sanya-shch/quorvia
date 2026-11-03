@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import type { QuestionAnalyticsDto } from "@quorvia/shared-types";
+import type { QuestionAnalyticsDto, RankingOptionStats } from "@quorvia/shared-types";
 
-defineProps<{
+const props = defineProps<{
   data: QuestionAnalyticsDto | null;
   isLoading: boolean;
   error: string | null;
@@ -14,6 +14,20 @@ const emit = defineEmits<{ (e: "close"): void }>();
 const { t } = useI18n();
 
 const closeButtonRef = ref<HTMLButtonElement | null>(null);
+
+// Найкращі (найменша середня позиція) - зверху; без ранжувань - в кінці.
+const sortedRanking = computed<RankingOptionStats[]>(() =>
+  [...(props.data?.ranking ?? [])].sort(
+    (a, b) =>
+      (a.avgPosition ?? Number.POSITIVE_INFINITY) - (b.avgPosition ?? Number.POSITIVE_INFINITY),
+  ),
+);
+
+// Смуга: позиція 1 - повна, остання - порожня.
+const rankScore = (item: RankingOptionStats): number => {
+  const n = props.data?.ranking?.length ?? 0;
+  return item.avgPosition === null || n < 2 ? 0 : ((n - item.avgPosition) / (n - 1)) * 100;
+};
 
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === "Escape") emit("close");
@@ -56,6 +70,21 @@ onUnmounted(() => {
           <div class="stat"><span class="stat-value">{{ data.stats.avg.toFixed(2) }}</span><span class="stat-label">{{ t("analytics.common.avg") }}</span></div>
           <div class="stat"><span class="stat-value">{{ data.stats.min }}</span><span class="stat-label">{{ t("analytics.common.min") }}</span></div>
           <div class="stat"><span class="stat-value">{{ data.stats.max }}</span><span class="stat-label">{{ t("analytics.common.max") }}</span></div>
+        </div>
+
+        <div v-if="data.ranking" class="distribution">
+          <p class="answers-title">
+            {{ t("analytics.common.rankingRanked", { count: data.rankedCount ?? 0 }) }}
+          </p>
+          <div v-for="(item, i) in sortedRanking" :key="item.optionId" class="dist-row">
+            <span class="dist-label">{{ i + 1 }}. {{ item.text }}</span>
+            <div class="dist-bar">
+              <div class="dist-bar-fill" :style="{ width: rankScore(item) + '%' }" />
+            </div>
+            <span class="dist-count" :title="t('analytics.common.rankingFirst') + ': ' + item.positions[0]">
+              {{ item.avgPosition === null ? "—" : item.avgPosition.toFixed(2) }}
+            </span>
+          </div>
         </div>
 
         <div v-if="data.nps" class="stats-row">
