@@ -89,6 +89,7 @@ export const QUESTION_TYPES = [
   "SCALE",
   "NPS",
   "RANKING",
+  "MATRIX",
 ] as const;
 
 export type QuestionType = (typeof QUESTION_TYPES)[number];
@@ -150,6 +151,8 @@ export interface QuestionConfig {
   /** SCALE: підписи крайніх значень (напр. "Зовсім не згоден" / "Повністю згоден"). */
   minLabel?: string;
   maxLabel?: string;
+  /** MATRIX: рядки (твердження). Колонки (варіанти відповіді) - це `options` питання. */
+  rows?: MatrixRow[];
 }
 
 export type NumberVariant = "input" | "slider";
@@ -159,6 +162,33 @@ export type NumberVariant = "input" | "slider";
  * id варіантів від найвищої позиції до найнижчої (повна перестановка).
  */
 export const RANKING_LIMITS = { minOptions: 2, maxOptions: 20 } as const;
+
+/**
+ * MATRIX: таблиця "рядки x колонки", в кожному рядку обирається одна колонка.
+ * Рядки - у `config.rows`, колонки - у `options` питання (так колонки
+ * переважають механізми варіантів: id, підписи, переклади).
+ * Відповідь - об'єкт { [rowId]: columnId }. Для обов'язкового питання
+ * заповнені мають бути всі рядки, для необов'язкового - будь-яка їх частина.
+ */
+export const MATRIX_LIMITS = {
+  minRows: 1,
+  maxRows: 30,
+  minColumns: 2,
+  maxColumns: 10,
+} as const;
+
+export interface MatrixRow {
+  id: string;
+  text: string;
+}
+
+export type MatrixAnswer = Record<string, string>;
+
+/** Статистика матриці: counts[i] - скільки разів у рядку обрано колонку columns[i]. */
+export interface MatrixStats {
+  columns: { id: string; text: string }[];
+  rows: { rowId: string; text: string; answered: number; counts: number[] }[];
+}
 
 /** Статистика позицій одного варіанта в питанні RANKING. */
 export interface RankingOptionStats {
@@ -310,6 +340,8 @@ export interface QuestionOverview extends Partial<QuestionVisibilityStats> {
   /** Лише для RANKING: по варіанту, у порядку options, і кількість повних ранжувань. */
   ranking?: RankingOptionStats[];
   rankedCount?: number;
+  /** Лише для MATRIX. */
+  matrix?: MatrixStats;
   trueCount?: number;
   falseCount?: number;
 }
@@ -334,6 +366,8 @@ export interface QuestionAnalyticsDto {
   /** Лише для RANKING: по варіанту, у порядку options, і кількість повних ранжувань. */
   ranking?: RankingOptionStats[];
   rankedCount?: number;
+  /** Лише для MATRIX. */
+  matrix?: MatrixStats;
   /** Питання з вибором і варіантом «Інше»: власні відповіді за частотою (топ). */
   otherAnswers?: { value: string; count: number }[];
   answers?: string[];

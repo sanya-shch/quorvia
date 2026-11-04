@@ -1,7 +1,7 @@
-import z from 'zod';
-import { submitResponseSchema } from './response.schema.js';
+import z from "zod";
+import { submitResponseSchema } from "./response.schema.js";
 
-export type Answer = string | number | boolean | string[];
+export type Answer = string | number | boolean | string[] | Record<string, string>;
 export type Answers = Record<string, Answer>;
 
 export type ResponseDto = {

@@ -1,4 +1,4 @@
-import type { NpsBreakdown, RankingOptionStats } from "@quorvia/shared-types";
+import type { MatrixStats, NpsBreakdown, RankingOptionStats } from "@quorvia/shared-types";
 import type { Answer, Answers } from "../response/response.types.js";
 
 /**
@@ -63,6 +63,12 @@ export type QuestionOverview =
       ranking: RankingOptionStats[];
       /** Скільки відповідей є повним ранжуванням поточних варіантів. */
       rankedCount: number;
+    } & QuestionVisibilityStats)
+  | ({
+      id: string;
+      type: "MATRIX";
+      text: string;
+      matrix: MatrixStats;
     } & QuestionVisibilityStats)
   | ({
       id: string;
@@ -179,6 +185,16 @@ export type QuestionAnalyticsDto =
       totalAnswers: number;
       ranking: RankingOptionStats[];
       rankedCount: number;
+    }
+  | {
+      question: {
+        id: string;
+        text: string;
+        description: string | null;
+        type: "MATRIX";
+      };
+      totalAnswers: number;
+      matrix: MatrixStats;
     }
   | {
       question: {

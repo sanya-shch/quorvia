@@ -1,9 +1,16 @@
 import { Question } from "@prisma/client";
-import { assertNever } from "@quorvia/shared-types";
+import { assertNever, type QuestionConfig } from "@quorvia/shared-types";
 
 // Відповідь на «Інше» - окремий ключ в answers; експортер передає його третім аргументом.
 
-export type AnswerValue = string | number | boolean | string[] | null | undefined;
+export type AnswerValue =
+  | string
+  | number
+  | boolean
+  | string[]
+  | Record<string, string>
+  | null
+  | undefined;
 
 const optionLabelsById = (question: Question, otherText?: AnswerValue): Record<string, string> => {
   const options = Array.isArray(question.options)
@@ -36,6 +43,21 @@ export const formatAnswer = (
       const labels = optionLabelsById(question, otherText);
       const ids = Array.isArray(value) ? value : [value as string];
       return ids.map((id) => labels[id] ?? String(id)).join("; ");
+    }
+    case "MATRIX": {
+      // "Рядок: Колонка; Рядок: Колонка" - рядки в порядку питання, без
+      // відповіді пропускаються (необов'язкова матриця може бути заповнена частково).
+      const rows = (question.config as QuestionConfig | null)?.rows ?? [];
+      const labels = optionLabelsById(question);
+      const cells =
+        value && typeof value === "object" && !Array.isArray(value)
+          ? (value as Record<string, string>)
+          : {};
+
+      return rows
+        .filter((row) => cells[row.id] !== undefined)
+        .map((row) => `${row.text}: ${labels[cells[row.id]] ?? cells[row.id]}`)
+        .join("; ");
     }
     case "RANKING": {
       // "1. Кава; 2. Чай" - позиція видна в одній клітинці експорту.

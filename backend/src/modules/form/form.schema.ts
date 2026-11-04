@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   ErrorCode,
+  MATRIX_LIMITS,
   OTHER_ANSWER_SUFFIX,
   RANKING_LIMITS,
   SCALE_LIMITS,
@@ -109,6 +110,34 @@ const rankingOptionsSchema = z
     (options) => new Set(options.map((o) => o.id)).size === options.length,
     ErrorCode.REQUEST_BODY_INVALID,
   );
+
+// MATRIX: колонки - це options (2-10, унікальні id, без «Інше»), рядки - config.rows
+// (1-30, унікальні id). Відповідь - { rowId: columnId }, тому id в обох списках
+// мають бути унікальними всередині свого списку.
+const matrixColumnsSchema = z
+  .array(optionSchema.omit({ isOther: true }))
+  .min(MATRIX_LIMITS.minColumns)
+  .max(MATRIX_LIMITS.maxColumns)
+  .refine(
+    (options) => new Set(options.map((o) => o.id)).size === options.length,
+    ErrorCode.REQUEST_BODY_INVALID,
+  );
+
+const matrixConfigSchema = z.object({
+  rows: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(FORM_LIMITS.id),
+        text: z.string().trim().min(1).max(FORM_LIMITS.optionText),
+      }),
+    )
+    .min(MATRIX_LIMITS.minRows)
+    .max(MATRIX_LIMITS.maxRows)
+    .refine(
+      (rows) => new Set(rows.map((r) => r.id)).size === rows.length,
+      ErrorCode.REQUEST_BODY_INVALID,
+    ),
+});
 
 export const questionSchema = z.discriminatedUnion("type", [
   z.object({
@@ -228,6 +257,13 @@ export const questionSchema = z.discriminatedUnion("type", [
     ...base,
     type: z.literal("RANKING"),
     options: rankingOptionsSchema,
+  }),
+
+  z.object({
+    ...base,
+    type: z.literal("MATRIX"),
+    options: matrixColumnsSchema,
+    config: matrixConfigSchema,
   }),
 ]);
 

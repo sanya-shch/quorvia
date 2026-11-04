@@ -17,6 +17,7 @@
 | Типовий config нового питання, чи зберігається config | `tsc`: `switch` без `default` у `pages/builder/questionConfig.ts` |
 | Оператори в редакторі умов | `tsc`: `Record<QuestionType, ...>` у `ConditionEditor.tsx` |
 | Чи є в типу варіанти, чи годиться для умов | `tsc`: `questionTypeUsesOptions`, `questionTypeSupportsConditions` (`questionConfig.ts`) |
+| Текст відповіді на екрані «Перевірте відповіді» | `tsc`: `switch` без `default` у `viewer/reviewAnswer.ts` |
 | Швидке додавання «+» між питаннями | береться з `QUESTION_TYPES`; перевіряє `questionTypes.coverage.test.tsx` |
 
 ## Що робиться вручну

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { OTHER_ANSWER_SUFFIX } from "@quorvia/shared-types";
+import { MATRIX_LIMITS, OTHER_ANSWER_SUFFIX } from "@quorvia/shared-types";
 
 /**
  * Спільна схема "answers" для публічних ендпоінтів (відправка відповіді та
@@ -22,6 +22,13 @@ const answerValueSchema = z.union([
   z.number(),
   z.boolean(),
   z.array(z.string().max(200)).max(MAX_ANSWER_ARRAY_ITEMS),
+  // MATRIX: { [rowId]: columnId }. Ключі й значення - id (до 100 символів), рядків
+  // не більше за MATRIX_LIMITS.maxRows.
+  z
+    .record(z.string().max(100), z.string().max(100))
+    .refine((cells) => Object.keys(cells).length <= MATRIX_LIMITS.maxRows, {
+      message: "Too many matrix rows",
+    }),
 ]);
 
 export const answersSchema = z

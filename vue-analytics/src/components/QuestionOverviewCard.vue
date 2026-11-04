@@ -25,6 +25,23 @@ const topRanking = computed(() =>
     .slice(0, 3),
 );
 
+// Для кожного з перших трьох рядків - найпопулярніша колонка та її частка.
+const matrixSummary = computed(() => {
+  const matrix = props.question.matrix;
+  if (!matrix) return [];
+
+  return matrix.rows.slice(0, 3).map((row) => {
+    const best = row.counts.reduce((bestIndex, count, i, all) => (count > all[bestIndex] ? i : bestIndex), 0);
+
+    return {
+      rowId: row.rowId,
+      text: row.text,
+      topText: row.answered > 0 ? matrix.columns[best].text : "—",
+      share: row.answered > 0 ? Math.round((row.counts[best] / row.answered) * 100) : 0,
+    };
+  });
+});
+
 const topPreview = computed(() => props.question.preview?.slice(0, 3) ?? []);
 const topDistribution = computed(() => props.question.distribution ?? []);
 const maxDistributionCount = computed(
@@ -84,6 +101,16 @@ const maxDistributionCount = computed(
         </div>
         <span class="stat-label">
           {{ t("analytics.common.rankingRanked", { count: question.rankedCount ?? 0 }) }}
+        </span>
+      </template>
+
+      <template v-else-if="question.type === 'MATRIX' && question.matrix">
+        <div v-for="row in matrixSummary" :key="row.rowId" class="dist-row">
+          <span class="dist-label">{{ row.text }}</span>
+          <span class="dist-count">{{ row.topText }}<template v-if="row.share"> · {{ row.share }}%</template></span>
+        </div>
+        <span v-if="question.matrix.rows.length > 3" class="stat-label">
+          +{{ question.matrix.rows.length - 3 }}
         </span>
       </template>
 

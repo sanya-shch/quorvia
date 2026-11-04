@@ -60,7 +60,8 @@
     "RATING": "Rating (stars)",
     "SCALE": "Linear scale",
     "NPS": "NPS (0–10)",
-    "RANKING": "Ranking"
+    "RANKING": "Ranking",
+    "MATRIX": "Matrix"
   },
   "editors": {
     "text": {
@@ -143,6 +144,29 @@
     },
     "nps": {
       "hint": "Standard NPS question: 0–10 scale with “Not at all likely” and “Extremely likely” at the ends. Nothing to configure."
+    },
+    "matrix": {
+      "rowsLabel": "Rows (statements)",
+      "columnsLabel": "Columns (answer choices)",
+      "addRow": "Add row",
+      "addColumn": "Add column",
+      "rowPlaceholder": "Statement",
+      "columnPlaceholder": "Answer choice",
+      "rowAria": "Row {{number}} text",
+      "columnAria": "Column {{number}} text",
+      "removeRow": "Remove row {{number}}",
+      "removeColumn": "Remove column {{number}}",
+      "newRowText": "Row {{number}}",
+      "newColumnText": "Column {{number}}",
+      "applyLikert": "Use a 5-point Likert scale",
+      "hint": "The respondent picks one column in every row. If the question is required, all rows must be answered. 1–30 rows, 2–10 columns.",
+      "likert": {
+        "stronglyDisagree": "Strongly disagree",
+        "disagree": "Disagree",
+        "neutral": "Neutral",
+        "agree": "Agree",
+        "stronglyAgree": "Strongly agree"
+      }
     }
   }
 }

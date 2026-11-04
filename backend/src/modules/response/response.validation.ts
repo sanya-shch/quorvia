@@ -132,6 +132,20 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
         break;
       }
 
+      case "MATRIX": {
+        const rows = q.config?.rows ?? [];
+        const columnIds = (q.options as { id: string }[]).map((o) => o.id);
+        const cell = z.enum(columnIds as [string, ...string[]]);
+
+        // Обов'язкова матриця - усі рядки заповнені; необов'язкова - будь-яка
+        // частина. strict(): id рядка, якого немає в питанні, відхиляється.
+        schema = z
+          .object(Object.fromEntries(rows.map((row) => [row.id, q.required ? cell : cell.optional()])))
+          .strict();
+
+        break;
+      }
+
       case "RANKING": {
         const optionIds = (q.options as { id: string }[]).map((o) => o.id);
 
@@ -211,8 +225,18 @@ export const cleanAnswers = (
   for (const q of questions as Question[]) {
     if (!visibleQuestionIds.has(q.id)) continue;
 
-    if (data[q.id] !== undefined) {
-      cleaned[q.id] = data[q.id];
+    const value = data[q.id];
+    // Порожня матриця - це "не відповіли" (як і на клієнті): без цього запит
+    // { q: {} } до необов'язкової матриці рахувався б відповіддю в аналітиці.
+    const isEmptyMatrix =
+      q.type === "MATRIX" &&
+      typeof value === "object" &&
+      value !== null &&
+      !Array.isArray(value) &&
+      Object.keys(value).length === 0;
+
+    if (value !== undefined && !isEmptyMatrix) {
+      cleaned[q.id] = value;
     }
 
     if (isOtherSelected(q.type, q.options, data[q.id])) {

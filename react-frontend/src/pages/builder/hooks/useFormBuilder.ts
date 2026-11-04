@@ -234,9 +234,13 @@ export function useFormBuilder(initialData?: FormState) {
           required: false,
           order: index,
           options: createDefaultOptions(type, (number) =>
-            t("builder.editors.options.newOptionText", { number }),
+            type === "MATRIX"
+              ? t("builder.editors.matrix.newColumnText", { number })
+              : t("builder.editors.options.newOptionText", { number }),
           ),
-          config: createDefaultQuestionConfig(type),
+          config: createDefaultQuestionConfig(type, (number) =>
+            t("builder.editors.matrix.newRowText", { number }),
+          ),
         };
 
         const updatedQuestions = [...prev.questions];

@@ -36,6 +36,10 @@
       "first": "1st place",
       "ranked": "Full rankings: {{count}}",
       "noData": "No rankings yet"
+    },
+    "matrix": {
+      "title": "Answers by row",
+      "answered": "Answers: {{count}}"
     }
   }
 }

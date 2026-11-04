@@ -350,6 +350,81 @@ describe("buildResponseSchema - RANKING", () => {
   });
 });
 
+describe("cleanAnswers - MATRIX", () => {
+  const matrix = makeQuestion({
+    id: "q",
+    type: "MATRIX",
+    options: [{ id: "a", text: "A", isDefault: false }],
+    config: { rows: [{ id: "r1", text: "R" }] },
+  } as Partial<Question>);
+  const visible = new Set(["q"]);
+
+  it("порожня матриця не зберігається як відповідь", () => {
+    expect(cleanAnswers([matrix], { q: {} }, visible)).toEqual({});
+  });
+
+  it("непорожня (навіть часткова) матриця зберігається", () => {
+    expect(cleanAnswers([matrix], { q: { r1: "a" } }, visible)).toEqual({ q: { r1: "a" } });
+  });
+});
+
+describe("buildResponseSchema - MATRIX", () => {
+  const columns = ["a", "b", "c"].map((id) => ({ id, text: id, isDefault: false }));
+  const rows = [
+    { id: "r1", text: "Перший" },
+    { id: "r2", text: "Другий" },
+  ];
+  const build = (extra: Partial<Question> = {}) =>
+    buildResponseSchema([
+      makeQuestion({
+        id: "q",
+        type: "MATRIX",
+        options: columns,
+        config: { rows },
+        ...extra,
+      } as Partial<Question>),
+    ]);
+
+  it("приймає по одній колонці на кожен рядок", () => {
+    const schema = build({ required: true });
+
+    expect(schema.safeParse({ q: { r1: "a", r2: "c" } }).success).toBe(true);
+  });
+
+  it("обов'язкова: усі рядки мають бути заповнені", () => {
+    const schema = build({ required: true });
+
+    expect(schema.safeParse({ q: { r1: "a" } }).success).toBe(false);
+    expect(schema.safeParse({ q: {} }).success).toBe(false);
+    expect(schema.safeParse({}).success).toBe(false);
+  });
+
+  it("необов'язкова: можна пропустити питання або заповнити частину рядків", () => {
+    const schema = build({ required: false });
+
+    expect(schema.safeParse({}).success).toBe(true);
+    expect(schema.safeParse({ q: {} }).success).toBe(true);
+    expect(schema.safeParse({ q: { r2: "b" } }).success).toBe(true);
+  });
+
+  it("відхиляє чужу колонку, чужий рядок і неправильний тип значення", () => {
+    const schema = build({ required: false });
+
+    expect(schema.safeParse({ q: { r1: "x" } }).success).toBe(false);
+    expect(schema.safeParse({ q: { nope: "a" } }).success).toBe(false);
+    expect(schema.safeParse({ q: { r1: ["a"] } }).success).toBe(false);
+    expect(schema.safeParse({ q: "a" }).success).toBe(false);
+    expect(schema.safeParse({ q: ["a"] }).success).toBe(false);
+  });
+
+  it("помилка віддається на id питання (path[0]), щоб клієнт показав її біля питання", () => {
+    const result = build({ required: true }).safeParse({ q: { r1: "a" } });
+
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error.issues[0].path[0]).toBe("q");
+  });
+});
+
 describe("buildResponseSchema — загальне", () => {
   it("кидає для непідтримуваного типу питання", () => {
     expect(() => buildResponseSchema([makeQuestion({ type: "UNKNOWN" as any })])).toThrow(

@@ -67,6 +67,38 @@ describe("formatAnswer - RANKING", () => {
   });
 });
 
+describe("formatAnswer - MATRIX", () => {
+  const options = [
+    { id: "a", text: "Згоден", isDefault: false },
+    { id: "b", text: "Не згоден", isDefault: false },
+  ];
+  const question = makeQuestion({
+    type: "MATRIX",
+    options,
+    config: {
+      rows: [
+        { id: "r1", text: "Швидкість" },
+        { id: "r2", text: "Ціна" },
+        { id: "r3", text: "Якість" },
+      ],
+    },
+  });
+
+  it("«Рядок: Колонка» у порядку рядків питання", () => {
+    expect(formatAnswer(question, { r2: "b", r1: "a" })).toBe("Швидкість: Згоден; Ціна: Не згоден");
+  });
+
+  it("рядки без відповіді пропускаються, невідома колонка лишається як є", () => {
+    expect(formatAnswer(question, { r3: "a" })).toBe("Якість: Згоден");
+    expect(formatAnswer(question, { r1: "gone" })).toBe("Швидкість: gone");
+  });
+
+  it("не об'єкт - порожній рядок, а не падіння", () => {
+    expect(formatAnswer(question, "a")).toBe("");
+    expect(formatAnswer(question, ["a"])).toBe("");
+  });
+});
+
 describe("formatAnswer", () => {
   it("повертає порожній рядок для null/undefined/порожнього значення", () => {
     const question = makeQuestion({ type: "TEXT" });

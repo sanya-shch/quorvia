@@ -1,5 +1,6 @@
 import { type Question } from "../../types/formBuilder";
 import { type AnswerValue } from "../../types/formViewer";
+import { toMatrixAnswer } from "./matrixAnswer";
 import {
   assertNever,
   ErrorCode,
@@ -34,13 +35,23 @@ export const validateField = (
   const isEmptyText = typeof value === "string" && value.trim() === "";
   const isEmptyArray = Array.isArray(value) && value.length === 0;
   const isUndefinedOrNull = value === undefined || value === null || value === "";
-  const isEmpty = isEmptyText || isEmptyArray || isUndefinedOrNull;
+  const isEmptyMatrix = q.type === "MATRIX" && Object.keys(toMatrixAnswer(value)).length === 0;
+  const isEmpty = isEmptyText || isEmptyArray || isUndefinedOrNull || isEmptyMatrix;
 
   if (q.required && isEmpty) {
     return { key: `errors.${ErrorCode.VALIDATION_FIELD_REQUIRED}` };
   }
 
   if (isEmpty) return null;
+
+  // Обов'язкова матриця: заповнені мають бути всі рядки (необов'язкова - будь-яка частина).
+  if (q.type === "MATRIX" && q.required) {
+    const cells = toMatrixAnswer(value);
+
+    if ((q.config?.rows ?? []).some((row) => cells[row.id] === undefined)) {
+      return { key: `errors.${ErrorCode.VALIDATION_FIELD_REQUIRED}` };
+    }
+  }
 
   // Обране «Інше» без тексту - порожня відповідь, навіть якщо питання не обов'язкове.
   if (isOtherSelected(q.type, q.options, value)) {
@@ -114,7 +125,8 @@ export const getDefaultAnswer = (q: Question): AnswerValue => {
     case "SCALE":
     case "NPS":
     case "RANKING":
-      // Ранжування - без відповіді, доки респондент не взаємодіяв зі списком.
+    case "MATRIX":
+      // Ранжування й матриця - без відповіді, доки респондент не взаємодіяв.
       return "";
     default:
       return assertNever(q.type, "question type");
@@ -155,8 +167,9 @@ export const buildCleanedAnswers = (
     const isEmptyText = typeof value === "string" && value.trim() === "";
     const isEmptyArray = Array.isArray(value) && value.length === 0;
     const isUndefinedOrNull = value === undefined || value === null || value === "";
+    const isEmptyMatrix = question.type === "MATRIX" && Object.keys(toMatrixAnswer(value)).length === 0;
 
-    if (!question.required && (isEmptyText || isEmptyArray || isUndefinedOrNull)) {
+    if (!question.required && (isEmptyText || isEmptyArray || isUndefinedOrNull || isEmptyMatrix)) {
       return;
     }
 

@@ -23,7 +23,8 @@
     "next": "Далі →",
     "reviewErrorsHint": "Перевірте виділені питання - у деяких відповідях є помилки.",
     "booleanYes": "Так",
-    "booleanNo": "Ні"
+    "booleanNo": "Ні",
+    "noAnswer": "Без відповіді"
   },
   "validation": {
     "numberMin": "Значення має бути не менше {{min}}",
@@ -50,5 +51,8 @@
     "moveUp": "Перемістити «{{option}}» вище",
     "moveDown": "Перемістити «{{option}}» нижче",
     "moved": "«{{option}}» тепер на місці {{position}} з {{total}}"
+  },
+  "matrix": {
+    "clear": "Скасувати відповіді"
   }
 }

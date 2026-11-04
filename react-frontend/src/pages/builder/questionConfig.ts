@@ -1,11 +1,15 @@
-import { assertNever, RANKING_LIMITS, SCALE_LIMITS } from "@quorvia/shared-types";
+import { assertNever, MATRIX_LIMITS, RANKING_LIMITS, SCALE_LIMITS } from "@quorvia/shared-types";
 import type { QuestionConfig, QuestionOption, QuestionType } from "../../types/formBuilder";
 
 /**
  * Типовий config нового питання. switch без default: новий тип питання
  * не скомпілюється, поки для нього явно не вирішено, який config він має.
  */
-export const createDefaultQuestionConfig = (type: QuestionType): QuestionConfig | null => {
+export const createDefaultQuestionConfig = (
+  type: QuestionType,
+  /** Підпис нового рядка матриці (потрібен лише для MATRIX). */
+  rowLabel: (number: number) => string = (number) => `Row ${number}`,
+): QuestionConfig | null => {
   switch (type) {
     case "CHOICE_SINGLE":
     case "CHOICE_MULTI":
@@ -23,6 +27,8 @@ export const createDefaultQuestionConfig = (type: QuestionType): QuestionConfig 
     case "NPS":
     case "RANKING":
       return null;
+    case "MATRIX":
+      return { rows: [{ id: `row-${Date.now()}-0`, text: rowLabel(1) }] };
     default:
       return assertNever(type, "question type");
   }
@@ -34,6 +40,7 @@ export const questionTypeUsesOptions = (type: QuestionType): boolean => {
     case "CHOICE_SINGLE":
     case "CHOICE_MULTI":
     case "RANKING":
+    case "MATRIX": // options матриці - її колонки
       return true;
     case "TEXT":
     case "NUMBER":
@@ -58,7 +65,12 @@ export const createDefaultOptions = (
 ): QuestionOption[] => {
   if (!questionTypeUsesOptions(type)) return [];
 
-  const count = type === "RANKING" ? RANKING_LIMITS.minOptions : 1;
+  const count =
+    type === "RANKING"
+      ? RANKING_LIMITS.minOptions
+      : type === "MATRIX"
+        ? MATRIX_LIMITS.minColumns
+        : 1;
   const stamp = Date.now();
 
   return Array.from({ length: count }, (_, i) => ({
@@ -70,8 +82,8 @@ export const createDefaultOptions = (
 
 /**
  * Чи можна використовувати відповідь на питання в умовах показу інших питань.
- * Ранжування в умовах не підтримується: масив порядку не зводиться до
- * простих операторів (equals/gt/...), а "перший у списку" - окрема функція.
+ * Ранжування й матриця в умовах не підтримуються: масив порядку / об'єкт
+ * рядок->колонка не зводяться до простих операторів (equals/gt/...).
  */
 export const questionTypeSupportsConditions = (type: QuestionType): boolean => {
   switch (type) {
@@ -86,6 +98,7 @@ export const questionTypeSupportsConditions = (type: QuestionType): boolean => {
     case "NPS":
       return true;
     case "RANKING":
+    case "MATRIX":
       return false;
     default:
       return assertNever(type, "question type");
@@ -105,6 +118,7 @@ export const questionTypeUsesConfig = (type: QuestionType): boolean => {
     case "BOOLEAN":
     case "RATING":
     case "SCALE":
+    case "MATRIX": // config.rows
       return true;
     case "DATE":
     case "NPS":

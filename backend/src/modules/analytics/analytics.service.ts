@@ -9,6 +9,7 @@ import {
   isScaleQuestionType,
   otherAnswerKey,
   type NpsBreakdown,
+  type MatrixStats,
   type QuestionConfig,
   type QuestionType,
   type RankingOptionStats,
@@ -173,8 +174,59 @@ const rankingStats = (options: StoredOption[], acc: RankingAccumulator): Ranking
     };
   });
 
+/**
+ * MATRIX: лічильники "рядок x колонка". Клітинки незалежні (необов'язкова матриця
+ * може бути заповнена частково); рахуємо лише існуючі рядки й колонки, тож
+ * зміна рядків/колонок після збору не ламає статистику.
+ */
+type MatrixAccumulator = {
+  rows: { id: string; text: string }[];
+  columns: { id: string; text: string }[];
+  rowIndex: Map<string, number>;
+  columnIndex: Map<string, number>;
+  counts: number[][];
+};
+
+const createMatrixAccumulator = (
+  rows: { id: string; text: string }[],
+  columns: StoredOption[],
+): MatrixAccumulator => ({
+  rows,
+  columns: columns.map((c) => ({ id: c.id, text: c.text })),
+  rowIndex: new Map(rows.map((r, i) => [r.id, i])),
+  columnIndex: new Map(columns.map((c, i) => [c.id, i])),
+  counts: rows.map(() => new Array<number>(columns.length).fill(0)),
+});
+
+const recordMatrix = (acc: MatrixAccumulator, value: unknown): void => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return;
+
+  for (const [rowId, columnId] of Object.entries(value as Record<string, unknown>)) {
+    const row = acc.rowIndex.get(rowId);
+    const column = typeof columnId === "string" ? acc.columnIndex.get(columnId) : undefined;
+
+    if (row !== undefined && column !== undefined) {
+      acc.counts[row][column] += 1;
+    }
+  }
+};
+
+const matrixStats = (acc: MatrixAccumulator): MatrixStats => ({
+  columns: acc.columns,
+  rows: acc.rows.map((row, i) => ({
+    rowId: row.id,
+    text: row.text,
+    answered: acc.counts[i].reduce((sum, count) => sum + count, 0),
+    counts: acc.counts[i],
+  })),
+});
+
+const matrixRowsOf = (config: unknown): { id: string; text: string }[] =>
+  (config as QuestionConfig | null)?.rows ?? [];
+
 type QuestionAccumulator = {
   type: QuestionType;
+  matrix?: MatrixAccumulator;
   ranking?: RankingAccumulator;
   scaleBounds?: ScaleBounds;
   scaleCounts?: Map<number, number>;
@@ -224,6 +276,10 @@ export const getFormAnalytics = async (
       ranking:
         q.type === "RANKING"
           ? createRankingAccumulator((q.options ?? []) as StoredOption[])
+          : undefined,
+      matrix:
+        q.type === "MATRIX"
+          ? createMatrixAccumulator(matrixRowsOf(q.config), (q.options ?? []) as StoredOption[])
           : undefined,
       trueCount: 0,
       falseCount: 0,
@@ -283,6 +339,8 @@ export const getFormAnalytics = async (
           }
         } else if (acc.type === "RANKING") {
           recordRanking(acc.ranking!, value);
+        } else if (acc.type === "MATRIX") {
+          recordMatrix(acc.matrix!, value);
         } else {
           assertNever(acc.type, "question type");
         }
@@ -378,6 +436,14 @@ export const getFormAnalytics = async (
         type: "RANKING",
         ranking: rankingStats((q.options ?? []) as StoredOption[], acc.ranking!),
         rankedCount: acc.ranking!.rankedCount,
+        ...visibility,
+      });
+    } else if (q.type === "MATRIX") {
+      questions.push({
+        id: q.id,
+        text: q.text,
+        type: "MATRIX",
+        matrix: matrixStats(acc.matrix!),
         ...visibility,
       });
     } else {
@@ -569,6 +635,7 @@ const DETAIL_ANALYTICS_SUPPORT: Record<QuestionType, boolean> = {
   SCALE: true,
   NPS: true,
   RANKING: true,
+  MATRIX: true,
 };
 
 export const getQuestionAnalytics = async (
@@ -609,6 +676,13 @@ export const getQuestionAnalytics = async (
   const ranking =
     question.type === "RANKING"
       ? createRankingAccumulator((question.options ?? []) as StoredOption[])
+      : undefined;
+  const matrix =
+    question.type === "MATRIX"
+      ? createMatrixAccumulator(
+          matrixRowsOf(question.config),
+          (question.options ?? []) as StoredOption[],
+        )
       : undefined;
   const scaleBounds = isScaleQuestionType(question.type)
     ? getScaleBounds(question.type, question.config as QuestionConfig | null)
@@ -676,6 +750,9 @@ export const getQuestionAnalytics = async (
           break;
         case "RANKING":
           recordRanking(ranking!, value);
+          break;
+        case "MATRIX":
+          recordMatrix(matrix!, value);
           break;
         default:
           assertNever(question.type, "question type");
@@ -753,6 +830,14 @@ export const getQuestionAnalytics = async (
         count: numberCounts.get(value) ?? 0,
       })),
       ...(question.type === "NPS" ? { nps: computeNps(numberCounts) } : {}),
+    };
+  }
+
+  if (question.type === "MATRIX") {
+    return {
+      question: { ...base, type: "MATRIX" },
+      totalAnswers,
+      matrix: matrixStats(matrix!),
     };
   }
 
@@ -868,6 +953,17 @@ export const getResponseById = async (
         const opt = options?.find((o) => o.id === id);
         return opt ? withOtherText(opt) : `Невідома опція (${id})`;
       });
+    } else if (q.type === "MATRIX") {
+      const options = q.options as StoredOption[] | null;
+      const cells = userValue as Record<string, string>;
+
+      // "Рядок: Колонка" у порядку рядків питання; рядки без відповіді пропускаємо.
+      displayValue = matrixRowsOf(q.config)
+        .filter((row) => cells[row.id] !== undefined)
+        .map((row) => {
+          const column = options?.find((o) => o.id === cells[row.id]);
+          return `${row.text}: ${column ? column.text : `Невідома опція (${cells[row.id]})`}`;
+        });
     } else if (q.type === "RANKING") {
       const options = q.options as StoredOption[] | null;
 
@@ -886,7 +982,9 @@ export const getResponseById = async (
       q.type === "SCALE" ||
       q.type === "NPS"
     ) {
-      displayValue = typeof userValue === "boolean" ? String(userValue) : userValue;
+      // Для цих типів відповідь - рядок/число (об'єкт буває лише в MATRIX, вище).
+      displayValue =
+        typeof userValue === "boolean" ? String(userValue) : (userValue as string | number | string[]);
     } else {
       assertNever(q.type, "question type");
     }

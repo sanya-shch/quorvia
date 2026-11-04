@@ -72,6 +72,32 @@ onUnmounted(() => {
           <div class="stat"><span class="stat-value">{{ data.stats.max }}</span><span class="stat-label">{{ t("analytics.common.max") }}</span></div>
         </div>
 
+        <div v-if="data.matrix" class="matrix-wrap">
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th scope="col" />
+                <th v-for="column in data.matrix.columns" :key="column.id" scope="col">
+                  {{ column.text }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in data.matrix.rows" :key="row.rowId">
+                <th scope="row">{{ row.text }}</th>
+                <td
+                  v-for="(count, i) in row.counts"
+                  :key="data.matrix.columns[i].id"
+                  :style="{ backgroundColor: `rgba(79, 70, 229, ${(row.answered ? count / row.answered : 0) * 0.35})` }"
+                >
+                  <strong>{{ count }}</strong>
+                  <small>{{ row.answered ? Math.round((count / row.answered) * 100) : 0 }}%</small>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
         <div v-if="data.ranking" class="distribution">
           <p class="answers-title">
             {{ t("analytics.common.rankingRanked", { count: data.rankedCount ?? 0 }) }}
@@ -214,6 +240,37 @@ onUnmounted(() => {
 }
 .distribution {
   margin-bottom: 20px;
+}
+.matrix-wrap {
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+.matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.matrix th,
+.matrix td {
+  padding: 8px;
+  text-align: center;
+  border-top: 1px solid #f1f5f9;
+}
+.matrix th[scope="row"] {
+  text-align: left;
+  font-weight: 500;
+  color: #334155;
+}
+.matrix th[scope="col"] {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  border-top: 0;
+}
+.matrix small {
+  display: block;
+  color: #64748b;
+  font-size: 11px;
 }
 .dist-row {
   display: flex;

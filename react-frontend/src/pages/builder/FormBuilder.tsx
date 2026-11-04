@@ -13,6 +13,7 @@ import QuestionCard from "./components/QuestionCard";
 import ConfirmModal from "../../components/ui/ConfirmModal";
 
 import TextConfigEditor from "./components/editors/TextConfigEditor";
+import MatrixConfigEditor from "./components/editors/MatrixConfigEditor";
 import NumberConfigEditor from "./components/editors/NumberConfigEditor";
 import RatingConfigEditor from "./components/editors/RatingConfigEditor";
 import ScaleConfigEditor from "./components/editors/ScaleConfigEditor";
@@ -452,6 +453,17 @@ export default function FormBuilder() {
                                     }
                                   />
                                 </div>
+                              )}
+
+                              {question.type === "MATRIX" && (
+                                <MatrixConfigEditor
+                                  rows={question.config?.rows ?? []}
+                                  columns={question.options}
+                                  onChangeRows={(rows) =>
+                                    updateQuestion(index, { config: { ...question.config, rows } })
+                                  }
+                                  onChangeColumns={(options) => updateQuestion(index, { options })}
+                                />
                               )}
 
                               {question.type === "RATING" && (

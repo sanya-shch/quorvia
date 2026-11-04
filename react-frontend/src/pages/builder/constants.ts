@@ -6,6 +6,7 @@ import {
   npsIcon,
   numberIcon,
   ratingIcon,
+  matrixIcon,
   rankingIcon,
   scaleIcon,
   textIcon,
@@ -41,4 +42,5 @@ export const getSidebarItems = (t: TFunction): SidebarItem[] => [
   { type: "SCALE", label: t(QUESTION_TYPE_LABEL_KEYS.SCALE), icon: scaleIcon },
   { type: "NPS", label: t(QUESTION_TYPE_LABEL_KEYS.NPS), icon: npsIcon },
   { type: "RANKING", label: t(QUESTION_TYPE_LABEL_KEYS.RANKING), icon: rankingIcon },
+  { type: "MATRIX", label: t(QUESTION_TYPE_LABEL_KEYS.MATRIX), icon: matrixIcon },
 ];

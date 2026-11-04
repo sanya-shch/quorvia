@@ -45,6 +45,7 @@ export default function QuestionDetailsPage() {
     otherAnswers,
     ranking,
     rankedCount,
+    matrix,
   } = data;
 
   return (
@@ -241,6 +242,64 @@ export default function QuestionDetailsPage() {
                 )}
               </div>
             )}
+
+          {question.type === "MATRIX" && matrix && (
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                {t("analytics.detail.matrix.title")}
+              </h3>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-separate border-spacing-0">
+                  <thead>
+                    <tr>
+                      <th scope="col" className="text-left p-2 font-semibold text-slate-400" />
+                      {matrix.columns.map((column) => (
+                        <th
+                          key={column.id}
+                          scope="col"
+                          className="p-2 text-center text-xs font-semibold text-slate-500"
+                        >
+                          {column.text}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {matrix.rows.map((row) => (
+                      <tr key={row.rowId}>
+                        <th
+                          scope="row"
+                          className="text-left p-2 pr-4 font-medium text-slate-700 border-t border-slate-100"
+                        >
+                          {row.text}
+                          <span className="block text-xs font-normal text-slate-400">
+                            {t("analytics.detail.matrix.answered", { count: row.answered })}
+                          </span>
+                        </th>
+                        {row.counts.map((count, index) => {
+                          const share = row.answered > 0 ? count / row.answered : 0;
+
+                          return (
+                            <td
+                              key={matrix.columns[index].id}
+                              className="p-2 text-center border-t border-slate-100"
+                              style={{ backgroundColor: `rgba(79, 70, 229, ${share * 0.35})` }}
+                            >
+                              <span className="font-semibold text-slate-800">{count}</span>
+                              <span className="block text-xs text-slate-500">
+                                {Math.round(share * 100)}%
+                              </span>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {question.type === "RANKING" && ranking && (
             <div className="space-y-4">

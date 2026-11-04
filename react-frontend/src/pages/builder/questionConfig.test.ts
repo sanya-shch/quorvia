@@ -73,4 +73,15 @@ describe("варіанти та умови для типів питань", () =
     expect(questionTypeSupportsConditions("CHOICE_SINGLE")).toBe(true);
     expect(questionTypeSupportsConditions("NPS")).toBe(true);
   });
+
+  it("MATRIX: типовий рядок у config, дві колонки в options, config зберігається, в умовах немає", () => {
+    const config = createDefaultQuestionConfig("MATRIX", (n) => `Рядок ${n}`);
+
+    expect(config?.rows).toHaveLength(1);
+    expect(config?.rows?.[0].text).toBe("Рядок 1");
+    expect(createDefaultOptions("MATRIX", label)).toHaveLength(2);
+    expect(questionTypeUsesOptions("MATRIX")).toBe(true);
+    expect(questionTypeUsesConfig("MATRIX")).toBe(true);
+    expect(questionTypeSupportsConditions("MATRIX")).toBe(false);
+  });
 });

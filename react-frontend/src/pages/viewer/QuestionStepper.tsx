@@ -5,6 +5,7 @@ import { type Question } from "../../types/formBuilder";
 import { type FormAnswers } from "../../types/formViewer";
 import { ErrorInfo } from "../../components/ui/ErrorInfo";
 import QuestionField from "./components/QuestionField";
+import { formatReviewAnswer } from "./reviewAnswer";
 import {
   getDefaultAnswer,
   validateField,
@@ -221,7 +222,16 @@ export default function QuestionStepper({
                     <span className="text-xs text-slate-400">
                       {q.text || t("viewer.questionFallback", { number: i + 1 })}
                       {" - "}
-                      {answers[q.id!].toString()}
+                      {formatReviewAnswer(
+                        q,
+                        answers[q.id!],
+                        answers[otherAnswerKey(q.id!)],
+                        {
+                          yes: t("viewer.stepper.booleanYes"),
+                          no: t("viewer.stepper.booleanNo"),
+                          empty: t("viewer.stepper.noAnswer"),
+                        },
+                      )}
                     </span>
 
                     <button

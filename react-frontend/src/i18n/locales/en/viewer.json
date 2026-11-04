@@ -23,7 +23,8 @@
     "next": "Next →",
     "reviewErrorsHint": "Check the highlighted questions - some answers have errors.",
     "booleanYes": "Yes",
-    "booleanNo": "No"
+    "booleanNo": "No",
+    "noAnswer": "No answer"
   },
   "validation": {
     "numberMin": "Value must be at least {{min}}",
@@ -50,5 +51,8 @@
     "moveUp": "Move “{{option}}” up",
     "moveDown": "Move “{{option}}” down",
     "moved": "“{{option}}” is now number {{position}} of {{total}}"
+  },
+  "matrix": {
+    "clear": "Clear answers"
   }
 }

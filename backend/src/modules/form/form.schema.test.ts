@@ -181,6 +181,48 @@ describe("questionSchema — discriminated union за type", () => {
     });
   });
 
+  describe("MATRIX", () => {
+    const col = (id: string) => ({ id, text: id.toUpperCase() });
+    const row = (id: string) => ({ id, text: `Рядок ${id}` });
+    const matrix = (options: unknown[], config: unknown) =>
+      questionSchema.safeParse({ ...base, type: "MATRIX", options, config }).success;
+
+    const columns = [col("a"), col("b")];
+
+    it("валідна: 2-10 колонок і 1-30 рядків", () => {
+      expect(matrix(columns, { rows: [row("r1")] })).toBe(true);
+      expect(matrix(Array.from({ length: 10 }, (_, i) => col(`c${i}`)), { rows: [row("r1")] })).toBe(
+        true,
+      );
+      expect(matrix(columns, { rows: Array.from({ length: 30 }, (_, i) => row(`r${i}`)) })).toBe(
+        true,
+      );
+    });
+
+    it("відхиляє замало/забагато колонок і рядків", () => {
+      expect(matrix([col("a")], { rows: [row("r1")] })).toBe(false);
+      expect(matrix(Array.from({ length: 11 }, (_, i) => col(`c${i}`)), { rows: [row("r1")] })).toBe(
+        false,
+      );
+      expect(matrix(columns, { rows: [] })).toBe(false);
+      expect(matrix(columns, { rows: Array.from({ length: 31 }, (_, i) => row(`r${i}`)) })).toBe(
+        false,
+      );
+    });
+
+    it("config з рядками обов'язковий", () => {
+      expect(matrix(columns, undefined)).toBe(false);
+      expect(matrix(columns, null)).toBe(false);
+      expect(matrix(columns, {})).toBe(false);
+    });
+
+    it("id рядків і колонок унікальні в межах свого списку; текст рядка не порожній", () => {
+      expect(matrix(columns, { rows: [row("r1"), row("r1")] })).toBe(false);
+      expect(matrix([col("a"), col("a")], { rows: [row("r1")] })).toBe(false);
+      expect(matrix(columns, { rows: [{ id: "r1", text: "   " }] })).toBe(false);
+    });
+  });
+
   it("text обов'язковий і не може бути порожнім", () => {
     const result = questionSchema.safeParse({ type: "TEXT", text: "", order: 0 });
     expect(result.success).toBe(false);

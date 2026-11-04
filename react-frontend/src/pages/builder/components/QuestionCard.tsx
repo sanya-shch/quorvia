@@ -6,6 +6,7 @@ import {
   choiceMultiIcon,
   choiceSingleIcon,
   npsIcon,
+  matrixIcon,
   numberIcon,
   rankingIcon,
   ratingIcon,
@@ -143,6 +144,11 @@ export default function QuestionCard({
             {question.type === "RANKING" && (
               <>
                 {rankingIcon} {t(QUESTION_TYPE_LABEL_KEYS.RANKING)}
+              </>
+            )}
+            {question.type === "MATRIX" && (
+              <>
+                {matrixIcon} {t(QUESTION_TYPE_LABEL_KEYS.MATRIX)}
               </>
             )}
           </span>

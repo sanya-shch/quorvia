@@ -30,12 +30,25 @@ describe("saveAttemptSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("відхиляє answer недопустимого типу (об'єкт)", () => {
+  it("приймає відповідь матриці: об'єкт { рядок: колонка }", () => {
     const result = saveAttemptSchema.safeParse({
       sessionKey: "session-1",
-      answers: { "q-1": { nested: "object" } },
+      answers: { "q-1": { "row-1": "col-a", "row-2": "col-b" } },
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+  });
+
+  it("відхиляє інші об'єкти: вкладені, не рядкові значення, надто багато рядків", () => {
+    const parse = (value: unknown) =>
+      saveAttemptSchema.safeParse({ sessionKey: "session-1", answers: { "q-1": value } }).success;
+
+    expect(parse({ nested: { deep: "object" } })).toBe(false);
+    expect(parse({ row: 5 })).toBe(false);
+    expect(parse({ row: ["a"] })).toBe(false);
+    expect(
+      parse(Object.fromEntries(Array.from({ length: 31 }, (_, i) => [`row-${i}`, "c"]))),
+    ).toBe(false);
+    expect(parse({ ["k".repeat(101)]: "c" })).toBe(false);
   });
 
   describe("reachedQuestionIds", () => {

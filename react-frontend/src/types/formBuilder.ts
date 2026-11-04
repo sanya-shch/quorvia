@@ -10,6 +10,7 @@ export type {
   ConditionGroup,
   ConditionOperator,
   ConditionRule,
+  MatrixRow,
   QuestionConfig,
   QuestionDisplayVariant,
   QuestionOption,

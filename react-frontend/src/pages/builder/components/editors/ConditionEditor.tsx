@@ -28,6 +28,7 @@ const OPERATORS_BY_TYPE: Record<Question["type"], ConditionOperator[]> = {
   NPS: ["equals", "notEquals", "gt", "lt"],
   // Ранжування в умовах не підтримується (див. questionTypeSupportsConditions).
   RANKING: [],
+  MATRIX: [],
   CHOICE_SINGLE: ["equals", "notEquals", "in"],
   CHOICE_MULTI: ["contains"],
 };
