@@ -168,5 +168,42 @@
         "stronglyAgree": "Повністю згоден"
       }
     }
+  },
+  "languages": {
+    "title": "Мови форми",
+    "tabsLabel": "Мова для редагування",
+    "mainBadge": "основна",
+    "add": "Додати мову перекладу",
+    "addPlaceholder": "+ Додати мову",
+    "maxReached": "Досягнуто максимальної кількості мов",
+    "mainLabel": "Форма написана",
+    "mainHint": "Питання написані основною мовою. Додайте мови, щоб перекласти форму; респонденти зможуть перемикатися між ними.",
+    "missingCount": "Не перекладено: {{count}}",
+    "allTranslated": "Усе перекладено",
+    "panelTitle": "Переклад: {{language}}",
+    "fallbackHint": "Порожні поля респонденти бачитимуть основною мовою.",
+    "copyMissing": "Скопіювати відсутні з основної мови",
+    "remove": "Видалити мову",
+    "sourceLabel": "{{language}}",
+    "translationAria": "Переклад ({{language}}): {{field}}",
+    "formSection": "Форма",
+    "questionSection": "Питання {{number}}",
+    "nothingToTranslate": "Перекладати поки нічого. Додайте заголовок або питання основною мовою.",
+    "fields": {
+      "formTitle": "Заголовок",
+      "formDescription": "Опис",
+      "questionText": "Текст питання",
+      "questionDescription": "Опис питання",
+      "option": "Варіант",
+      "row": "Рядок",
+      "minLabel": "Підпис початку шкали",
+      "maxLabel": "Підпис кінця шкали"
+    },
+    "removeModal": {
+      "title": "Видалити мову «{{language}}»?",
+      "description": "Усі переклади цією мовою (заголовок, питання й варіанти) буде видалено після збереження форми.",
+      "confirm": "Видалити",
+      "cancel": "Скасувати"
+    }
   }
 }

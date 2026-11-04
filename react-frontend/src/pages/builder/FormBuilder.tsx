@@ -22,6 +22,14 @@ import BooleanConfigEditor from "./components/editors/BooleanConfigEditor";
 import ConditionEditor from "./components/editors/ConditionEditor";
 import { calendarIcon } from "../../components/ui/icons";
 import { questionTypeUsesConfig, questionTypeUsesOptions } from "./questionConfig";
+import LanguageBar from "./components/LanguageBar";
+import TranslationPanel from "./components/TranslationPanel";
+import {
+  getAdditionalLanguages,
+  getLanguageName,
+  getMainLanguage,
+  removeLanguage,
+} from "./translations";
 import { ErrorInfo } from "../../components/ui/ErrorInfo";
 import { getApiErrorCode } from "../../i18n/errorCodes";
 import { useToast } from "../../components/ui/Toast";
@@ -32,11 +40,15 @@ export default function FormBuilder() {
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const toast = useToast();
   const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
+  // Відкрита вкладка мови: null - основна. Окремо скидати її при завантаженні
+  // форми не треба: вкладка мови, якої в формі немає, веде на основну (див. currentLanguage).
+  const [activeLanguage, setActiveLanguage] = useState<string | null>(null);
+  const [languageToRemove, setLanguageToRemove] = useState<string | null>(null);
   // Версія форми, яку редактор зараз тримає (optimistic lock). Зберігається
   // поза станом форми: її зміна не повинна позначати форму "брудною" чи
   // перерисовувати редактор.
   const versionRef = useRef<number | undefined>(undefined);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const {
     form,
@@ -48,6 +60,7 @@ export default function FormBuilder() {
     resetDirty,
     markSaved,
     updateFormMeta,
+    updateForm,
     updateQuestion,
     deleteQuestion,
     duplicateQuestion,
@@ -103,6 +116,9 @@ export default function FormBuilder() {
         description: server.description || "",
         responseMode: server.responseMode || "ALL_AT_ONCE",
         questions: server.questions || [],
+        defaultLanguage: server.defaultLanguage,
+        languages: server.languages ?? [],
+        translations: server.translations ?? null,
       });
       versionRef.current = server.version;
       resetDirty();
@@ -131,6 +147,9 @@ export default function FormBuilder() {
         title: form.title,
         description: form.description,
         responseMode: form.responseMode,
+        defaultLanguage: form.defaultLanguage,
+        languages: form.languages,
+        translations: form.translations,
         questions: normalizedQuestions,
         version: versionRef.current,
       });
@@ -184,6 +203,14 @@ export default function FormBuilder() {
 
   // const validateForm = (formData: typeof form): string | null => { ... }; -
   // прибрано: логіка валідації тепер живе в useFormBuilder().validate()
+
+  const mainLanguage = getMainLanguage(form);
+  // Вкладка, що вже не існує (мову видалили), мовчки веде на основну.
+  const currentLanguage =
+    activeLanguage && getAdditionalLanguages(form).includes(activeLanguage)
+      ? activeLanguage
+      : mainLanguage;
+  const isTranslating = currentLanguage !== mainLanguage;
 
   const handleSaveForm = () => {
     trySave(() => {
@@ -246,279 +273,317 @@ export default function FormBuilder() {
         </header>
 
         <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-8">
-          <Sidebar />
+          {!isTranslating && <Sidebar />}
 
           <main className="flex-1 min-w-0">
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-              <input
-                type="text"
-                value={form.title}
-                onChange={(e) => updateFormMeta({ title: e.target.value })}
-                className="w-full text-2xl font-bold border-b border-transparent hover:border-slate-200 focus:border-indigo-500 focus:outline-none pb-1 transition-colors"
-                placeholder={t("builder.titlePlaceholder")}
-              />
-              <textarea
-                value={form.description}
-                onChange={(e) => updateFormMeta({ description: e.target.value })}
-                className="w-full mt-3 text-sm text-slate-600 border-b border-transparent hover:border-slate-200 focus:border-indigo-500 focus:outline-none pb-1 transition-colors resize-none h-10"
-                placeholder={t("builder.descriptionPlaceholder")}
-              />
+            <LanguageBar
+              form={form}
+              activeLanguage={currentLanguage}
+              onSelect={(language) => setActiveLanguage(language === mainLanguage ? null : language)}
+              onChange={updateForm}
+            />
 
-              <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold text-slate-600">
-                    {t("builder.responseMode.label")}
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    {t("builder.responseMode.hint")}
-                  </p>
+            {isTranslating && (
+              <TranslationPanel
+                form={form}
+                language={currentLanguage}
+                onChange={updateForm}
+                onRemoveLanguage={() => setLanguageToRemove(currentLanguage)}
+              />
+            )}
+
+            {/* Структура форми редагується лише у вкладці основної мови; у режимі
+                перекладу її приховано (hidden), а не розмонтовано - стан drag-and-drop
+                та фокус не губляться. */}
+            <div hidden={isTranslating}>
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                <input
+                  type="text"
+                  value={form.title}
+                  onChange={(e) => updateFormMeta({ title: e.target.value })}
+                  className="w-full text-2xl font-bold border-b border-transparent hover:border-slate-200 focus:border-indigo-500 focus:outline-none pb-1 transition-colors"
+                  placeholder={t("builder.titlePlaceholder")}
+                />
+                <textarea
+                  value={form.description}
+                  onChange={(e) => updateFormMeta({ description: e.target.value })}
+                  className="w-full mt-3 text-sm text-slate-600 border-b border-transparent hover:border-slate-200 focus:border-indigo-500 focus:outline-none pb-1 transition-colors resize-none h-10"
+                  placeholder={t("builder.descriptionPlaceholder")}
+                />
+
+                <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-semibold text-slate-600">
+                      {t("builder.responseMode.label")}
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      {t("builder.responseMode.hint")}
+                    </p>
+                  </div>
+                  <div className="flex gap-1 bg-slate-50 p-0.5 rounded-lg border border-slate-200 shrink-0">
+                    {(
+                      [
+                        { value: "ALL_AT_ONCE", label: t("builder.responseMode.allAtOnce") },
+                        { value: "STEP_BY_STEP", label: t("builder.responseMode.stepByStep") },
+                      ] as const
+                    ).map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => updateFormMeta({ responseMode: opt.value })}
+                        aria-pressed={form.responseMode === opt.value}
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                          form.responseMode === opt.value
+                            ? "bg-indigo-600 text-white"
+                            : "text-slate-500 hover:text-slate-800"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex gap-1 bg-slate-50 p-0.5 rounded-lg border border-slate-200 shrink-0">
-                  {(
-                    [
-                      { value: "ALL_AT_ONCE", label: t("builder.responseMode.allAtOnce") },
-                      { value: "STEP_BY_STEP", label: t("builder.responseMode.stepByStep") },
-                    ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => updateFormMeta({ responseMode: opt.value })}
-                      aria-pressed={form.responseMode === opt.value}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
-                        form.responseMode === opt.value
-                          ? "bg-indigo-600 text-white"
-                          : "text-slate-500 hover:text-slate-800"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+
+                {errors.title && <ErrorInfo errorText={t(errors.title)} />}
               </div>
 
-              {errors.title && <ErrorInfo errorText={t(errors.title)} />}
-            </div>
+              <InlineAddButton onAdd={(type) => addQuestionAtPosition(type, 0)} />
 
-            <InlineAddButton onAdd={(type) => addQuestionAtPosition(type, 0)} />
-
-            <Droppable droppableId="canvas-questions" type="QUESTIONS">
-              {(provided, snapshot) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className={`space-y-4 rounded-2xl transition-colors ${
-                    snapshot.isDraggingOver
-                      ? "bg-slate-100/50 ring-2 ring-dashed ring-slate-200 p-2"
-                      : ""
-                  }`}
-                >
-                  {form.questions.map((question, index) => (
-                    <React.Fragment key={question.id || `temp-${index}`}>
-                      <Draggable draggableId={question.id || `q-${index}`} index={index}>
-                        {(draggableProvided, draggableSnapshot) => (
-                          <div
-                            ref={draggableProvided.innerRef}
-                            {...draggableProvided.draggableProps}
-                            className={`transition-shadow ${draggableSnapshot.isDragging ? "shadow-xl" : ""}`}
-                          >
-                            <QuestionCard
-                              question={question}
-                              index={index}
-                              dragHandleProps={draggableProvided.dragHandleProps}
-                              onUpdate={(patch) => updateQuestion(index, patch)}
-                              onDelete={() => deleteQuestion(index)}
-                              onDuplicate={() => duplicateQuestion(index)}
-                              error={errors[`q-${index}`] ? t(errors[`q-${index}`]) : undefined}
+              <Droppable droppableId="canvas-questions" type="QUESTIONS">
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={`space-y-4 rounded-2xl transition-colors ${
+                      snapshot.isDraggingOver
+                        ? "bg-slate-100/50 ring-2 ring-dashed ring-slate-200 p-2"
+                        : ""
+                    }`}
+                  >
+                    {form.questions.map((question, index) => (
+                      <React.Fragment key={question.id || `temp-${index}`}>
+                        <Draggable draggableId={question.id || `q-${index}`} index={index}>
+                          {(draggableProvided, draggableSnapshot) => (
+                            <div
+                              ref={draggableProvided.innerRef}
+                              {...draggableProvided.draggableProps}
+                              className={`transition-shadow ${draggableSnapshot.isDragging ? "shadow-xl" : ""}`}
                             >
-                              <ConditionEditor
-                                condition={question.condition}
-                                currentOrder={question.order}
-                                allQuestions={form.questions}
-                                onChange={(next) => updateQuestion(index, { condition: next })}
-                                error={
-                                  errors[`q-${index}-condition`]
-                                    ? t(errors[`q-${index}-condition`])
-                                    : undefined
-                                }
-                              />
-
-                              <hr className="border-slate-100 my-3" />
-
-                              {question.type === "TEXT" && (
-                                <TextConfigEditor
-                                  config={question.config}
-                                  onChange={(newConfig) =>
-                                    updateQuestion(index, { config: newConfig })
+                              <QuestionCard
+                                question={question}
+                                index={index}
+                                dragHandleProps={draggableProvided.dragHandleProps}
+                                onUpdate={(patch) => updateQuestion(index, patch)}
+                                onDelete={() => deleteQuestion(index)}
+                                onDuplicate={() => duplicateQuestion(index)}
+                                error={errors[`q-${index}`] ? t(errors[`q-${index}`]) : undefined}
+                              >
+                                <ConditionEditor
+                                  condition={question.condition}
+                                  currentOrder={question.order}
+                                  allQuestions={form.questions}
+                                  onChange={(next) => updateQuestion(index, { condition: next })}
+                                  error={
+                                    errors[`q-${index}-condition`]
+                                      ? t(errors[`q-${index}-condition`])
+                                      : undefined
                                   }
                                 />
-                              )}
 
-                              {question.type === "NUMBER" && (
-                                <NumberConfigEditor
-                                  config={question.config}
-                                  onChange={(newConfig) =>
-                                    updateQuestion(index, { config: newConfig })
-                                  }
-                                />
-                              )}
+                                <hr className="border-slate-100 my-3" />
 
-                              {(question.type === "CHOICE_SINGLE" ||
-                                question.type === "CHOICE_MULTI" ||
-                                question.type === "RANKING") && (
-                                <OptionsConfigEditor
-                                  questionIndex={index}
-                                  questionType={question.type}
-                                  options={question.options}
-                                  displayVariant={question.config?.displayVariant || "list"}
-                                  onChangeOptions={(newOptions) =>
-                                    updateQuestion(index, { options: newOptions })
-                                  }
-                                  onChangeDisplayVariant={(variant) =>
-                                    updateQuestion(index, {
-                                      config: { ...question.config, displayVariant: variant },
-                                    })
-                                  }
-                                />
-                              )}
-
-                              {(question.type === "CHOICE_SINGLE" ||
-                                question.type === "CHOICE_MULTI") &&
-                                question.config?.displayVariant === "dropdown" && (
-                                  <div className="mt-2 mb-4 animate-in fade-in duration-150">
-                                    <div className="relative w-full max-w-md">
-                                      <select
-                                        disabled
-                                        value={question.options.find((o) => o.isDefault)?.id || ""}
-                                        className="w-full h-10 rounded-xl border border-slate-200 bg-slate-50/50 px-3 pr-10 text-sm font-medium text-slate-700 cursor-not-allowed appearance-none"
-                                      >
-                                        {!question.options.some((o) => o.isDefault) && (
-                                          <option value="">
-                                            {t("builder.dropdownPlaceholder")}
-                                          </option>
-                                        )}
-
-                                        {question.options.map((option) => (
-                                          <option key={option.id} value={option.id}>
-                                            {option.text || t("builder.emptyOption")}
-                                          </option>
-                                        ))}
-                                      </select>
-
-                                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                                        <svg
-                                          className="h-4 w-4"
-                                          fill="none"
-                                          viewBox="0 0 24 24"
-                                          strokeWidth="2"
-                                          stroke="currentColor"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                                          />
-                                        </svg>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-
-                              {question.type === "BOOLEAN" && (
-                                <div className="space-y-4">
-                                  <div className="flex items-center gap-3 py-1 text-slate-500">
-                                    <div
-                                      className={`h-5 w-9 rounded-full p-0.5 flex items-center transition-colors ${
-                                        question.config?.defaultValue
-                                          ? "bg-indigo-600 justify-end"
-                                          : "bg-slate-200 justify-start"
-                                      }`}
-                                    >
-                                      <div className="h-4 w-4 bg-white rounded-full shadow-sm" />
-                                    </div>
-                                    <span className="text-xs font-medium text-slate-600">
-                                      {t("builder.booleanPreview.label")}{" "}
-                                      {question.config?.defaultValue
-                                        ? t("builder.booleanPreview.on")
-                                        : t("builder.booleanPreview.off")}
-                                    </span>
-                                  </div>
-
-                                  <hr className="border-slate-100" />
-
-                                  <BooleanConfigEditor
+                                {question.type === "TEXT" && (
+                                  <TextConfigEditor
                                     config={question.config}
                                     onChange={(newConfig) =>
                                       updateQuestion(index, { config: newConfig })
                                     }
                                   />
-                                </div>
-                              )}
+                                )}
 
-                              {question.type === "MATRIX" && (
-                                <MatrixConfigEditor
-                                  rows={question.config?.rows ?? []}
-                                  columns={question.options}
-                                  onChangeRows={(rows) =>
-                                    updateQuestion(index, { config: { ...question.config, rows } })
-                                  }
-                                  onChangeColumns={(options) => updateQuestion(index, { options })}
-                                />
-                              )}
+                                {question.type === "NUMBER" && (
+                                  <NumberConfigEditor
+                                    config={question.config}
+                                    onChange={(newConfig) =>
+                                      updateQuestion(index, { config: newConfig })
+                                    }
+                                  />
+                                )}
 
-                              {question.type === "RATING" && (
-                                <RatingConfigEditor
-                                  config={question.config}
-                                  onChange={(newConfig) =>
-                                    updateQuestion(index, { config: newConfig })
-                                  }
-                                />
-                              )}
+                                {(question.type === "CHOICE_SINGLE" ||
+                                  question.type === "CHOICE_MULTI" ||
+                                  question.type === "RANKING") && (
+                                  <OptionsConfigEditor
+                                    questionIndex={index}
+                                    questionType={question.type}
+                                    options={question.options}
+                                    displayVariant={question.config?.displayVariant || "list"}
+                                    onChangeOptions={(newOptions) =>
+                                      updateQuestion(index, { options: newOptions })
+                                    }
+                                    onChangeDisplayVariant={(variant) =>
+                                      updateQuestion(index, {
+                                        config: { ...question.config, displayVariant: variant },
+                                      })
+                                    }
+                                  />
+                                )}
 
-                              {question.type === "SCALE" && (
-                                <ScaleConfigEditor
-                                  config={question.config}
-                                  onChange={(newConfig) =>
-                                    updateQuestion(index, { config: newConfig })
-                                  }
-                                />
-                              )}
+                                {(question.type === "CHOICE_SINGLE" ||
+                                  question.type === "CHOICE_MULTI") &&
+                                  question.config?.displayVariant === "dropdown" && (
+                                    <div className="mt-2 mb-4 animate-in fade-in duration-150">
+                                      <div className="relative w-full max-w-md">
+                                        <select
+                                          disabled
+                                          value={question.options.find((o) => o.isDefault)?.id || ""}
+                                          className="w-full h-10 rounded-xl border border-slate-200 bg-slate-50/50 px-3 pr-10 text-sm font-medium text-slate-700 cursor-not-allowed appearance-none"
+                                        >
+                                          {!question.options.some((o) => o.isDefault) && (
+                                            <option value="">
+                                              {t("builder.dropdownPlaceholder")}
+                                            </option>
+                                          )}
 
-                              {question.type === "NPS" && (
-                                <p className="py-2 text-xs text-slate-400 animate-in fade-in duration-150">
-                                  {t("builder.editors.nps.hint")}
-                                </p>
-                              )}
+                                          {question.options.map((option) => (
+                                            <option key={option.id} value={option.id}>
+                                              {option.text || t("builder.emptyOption")}
+                                            </option>
+                                          ))}
+                                        </select>
 
-                              {question.type === "DATE" && (
-                                <div className="flex items-center gap-2 py-2 text-slate-400 text-xs animate-in fade-in duration-150">
-                                  {calendarIcon}
-                                  <span>{t("builder.datePreview")}</span>
-                                </div>
-                              )}
-                            </QuestionCard>
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                          <svg
+                                            className="h-4 w-4"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            strokeWidth="2"
+                                            stroke="currentColor"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                                            />
+                                          </svg>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
 
-                            <InlineAddButton
-                              onAdd={(type) => addQuestionAtPosition(type, index + 1)}
-                            />
-                          </div>
-                        )}
-                      </Draggable>
-                    </React.Fragment>
-                  ))}
+                                {question.type === "BOOLEAN" && (
+                                  <div className="space-y-4">
+                                    <div className="flex items-center gap-3 py-1 text-slate-500">
+                                      <div
+                                        className={`h-5 w-9 rounded-full p-0.5 flex items-center transition-colors ${
+                                          question.config?.defaultValue
+                                            ? "bg-indigo-600 justify-end"
+                                            : "bg-slate-200 justify-start"
+                                        }`}
+                                      >
+                                        <div className="h-4 w-4 bg-white rounded-full shadow-sm" />
+                                      </div>
+                                      <span className="text-xs font-medium text-slate-600">
+                                        {t("builder.booleanPreview.label")}{" "}
+                                        {question.config?.defaultValue
+                                          ? t("builder.booleanPreview.on")
+                                          : t("builder.booleanPreview.off")}
+                                      </span>
+                                    </div>
 
-                  {form.questions.length === 0 && (
-                    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-12 pb-24 text-center mt-4">
-                      <p className="text-sm text-slate-400">{t("builder.emptyState")}</p>
-                    </div>
-                  )}
+                                    <hr className="border-slate-100" />
 
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
+                                    <BooleanConfigEditor
+                                      config={question.config}
+                                      onChange={(newConfig) =>
+                                        updateQuestion(index, { config: newConfig })
+                                      }
+                                    />
+                                  </div>
+                                )}
+
+                                {question.type === "MATRIX" && (
+                                  <MatrixConfigEditor
+                                    rows={question.config?.rows ?? []}
+                                    columns={question.options}
+                                    onChangeRows={(rows) =>
+                                      updateQuestion(index, { config: { ...question.config, rows } })
+                                    }
+                                    onChangeColumns={(options) => updateQuestion(index, { options })}
+                                  />
+                                )}
+
+                                {question.type === "RATING" && (
+                                  <RatingConfigEditor
+                                    config={question.config}
+                                    onChange={(newConfig) =>
+                                      updateQuestion(index, { config: newConfig })
+                                    }
+                                  />
+                                )}
+
+                                {question.type === "SCALE" && (
+                                  <ScaleConfigEditor
+                                    config={question.config}
+                                    onChange={(newConfig) =>
+                                      updateQuestion(index, { config: newConfig })
+                                    }
+                                  />
+                                )}
+
+                                {question.type === "NPS" && (
+                                  <p className="py-2 text-xs text-slate-400 animate-in fade-in duration-150">
+                                    {t("builder.editors.nps.hint")}
+                                  </p>
+                                )}
+
+                                {question.type === "DATE" && (
+                                  <div className="flex items-center gap-2 py-2 text-slate-400 text-xs animate-in fade-in duration-150">
+                                    {calendarIcon}
+                                    <span>{t("builder.datePreview")}</span>
+                                  </div>
+                                )}
+                              </QuestionCard>
+
+                              <InlineAddButton
+                                onAdd={(type) => addQuestionAtPosition(type, index + 1)}
+                              />
+                            </div>
+                          )}
+                        </Draggable>
+                      </React.Fragment>
+                    ))}
+
+                    {form.questions.length === 0 && (
+                      <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-12 pb-24 text-center mt-4">
+                        <p className="text-sm text-slate-400">{t("builder.emptyState")}</p>
+                      </div>
+                    )}
+
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </div>
           </main>
         </div>
+
+        <ConfirmModal
+          isOpen={languageToRemove !== null}
+          title={t("builder.languages.removeModal.title", {
+            language: languageToRemove ? getLanguageName(languageToRemove, i18n.language) : "",
+          })}
+          description={t("builder.languages.removeModal.description")}
+          confirmLabel={t("builder.languages.removeModal.confirm")}
+          cancelLabel={t("builder.languages.removeModal.cancel")}
+          onCancel={() => setLanguageToRemove(null)}
+          onConfirm={() => {
+            if (languageToRemove) {
+              updateForm((prev) => removeLanguage(prev, languageToRemove));
+            }
+            setLanguageToRemove(null);
+          }}
+        />
 
         <ConfirmModal
           isOpen={isConflictModalOpen}

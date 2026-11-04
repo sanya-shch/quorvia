@@ -86,6 +86,26 @@ export function useFormBuilder(initialData?: FormState) {
   /** Позначає чистою відносно стану на момент відправки (revision - значення `edits` тоді). */
   const markSaved = useCallback((revision: number) => setSavedEdits(revision), []);
 
+  /**
+   * Довільна зміна всього стану форми чистою функцією (мови й переклади
+   * зачіпають і форму, і кожне питання одразу - окремі виклики
+   * updateFormMeta/updateQuestion дали б N правок замість однієї).
+   */
+  const updateForm = useCallback(
+    (updater: (prev: FormState) => FormState) => {
+      setForm((prev) => {
+        const nextState = updater(prev);
+        if (nextState === prev) return prev;
+        if (hasAttemptedSave) setErrors(validate(nextState));
+
+        return nextState;
+      });
+
+      markDirty();
+    },
+    [hasAttemptedSave, validate, markDirty],
+  );
+
   const updateFormMeta = useCallback(
     (fields: Partial<Omit<FormState, "questions">>) => {
       setForm((prev) => {
@@ -272,6 +292,7 @@ export function useFormBuilder(initialData?: FormState) {
     resetDirty,
     markSaved,
     updateFormMeta,
+    updateForm,
     // addQuestion,
     updateQuestion,
     deleteQuestion,

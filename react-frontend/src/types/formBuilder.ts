@@ -1,7 +1,9 @@
 import type {
   ConditionGroup,
+  FormTranslations,
   QuestionConfig,
   QuestionOption,
+  QuestionTranslations,
   QuestionType,
   ResponseMode,
 } from "@quorvia/shared-types";
@@ -28,6 +30,8 @@ export interface Question {
   options: QuestionOption[];
   config: QuestionConfig | null;
   condition?: ConditionGroup | null;
+  /** Переклади питання за мовами (див. QuestionTranslations); основна мова - самі поля. */
+  translations?: QuestionTranslations | null;
 }
 
 export interface FormState {
@@ -35,6 +39,14 @@ export interface FormState {
   description: string;
   responseMode: ResponseMode;
   questions: Question[];
+  /**
+   * Мови контенту. Необов'язкові: стан без них (старі виклики, тести) просто
+   * не надсилає їх на збереження, а сервер у такому разі нічого не змінює.
+   */
+  defaultLanguage?: string;
+  /** Додаткові мови (без основної). */
+  languages?: string[];
+  translations?: FormTranslations | null;
 }
 
 /** Форма з адмін-ендпоінта: до FormState додається версія для optimistic locking. */

@@ -168,5 +168,42 @@
         "stronglyAgree": "Strongly agree"
       }
     }
+  },
+  "languages": {
+    "title": "Form languages",
+    "tabsLabel": "Language to edit",
+    "mainBadge": "main",
+    "add": "Add a translation language",
+    "addPlaceholder": "+ Add language",
+    "maxReached": "Maximum number of languages reached",
+    "mainLabel": "Written in",
+    "mainHint": "Questions are written in the main language. Add languages to translate the form; respondents can switch between them.",
+    "missingCount": "Not translated: {{count}}",
+    "allTranslated": "Everything is translated",
+    "panelTitle": "Translation: {{language}}",
+    "fallbackHint": "Empty fields are shown to respondents in the main language.",
+    "copyMissing": "Copy missing from main language",
+    "remove": "Remove language",
+    "sourceLabel": "{{language}}",
+    "translationAria": "Translation ({{language}}): {{field}}",
+    "formSection": "Form",
+    "questionSection": "Question {{number}}",
+    "nothingToTranslate": "There is nothing to translate yet. Add a title or questions in the main language.",
+    "fields": {
+      "formTitle": "Title",
+      "formDescription": "Description",
+      "questionText": "Question text",
+      "questionDescription": "Question description",
+      "option": "Option",
+      "row": "Row",
+      "minLabel": "Label for the start of the scale",
+      "maxLabel": "Label for the end of the scale"
+    },
+    "removeModal": {
+      "title": "Remove language “{{language}}”?",
+      "description": "All translations into this language (title, questions and options) will be deleted when you save the form.",
+      "confirm": "Remove",
+      "cancel": "Cancel"
+    }
   }
 }
