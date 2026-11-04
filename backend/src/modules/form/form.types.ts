@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createFormSchema, updateFormSchema } from "./form.schema.js";
-import { Question, ResponseMode } from "@prisma/client";
+import { Prisma, Question, ResponseMode } from "@prisma/client";
 
 export type UpdateFormInput = z.infer<typeof updateFormSchema>;
 export type CreateFormInput = z.infer<typeof createFormSchema>;
@@ -16,6 +16,10 @@ export type FormDto = {
   userId: string;
   responseMode: ResponseMode;
   version: number;
+  /** Мова основних полів форми; languages - додаткові мови (без основної). */
+  defaultLanguage: string;
+  languages: string[];
+  translations: Prisma.JsonValue | null;
 };
 
 export type PublicFormDto = {
@@ -23,6 +27,10 @@ export type PublicFormDto = {
   title: string;
   description: string | null;
   responseMode: ResponseMode;
+  /** Усі переклади віддаємо одразу: перемикання мови в перегляді не робить запитів. */
+  defaultLanguage: string;
+  languages: string[];
+  translations: Prisma.JsonValue | null;
   questions: Question[];
 };
 

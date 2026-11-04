@@ -459,3 +459,242 @@ export interface ExportJobDto {
   createdAt: string;
   completedAt: string | null;
 }
+
+// ---------------------------------------------------------------------------
+// Мови контенту (переклад самої форми: заголовок, питання, варіанти)
+// ---------------------------------------------------------------------------
+
+/**
+ * Мови, якими можна перекласти форму (ISO 639-1, без регіонів: "en", а не "en-US").
+ * Це НЕ мови інтерфейсу застосунку (uk/en). RTL-мови (арабська, іврит) свідомо
+ * не включені: перегляд форми поки не підтримує dir="rtl".
+ */
+export const CONTENT_LOCALES = [
+  "uk", "en", "pl", "de", "fr", "es", "it", "pt", "nl", "cs", "sk", "ro", "bg", "hu",
+  "sv", "da", "fi", "nb", "tr", "el", "lt", "lv", "et", "hr", "sl", "zh", "ja", "ko",
+  "hi", "vi", "id", "ka",
+] as const;
+
+export type ContentLocale = (typeof CONTENT_LOCALES)[number];
+
+/** Мова, якою написано вже наявні форми (поки автор не вкаже іншу). */
+export const DEFAULT_CONTENT_LANGUAGE: ContentLocale = "uk";
+
+/** Скільки додаткових мов (понад основну) може мати одна форма. */
+export const MAX_ADDITIONAL_LANGUAGES = 10;
+
+export const isContentLocale = (value: unknown): value is ContentLocale =>
+  typeof value === "string" && (CONTENT_LOCALES as readonly string[]).includes(value);
+
+/** Тексти форми однією мовою; відсутнє або порожнє поле = "показати основну мову". */
+export interface FormTranslation {
+  title?: string;
+  description?: string;
+}
+
+export interface QuestionTranslation {
+  text?: string;
+  description?: string;
+  /** id варіанта (або колонки матриці) -> текст. */
+  options?: Record<string, string>;
+  /** id рядка матриці -> текст. */
+  rows?: Record<string, string>;
+  /** Підписи країв шкали SCALE. */
+  minLabel?: string;
+  maxLabel?: string;
+}
+
+/** Ключ - код мови з form.languages (основна мова тут не зберігається: це самі поля форми). */
+export type FormTranslations = Record<string, FormTranslation>;
+export type QuestionTranslations = Record<string, QuestionTranslation>;
+
+// Старі/альтернативні коди, які надсилають браузери, -> наш код.
+const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", nn: "nb" };
+
+/** "en-US" -> "en", "NB" -> "nb", "no" -> "nb"; не схоже на код мови -> null. */
+export const toPrimaryLanguage = (tag: string): string | null => {
+  const match = /^[a-z]{2,3}/i.exec(tag.trim());
+  if (!match) return null;
+
+  const primary = match[0].toLowerCase();
+  return LANGUAGE_ALIASES[primary] ?? primary;
+};
+
+/**
+ * Мова, якою показати форму: перша зі списку побажань (?lang=, потім мови
+ * браузера), що є серед доступних; інакше основна мова форми. Регіони
+ * відкидаються ("en-GB" підійде до "en").
+ */
+export const pickContentLanguage = (
+  candidates: readonly (string | null | undefined)[],
+  available: readonly string[],
+  fallback: string,
+): string => {
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+
+    const primary = toPrimaryLanguage(candidate);
+    if (primary && available.includes(primary)) return primary;
+  }
+
+  return fallback;
+};
+
+const filled = (value: unknown): value is string =>
+  typeof value === "string" && value.trim() !== "";
+
+interface LocalizableQuestion {
+  text: string;
+  description?: string | null;
+  options?: { id: string; text: string }[] | null;
+  config?: QuestionConfig | null;
+  translations?: unknown;
+}
+
+/**
+ * Питання мовою `language`. Кожне поле окремо повертається до основної мови,
+ * якщо перекладу немає (або він порожній), тож частково перекладена форма
+ * ніколи не показує порожніх підписів. Для основної мови і мов без перекладу
+ * повертається те саме питання.
+ */
+export const localizeQuestion = <Q extends LocalizableQuestion>(
+  question: Q,
+  language: string,
+): Q => {
+  const translation = (question.translations as QuestionTranslations | null | undefined)?.[
+    language
+  ];
+
+  if (!translation) return question;
+
+  const options = Array.isArray(question.options)
+    ? question.options.map((option) =>
+        filled(translation.options?.[option.id])
+          ? { ...option, text: translation.options![option.id] }
+          : option,
+      )
+    : question.options;
+
+  const rows = question.config?.rows?.map((row) =>
+    filled(translation.rows?.[row.id]) ? { ...row, text: translation.rows![row.id] } : row,
+  );
+
+  const config = question.config
+    ? {
+        ...question.config,
+        ...(rows ? { rows } : {}),
+        ...(filled(translation.minLabel) ? { minLabel: translation.minLabel } : {}),
+        ...(filled(translation.maxLabel) ? { maxLabel: translation.maxLabel } : {}),
+      }
+    : question.config;
+
+  return {
+    ...question,
+    text: filled(translation.text) ? translation.text : question.text,
+    description: filled(translation.description) ? translation.description : question.description,
+    options,
+    config,
+  };
+};
+
+export const localizeForm = <
+  F extends { title: string; description?: string | null; translations?: unknown },
+>(
+  form: F,
+  language: string,
+): F => {
+  const translation = (form.translations as FormTranslations | null | undefined)?.[language];
+
+  if (!translation) return form;
+
+  return {
+    ...form,
+    title: filled(translation.title) ? translation.title : form.title,
+    description: filled(translation.description) ? translation.description : form.description,
+  };
+};
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
+/** Лишає лише непорожні рядкові значення з ключами зі списку `allowedKeys`. */
+const cleanStringMap = (value: unknown, allowedKeys?: ReadonlySet<string>): Record<string, string> => {
+  const result: Record<string, string> = {};
+
+  if (!isPlainObject(value)) return result;
+
+  for (const [key, text] of Object.entries(value)) {
+    if ((!allowedKeys || allowedKeys.has(key)) && filled(text)) result[key] = text;
+  }
+
+  return result;
+};
+
+/**
+ * Приводить переклади форми до коректного стану перед збереженням: лише мови зі
+ * списку `languages`, лише поля title/description, без порожніх значень.
+ * Повертає null, якщо перекладів не лишилось.
+ */
+export const normalizeFormTranslations = (
+  translations: unknown,
+  languages: readonly string[],
+): FormTranslations | null => {
+  if (!isPlainObject(translations)) return null;
+
+  const result: FormTranslations = {};
+
+  for (const language of languages) {
+    const source = translations[language];
+    if (!isPlainObject(source)) continue;
+
+    const entry: FormTranslation = {};
+    if (filled(source.title)) entry.title = source.title;
+    if (filled(source.description)) entry.description = source.description;
+
+    if (Object.keys(entry).length > 0) result[language] = entry;
+  }
+
+  return Object.keys(result).length > 0 ? result : null;
+};
+
+/**
+ * Те саме для питання: прибирає мови, яких немає в `languages`, переклади
+ * варіантів/рядків, id яких уже не існують у питанні (їх видалили чи замінили),
+ * і порожні значення. Тому клієнту не обов'язково чистити переклади вручну
+ * при видаленні варіанта чи мови.
+ */
+export const normalizeQuestionTranslations = (
+  translations: unknown,
+  languages: readonly string[],
+  question: {
+    options?: { id: string }[] | null;
+    config?: { rows?: { id: string }[] } | null;
+  },
+): QuestionTranslations | null => {
+  if (!isPlainObject(translations)) return null;
+
+  const optionIds = new Set((Array.isArray(question.options) ? question.options : []).map((o) => o.id));
+  const rowIds = new Set((question.config?.rows ?? []).map((r) => r.id));
+  const result: QuestionTranslations = {};
+
+  for (const language of languages) {
+    const source = translations[language];
+    if (!isPlainObject(source)) continue;
+
+    const entry: QuestionTranslation = {};
+    if (filled(source.text)) entry.text = source.text;
+    if (filled(source.description)) entry.description = source.description;
+    if (filled(source.minLabel)) entry.minLabel = source.minLabel;
+    if (filled(source.maxLabel)) entry.maxLabel = source.maxLabel;
+
+    const options = cleanStringMap(source.options, optionIds);
+    if (Object.keys(options).length > 0) entry.options = options;
+
+    const rows = cleanStringMap(source.rows, rowIds);
+    if (Object.keys(rows).length > 0) entry.rows = rows;
+
+    if (Object.keys(entry).length > 0) result[language] = entry;
+  }
+
+  return Object.keys(result).length > 0 ? result : null;
+};

@@ -24,12 +24,13 @@ export const createFormHandler = async (
   req: Request<{ formId: string }, {}, CreateFormInput>,
   res: Response<FormDto>
 ) => {
-  const { title, description } = req.body;
+  const { title, description, defaultLanguage } = req.body;
   const userId = (res.locals as AuthLocals).userId;
 
   const form = await createForm({
     title,
     description,
+    defaultLanguage,
     userId,
   });
 

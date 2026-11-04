@@ -37,6 +37,10 @@ const mockForm = (overrides: Record<string, unknown> = {}) => ({
   userId: OWNER_ID,
   title: "Форма",
   version: 1,
+  // колонки мов контенту (у реальній БД є завжди, тут - значення за замовчуванням)
+  defaultLanguage: "uk",
+  languages: [] as string[],
+  translations: null,
   ...overrides,
 });
 
@@ -163,6 +167,9 @@ describe("getFormByShareId", () => {
       id: FORM_ID,
       title: "Форма",
       description: "опис",
+      defaultLanguage: "uk",
+      languages: [],
+      translations: null,
       questions: [{ id: "q-1" }],
     });
     expect(result).not.toHaveProperty("userId");
@@ -290,6 +297,8 @@ describe("duplicateForm", () => {
       data: {
         title: "Оригінал (Copy)",
         description: "опис",
+        defaultLanguage: "uk",
+        languages: [],
         userId: OWNER_ID,
         isPublished: false,
       },

@@ -73,6 +73,14 @@ model Form {
 
   responseMode ResponseMode @default(ALL_AT_ONCE)
 
+  // Мова, якою написані title/description/питання (поля самої форми). Це
+  // "основна" мова: її переклад не зберігається, а береться з цих полів.
+  defaultLanguage String   @default("uk")
+  // Додаткові мови (без основної); для кожної в translations лежить переклад.
+  languages       String[] @default([])
+  // { [language]: { title?, description? } }, див. FormTranslations у shared-types.
+  translations    Json?
+
   @@index([userId])
 }
 
@@ -86,6 +94,10 @@ model Question {
   options     Json?
   config       Json?
   condition   Json?
+
+  // { [language]: { text?, description?, options?, rows?, minLabel?, maxLabel? } },
+  // див. QuestionTranslations у shared-types.
+  translations Json?
 
   formId      String
   form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)

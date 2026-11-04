@@ -12,6 +12,7 @@ export const buildQuestions = (): Question[] => [
     config: null,
     formId: "form-1",
     condition: null,
+    translations: null,
     order: 0,
   },
   {
@@ -24,6 +25,7 @@ export const buildQuestions = (): Question[] => [
     config: null,
     formId: "form-1",
     condition: null,
+    translations: null,
     order: 1,
   },
   {
@@ -36,6 +38,7 @@ export const buildQuestions = (): Question[] => [
     config: null,
     formId: "form-1",
     condition: null,
+    translations: null,
     order: 2,
   },
   {
@@ -48,6 +51,7 @@ export const buildQuestions = (): Question[] => [
     config: null,
     formId: "form-1",
     condition: null,
+    translations: null,
     order: 3,
   },
   {
@@ -63,6 +67,7 @@ export const buildQuestions = (): Question[] => [
     config: null,
     formId: "form-1",
     condition: null,
+    translations: null,
     order: 4,
   },
   {
@@ -79,6 +84,7 @@ export const buildQuestions = (): Question[] => [
     config: null,
     formId: "form-1",
     condition: null,
+    translations: null,
     order: 5,
   },
 ];

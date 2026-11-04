@@ -323,3 +323,59 @@ describe("updateFormSchema", () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe("мови контенту у схемах форми", () => {
+  const form = (extra: Record<string, unknown>) =>
+    updateFormSchema.safeParse({ title: "Форма", questions: [], ...extra }).success;
+
+  it("createFormSchema: defaultLanguage - код зі списку, необов'язковий", () => {
+    expect(createFormSchema.safeParse({ title: "Форма", defaultLanguage: "en" }).success).toBe(true);
+    expect(createFormSchema.safeParse({ title: "Форма", defaultLanguage: "xx" }).success).toBe(false);
+    expect(createFormSchema.safeParse({ title: "Форма", defaultLanguage: "en-US" }).success).toBe(false);
+  });
+
+  it("languages: коди зі списку, без дублікатів, не більше 10", () => {
+    expect(form({ languages: ["en", "pl"] })).toBe(true);
+    expect(form({ languages: [] })).toBe(true);
+    expect(form({ languages: ["en", "en"] })).toBe(false);
+    expect(form({ languages: ["xx"] })).toBe(false);
+    expect(form({ languages: ["en", "pl", "de", "fr", "es", "it", "pt", "nl", "cs", "sk", "ro"] })).toBe(
+      false,
+    );
+  });
+
+  it("усі три поля мов необов'язкові (сумісність зі старим клієнтом)", () => {
+    expect(form({})).toBe(true);
+    expect(form({ defaultLanguage: "en" })).toBe(true);
+  });
+
+  it("translations форми: рядки обмеженої довжини; null дозволено", () => {
+    expect(form({ translations: { en: { title: "Survey", description: "d" } } })).toBe(true);
+    expect(form({ translations: null })).toBe(true);
+    expect(form({ translations: { en: { title: "x".repeat(201) } } })).toBe(false);
+    expect(form({ translations: { en: { title: 5 } } })).toBe(false);
+  });
+
+  it("translations питання: текст, варіанти, рядки, підписи", () => {
+    const question = (translations: unknown) =>
+      questionSchema.safeParse({ text: "Q", order: 0, type: "TEXT", translations }).success;
+
+    expect(
+      question({
+        en: { text: "Q", description: "d", options: { a: "A" }, rows: { r1: "R" }, minLabel: "x", maxLabel: "y" },
+      }),
+    ).toBe(true);
+    expect(question(null)).toBe(true);
+    expect(question({ en: { text: "x".repeat(501) } })).toBe(false);
+    expect(question({ en: { minLabel: "x".repeat(101) } })).toBe(false);
+    expect(question({ en: { options: { a: 5 } } })).toBe(false);
+  });
+
+  it("не приймає надто багато мов у translations", () => {
+    const many = Object.fromEntries(Array.from({ length: 40 }, (_, i) => [`l${i}`, { text: "x" }]));
+
+    expect(
+      questionSchema.safeParse({ text: "Q", order: 0, type: "TEXT", translations: many }).success,
+    ).toBe(false);
+  });
+});

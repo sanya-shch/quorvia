@@ -34,13 +34,39 @@ Exceeding a limit returns `429 RATE_LIMITED`. Limits are per IP unless noted (in
 | Method | Path | Description |
 | --- | --- | --- |
 | GET 🔒 | `/forms` | List own forms. |
-| POST 🔒 | `/forms` | Create a form. Body: `{ title (3-200), description? }`. |
+| POST 🔒 | `/forms` | Create a form. Body: `{ title (3-200), description?, defaultLanguage? }`. |
 | GET 🔒 | `/forms/:formId/admin` | Full form with questions. |
-| PATCH 🔒 | `/forms/:formId` | Replace title, description, mode and the whole question list (limits: 200 questions, 100 options per question, 500 chars per text). Text `pattern` must be RE2-compatible. Conditions are validated as a graph (no cycles, only references to earlier questions). **Optimistic locking:** send the `version` you loaded (returned by `GET /forms/:formId/admin`); if the form was saved by someone else since, the answer is `409 FORM_VERSION_CONFLICT` and nothing is written. Success returns `{ success: true, version }` with the new version. Without `version` the request is still applied atomically against the version read at its start. |
+| PATCH 🔒 | `/forms/:formId` | Replace title, description, mode, [content languages and translations](#content-languages) and the whole question list (limits: 200 questions, 100 options per question, 500 chars per text). Text `pattern` must be RE2-compatible. Conditions are validated as a graph (no cycles, only references to earlier questions). **Optimistic locking:** send the `version` you loaded (returned by `GET /forms/:formId/admin`); if the form was saved by someone else since, the answer is `409 FORM_VERSION_CONFLICT` and nothing is written. Success returns `{ success: true, version }` with the new version. Without `version` the request is still applied atomically against the version read at its start. |
 | PATCH 🔒 | `/forms/:formId/publish` | Publish. |
 | PATCH 🔒 | `/forms/:formId/unpublish` | Unpublish. |
 | POST 🔒 | `/forms/:formId/duplicate` | Copy (unpublished, `(Copy)` suffix). |
 | DELETE 🔒 | `/forms/:formId` | Delete the form with its data. |
+
+## Content languages
+
+A form is written in one **main language** (`defaultLanguage`, default `uk`; ISO 639-1 code from the supported list in `CONTENT_LOCALES`, no regions, no RTL languages yet) and can be translated into up to 10 **additional languages** (`languages`, never containing the main one). The main-language texts are the form's own fields (`title`, `description`, question `text`, option texts, ...); translations are stored next to them:
+
+```json
+{
+  "defaultLanguage": "uk",
+  "languages": ["en"],
+  "translations": { "en": { "title": "Survey", "description": "..." } },
+  "questions": [{
+    "id": "q1", "text": "Напій", "type": "CHOICE_SINGLE",
+    "options": [{ "id": "o1", "text": "Кава" }],
+    "translations": { "en": { "text": "Drink", "options": { "o1": "Coffee" } } }
+  }]
+}
+```
+
+Question translations may contain `text`, `description`, `options` (option/column id -> text), `rows` (matrix row id -> text), `minLabel`, `maxLabel` (SCALE). A missing or blank value means “show the main language”, so a partly translated form never shows empty labels.
+
+- `PATCH /forms/:formId` accepts `defaultLanguage`, `languages`, `translations` (form) and `translations` (per question). All are optional: **omitting a field keeps what is stored** (an older client does not erase translations), `translations: null` clears them. A language listed in `languages` that equals `defaultLanguage`, or a main language change onto an existing additional language, is rejected with `400 REQUEST_BODY_INVALID`.
+- The server **normalizes** translations on every save instead of rejecting stale keys: entries for languages not in `languages`, for option/row ids that no longer exist in the question, and blank values are dropped. Removing an option or a language therefore needs no manual cleanup by the client.
+- `POST /forms` accepts an optional `defaultLanguage`.
+- The public form (`GET /forms/public/:shareId`) and the owner's form (`GET /forms/:formId/admin`) return `defaultLanguage`, `languages` and all translations, so switching the language in the viewer needs no extra request.
+- Answers store option **ids**, so they are language-independent. Analytics, exports and the response view always use the main language.
+- Duplicating a form copies languages and translations.
 
 ## Question types
 

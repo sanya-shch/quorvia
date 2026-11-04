@@ -1,7 +1,11 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../prisma/prisma.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
-import { ErrorCode } from "@quorvia/shared-types";
+import {
+  ErrorCode,
+  normalizeFormTranslations,
+  normalizeQuestionTranslations,
+} from "@quorvia/shared-types";
 import type { UpdateFormInput, UserFormsDto } from "./form.types.js";
 
 type IncomingQuestion = UpdateFormInput["questions"][number];
@@ -13,16 +17,20 @@ import { validateConditionGraph } from "@quorvia/condition-engine";
 export const createForm = async ({
   title,
   description,
+  defaultLanguage,
   userId,
 }: {
   title: string;
   description?: string;
+  defaultLanguage?: string;
   userId: string;
 }) => {
   return prisma.form.create({
     data: {
       title,
       description,
+      // undefined -> типове значення з schema.prisma
+      defaultLanguage,
       userId,
     },
   });
@@ -106,6 +114,9 @@ export const getFormByShareId = async (shareId: string) => {
     title: form.title,
     description: form.description,
     responseMode: form.responseMode,
+    defaultLanguage: form.defaultLanguage,
+    languages: form.languages,
+    translations: form.translations,
     questions: form.questions,
   };
 };
@@ -121,6 +132,38 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
 
   const existingQuestions = form.questions;
   const incomingQuestions = data.questions;
+
+  // Мови: що не передали - лишається як було. Основна мова не може одночасно
+  // бути додатковою (її текст - це самі поля форми, а не переклад).
+  const defaultLanguage = data.defaultLanguage ?? form.defaultLanguage;
+  const languages = data.languages ?? form.languages;
+
+  if (languages.includes(defaultLanguage)) {
+    throw new AppError(ErrorCode.REQUEST_BODY_INVALID, 400);
+  }
+
+  // Нормалізуємо й збережені (якщо клієнт не прислав): перелік мов міг скоротитись.
+  const formTranslations = normalizeFormTranslations(
+    data.translations !== undefined ? data.translations : form.translations,
+    languages,
+  );
+  const previousQuestionById = new Map(existingQuestions.map((q) => [q.id, q]));
+
+  /**
+   * Переклади питання до збереження. Якщо клієнт `translations` не прислав
+   * (старий клієнт), беремо збережені - але так само нормалізуємо, бо
+   * варіанти чи мови могли змінитись у цьому ж запиті.
+   */
+  const translationsFor = (q: ResolvedQuestion) =>
+    normalizeQuestionTranslations(
+      // undefined (поле не передали) -> збережене; null (явне стирання) і об'єкт - як є.
+      q.translations !== undefined ? q.translations : previousQuestionById.get(q.id)?.translations,
+      languages,
+      {
+        options: "options" in q ? q.options : null,
+        config: "config" in q ? (q.config as { rows?: { id: string }[] } | null) : null,
+      },
+    );
 
   const existingIds = new Set(existingQuestions.map((q) => q.id));
 
@@ -178,6 +221,9 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
         title: data.title,
         description: data.description,
         responseMode: data.responseMode,
+        defaultLanguage: data.defaultLanguage,
+        languages: data.languages,
+        translations: toNullableJson(formTranslations),
         updatedAt: new Date(),
         version: { increment: 1 },
       },
@@ -208,6 +254,7 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
           options: "options" in q ? toJson(q.options) : undefined,
           config: "config" in q ? toNullableJson(q.config) : undefined,
           condition: toNullableJson(q.condition),
+          translations: toNullableJson(translationsFor(q)),
         },
       });
     }
@@ -224,6 +271,7 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
           options: "options" in q ? toJson(q.options) : undefined,
           config: "config" in q ? toJson(q.config) : undefined,
           condition: q.condition == null ? undefined : toJson(q.condition),
+          translations: translationsFor(q) == null ? undefined : toJson(translationsFor(q)),
           formId,
         })),
       });
@@ -276,6 +324,9 @@ export const duplicateForm = async (formId: string, userId: string) => {
         title: form.title + " (Copy)",
         description: form.description,
         responseMode: form.responseMode,
+        defaultLanguage: form.defaultLanguage,
+        languages: form.languages,
+        translations: form.translations == null ? undefined : toJson(form.translations),
         userId,
         isPublished: false,
       },
@@ -309,6 +360,9 @@ export const duplicateForm = async (formId: string, userId: string) => {
         options: Array.isArray(q.options) ? (q.options as Prisma.InputJsonValue) : [],
         config: q.config as Prisma.InputJsonValue,
         condition: remapCondition(q.condition),
+        // Переклади прив'язані до id варіантів/рядків усередині питання, а вони
+        // при копіюванні не змінюються - переносимо як є.
+        translations: q.translations == null ? undefined : toJson(q.translations),
         formId: newForm.id,
       })),
     });

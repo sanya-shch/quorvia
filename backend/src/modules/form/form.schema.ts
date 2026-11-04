@@ -1,7 +1,9 @@
 import { z } from "zod";
 import {
+  CONTENT_LOCALES,
   ErrorCode,
   MATRIX_LIMITS,
+  MAX_ADDITIONAL_LANGUAGES,
   OTHER_ANSWER_SUFFIX,
   RANKING_LIMITS,
   SCALE_LIMITS,
@@ -28,10 +30,44 @@ export const FORM_LIMITS = {
   scaleLabel: SCALE_LIMITS.labelMaxLength,
 } as const;
 
+const contentLocaleSchema = z.enum(CONTENT_LOCALES);
+
 export const createFormSchema = z.object({
   title: z.string().trim().min(3).max(FORM_LIMITS.title),
   description: z.string().max(FORM_LIMITS.description).optional(),
+  // Мова, якою автор пише форму (типово uk).
+  defaultLanguage: contentLocaleSchema.optional(),
 });
+
+// Переклади - рядки з обмеженою довжиною. Структуру (які мови, які id варіантів
+// існують) тут не перевіряємо: сервіс нормалізує її сам (normalize*Translations),
+// тож застарілі ключі після видалення варіанта чи мови не ламають збереження.
+const textMap = (maxItems: number) =>
+  z
+    .record(z.string().max(FORM_LIMITS.id), z.string().max(FORM_LIMITS.optionText))
+    .refine((map) => Object.keys(map).length <= maxItems, ErrorCode.REQUEST_BODY_INVALID);
+
+const questionTranslationSchema = z.object({
+  text: z.string().max(FORM_LIMITS.questionText).optional(),
+  description: z.string().max(FORM_LIMITS.description).optional(),
+  options: textMap(FORM_LIMITS.options).optional(),
+  rows: textMap(MATRIX_LIMITS.maxRows).optional(),
+  minLabel: z.string().max(SCALE_LIMITS.labelMaxLength).optional(),
+  maxLabel: z.string().max(SCALE_LIMITS.labelMaxLength).optional(),
+});
+
+const formTranslationSchema = z.object({
+  title: z.string().max(FORM_LIMITS.title).optional(),
+  description: z.string().max(FORM_LIMITS.description).optional(),
+});
+
+const translationsOf = <T extends z.ZodTypeAny>(entry: T) =>
+  z
+    .record(z.string().max(10), entry)
+    .refine(
+      (map) => Object.keys(map).length <= CONTENT_LOCALES.length,
+      ErrorCode.REQUEST_BODY_INVALID,
+    );
 
 const conditionRuleSchema = z.object({
   questionId: z.string().max(FORM_LIMITS.id),
@@ -50,6 +86,7 @@ export const conditionSchema = z.object({
 });
 
 const base = {
+  translations: translationsOf(questionTranslationSchema).nullable().optional(),
   // Суфікс зарезервований під ключ тексту «Інше» в answers (otherAnswerKey):
   // id питання, що ним закінчується, міг би зіткнутися з чужим ключем.
   id: z
@@ -271,6 +308,15 @@ export const updateFormSchema = z.object({
   title: z.string().max(FORM_LIMITS.title),
   description: z.string().max(FORM_LIMITS.description).optional(),
   responseMode: z.enum(["ALL_AT_ONCE", "STEP_BY_STEP"]).optional(),
+  // Мови контенту. Усі три поля необов'язкові: старий клієнт, що їх не знає,
+  // нічого не змінює (зокрема не стирає переклади).
+  defaultLanguage: contentLocaleSchema.optional(),
+  languages: z
+    .array(contentLocaleSchema)
+    .max(MAX_ADDITIONAL_LANGUAGES)
+    .refine((list) => new Set(list).size === list.length, ErrorCode.REQUEST_BODY_INVALID)
+    .optional(),
+  translations: translationsOf(formTranslationSchema).nullable().optional(),
   questions: z.array(questionSchema).max(FORM_LIMITS.questions),
   // Версія форми, яку редагував клієнт (optimistic lock). Якщо передана і вже
   // не збігається з поточною - 409 FORM_VERSION_CONFLICT. Без неї застосовується
