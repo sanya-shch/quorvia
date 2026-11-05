@@ -8,7 +8,7 @@ All bodies are JSON. Errors have the shape `{ "message": "<ERROR_CODE>", "errors
 
 ## Rate limits
 
-Exceeding a limit returns `429 RATE_LIMITED`. Limits are per IP unless noted (in-memory, see README → Security).
+Exceeding a limit returns `429 RATE_LIMITED`. Limits are per IP unless noted (in-memory, see [security.md](security.md)).
 
 | Scope | Limit |
 | --- | --- |
