@@ -67,6 +67,8 @@ Question translations may contain `text`, `description`, `options` (option/colum
 - The public form (`GET /forms/public/:shareId`) and the owner's form (`GET /forms/:formId/admin`) return `defaultLanguage`, `languages` and all translations, so switching the language in the viewer needs no extra request.
 - Answers store option **ids**, so they are language-independent. Analytics, exports and the response view always use the main language.
 - Duplicating a form copies languages and translations.
+- **Respondent language.** The public viewer picks the language from `?lang=` (e.g. `/f/abc?lang=en`), then the browser's languages, then the main language; a switcher is shown for forms with at least one additional language, and the choice is written back to `?lang=`. Button labels and error messages use the form language when the app has it (`uk`/`en`), otherwise English. Single-language forms behave exactly as before (the app language is used and no language is sent).
+- `POST /forms/:shareId/responses` accepts an optional `language`. It is stored on the response only if it is the form's main or an additional language (a region is dropped: `en-GB` -> `en`); anything else is stored as `null` and never rejects the response. Answers submitted before this feature have `language: null`.
 
 ## Question types
 
@@ -109,7 +111,7 @@ Scale answers (`RATING`, `SCALE`, `NPS`) are plain numbers, so `0` is a real ans
 | --- | --- | --- |
 | GET | `/forms/public/:shareId` | Published form for respondents (`404 FORM_NOT_AVAILABLE` otherwise). |
 | PUT | `/forms/:shareId/attempt` | Autosave progress. Body: `{ sessionKey, answers, reachedQuestionIds? }` (`reachedQuestionIds` - ids of questions actually shown; merged server-side, never shrinks). |
-| POST | `/forms/:shareId/responses` | Submit. Body: `{ answers, sessionKey? }`. The server recomputes visible questions, validates answers and drops answers to hidden questions. |
+| POST | `/forms/:shareId/responses` | Submit. Body: `{ answers, sessionKey?, language? }`. The server recomputes visible questions, validates answers and drops answers to hidden questions. `language` is the form language the respondent used (see [content languages](#content-languages)). |
 
 `answers` limits: at most 500 keys; strings up to 10,000 chars; arrays up to 200 items.
 
@@ -121,8 +123,8 @@ Scale answers (`RATING`, `SCALE`, `NPS`) are plain numbers, so `0` is a real ans
 | GET | `/forms/:formId/analytics/funnel` | Funnel of reached/answered questions. |
 | GET | `/forms/:formId/analytics/paths` | Branch/path statistics. |
 | GET | `/forms/:formId/questions/:questionId/analytics` | Per-question statistics (the overview endpoint returns the same fields per question). `RATING`/`SCALE`/`NPS`: `stats` (`avg`/`min`/`max` over in-range answers), `distribution` covering every value of the scale (zeros included) and, for `NPS`, `nps: { promoters, passives, detractors, score }` (`score = %promoters - %detractors`, one decimal, `null` without answers). Answers outside the current scale (config changed after collecting) are excluded from the distribution and the average but counted in `totalAnswers`. `RANKING`: `ranking` (per option, in option order: `avgPosition`, `positions[i]` = respondents who put it at place `i + 1`) and `rankedCount`; only full permutations of the current options are counted, so changing the options after collecting does not skew the averages. `MATRIX`: `matrix` = `{ columns: [{ id, text }], rows: [{ rowId, text, answered, counts }] }` where `counts[i]` is how many respondents picked `columns[i]` in that row (cells are independent, so partial answers count; unknown rows/columns are ignored). Choice questions with an “Other” option also return `otherAnswers`. |
-| GET | `/forms/:formId/responses?page=&limit=` | Paginated responses (`limit` max 100, default 10). |
-| GET | `/forms/:formId/responses/:responseId` | One response. |
+| GET | `/forms/:formId/responses?page=&limit=` | Paginated responses (`limit` max 100, default 10). Each item has `language` (`null` = unknown). |
+| GET | `/forms/:formId/responses/:responseId` | One response, including `language`. |
 
 ## Export (owner) 🔒
 

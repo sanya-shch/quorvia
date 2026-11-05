@@ -211,6 +211,8 @@ export type QuestionAnalyticsDto =
 export type ResponseListItem = {
   id: string;
   createdAt: Date;
+  /** Мова форми, якою відповів респондент (null - невідомо). */
+  language: string | null;
   answersPreview?: Record<string, unknown>;
 };
 
@@ -240,6 +242,7 @@ export type ResponseDetailsDto = {
   id: string;
   formId: string;
   createdAt: Date;
+  language: string | null;
   answers: EnrichedAnswer[];
 };
 

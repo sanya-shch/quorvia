@@ -17,6 +17,8 @@ const SHARE_ID = "share-1";
 const publishedForm = {
   id: "form-1",
   isPublished: true,
+  defaultLanguage: "uk",
+  languages: ["en"] as string[],
   questions: [
     {
       id: "q-name",
@@ -82,9 +84,39 @@ describe("submitResponse", () => {
         formId: "form-1",
         answers: { "q-name": "Олександр" },
         visibleQuestionIds: ["q-name"],
+        language: null,
       },
     });
     expect(result.id).toBe("resp-1");
+  });
+
+  describe("мова відповіді", () => {
+    const submitWith = async (language?: string) => {
+      (prisma.form.findUnique as any).mockResolvedValue(publishedForm);
+      (prisma.response.create as any).mockResolvedValue({ id: "resp-1", createdAt: new Date() });
+
+      await submitResponse(SHARE_ID, { "q-name": "Олександр" }, undefined, language);
+
+      return (prisma.response.create as any).mock.calls.at(-1)[0].data.language;
+    };
+
+    it("зберігає основну мову форми", async () => {
+      expect(await submitWith("uk")).toBe("uk");
+    });
+
+    it("зберігає додаткову мову; регіон відкидається (en-GB -> en)", async () => {
+      expect(await submitWith("en")).toBe("en");
+      expect(await submitWith("en-GB")).toBe("en");
+    });
+
+    it("мова, якої немає у форми, - null, але відповідь приймається", async () => {
+      expect(await submitWith("pl")).toBeNull();
+      expect(await submitWith("???")).toBeNull();
+    });
+
+    it("без мови (старий клієнт) - null", async () => {
+      expect(await submitWith(undefined)).toBeNull();
+    });
   });
 
   it("умовно приховане питання не блокує required-валідацію і не потрапляє у збережені answers", async () => {
@@ -117,6 +149,7 @@ describe("submitResponse", () => {
         formId: "form-1",
         answers: { "q-name": "Олександр" },
         visibleQuestionIds: ["q-name"],
+        language: null,
       },
     });
   });

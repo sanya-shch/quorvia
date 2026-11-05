@@ -1,13 +1,18 @@
 import { prisma } from "../../prisma/prisma.js";
 import { buildResponseSchema, cleanAnswers } from "./response.validation.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
-import { ErrorCode } from "@quorvia/shared-types";
+import { ErrorCode, resolveResponseLanguage } from "@quorvia/shared-types";
 import { Answers } from "./response.types.js";
 import { resolveVisibleQuestionIds, type QuestionLike } from "@quorvia/condition-engine";
 import { toJson } from "../../shared/utils/helpers.js";
 import { buildCompleteAttemptSql } from "../attempt/attempt.sql.js";
 
-export const submitResponse = async (shareId: string, answers: Answers, sessionKey?: string) => {
+export const submitResponse = async (
+  shareId: string,
+  answers: Answers,
+  sessionKey?: string,
+  language?: string,
+) => {
   const form = await prisma.form.findUnique({
     where: { shareId },
     include: {
@@ -48,6 +53,7 @@ export const submitResponse = async (shareId: string, answers: Answers, sessionK
       formId: form.id,
       answers: toJson(cleanedAnswers),
       visibleQuestionIds: toJson(Array.from(visibleQuestionIds)),
+      language: resolveResponseLanguage(language, form.defaultLanguage, form.languages),
     },
   });
 

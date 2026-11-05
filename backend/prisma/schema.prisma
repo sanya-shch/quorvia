@@ -121,6 +121,10 @@ model Response {
   // "приховано умовою" vs "показано, але пропущено".
   visibleQuestionIds Json?
 
+  // Мова форми (з form.defaultLanguage/languages), якою респондент її заповнював;
+  // null - невідомо (відповіді до появи мов або нерозпізнана мова).
+  language  String?
+
   createdAt DateTime @default(now())
 
   // Покриває і сторінковий список (ORDER BY createdAt DESC), і keyset-обхід

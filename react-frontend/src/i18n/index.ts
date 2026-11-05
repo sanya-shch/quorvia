@@ -58,25 +58,44 @@ const uk = {
  * navigator.language не "uk" і не "en" (напр. "fr", "de-DE") - беремо
  * англійську, а не залишаємо i18next вгадувати найближчий варіант.
  */
+const baseOptions = {
+  resources: {
+    en: { common: en },
+    uk: { common: uk },
+  },
+  ns: ["common"],
+  defaultNS: "common",
+  supportedLngs: [...SUPPORTED_LOCALES],
+  fallbackLng: DEFAULT_LOCALE,
+  load: "languageOnly" as const, // "uk-UA" -> "uk", "en-US" -> "en"
+  interpolation: { escapeValue: false },
+};
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources: {
-      en: { common: en },
-      uk: { common: uk },
-    },
-    ns: ["common"],
-    defaultNS: "common",
-    supportedLngs: [...SUPPORTED_LOCALES],
-    fallbackLng: DEFAULT_LOCALE,
-    load: "languageOnly", // "uk-UA" -> "uk", "en-US" -> "en"
-    interpolation: { escapeValue: false },
+    ...baseOptions,
     detection: {
       order: ["localStorage", "navigator"],
       caches: ["localStorage"],
       lookupLocalStorage: I18N_LOCALSTORAGE_KEY,
     },
   });
+
+/**
+ * Окремий екземпляр i18n з фіксованою мовою (для публічної форми, яка
+ * показується мовою форми, а не мовою застосунку). Створюється БЕЗ детектора
+ * мови: клон основного екземпляра (cloneInstance) ділить з ним детектор і
+ * записував би вибір респондента в localStorage як мову застосунку.
+ * Ресурси вбудовані, тож ініціалізація синхронна.
+ */
+export const createIsolatedI18n = (language: string) => {
+  const instance = i18n.createInstance();
+
+  void instance.init({ ...baseOptions, lng: language, initAsync: false });
+
+  return instance;
+};
 
 export default i18n;

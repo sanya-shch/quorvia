@@ -1,6 +1,6 @@
 import { type Question } from "../types/formBuilder";
 import type { FormAnswers } from "../types/formViewer";
-import type { ResponseMode } from "@quorvia/shared-types";
+import type { FormTranslations, ResponseMode } from "@quorvia/shared-types";
 import { publicApi } from "./axios";
 
 export interface PublicFormFields {
@@ -9,6 +9,13 @@ export interface PublicFormFields {
   description?: string;
   responseMode: ResponseMode;
   questions: Question[];
+  /**
+   * Мови форми. Необов'язкові: форма без них (або відповідь старого сервера)
+   * вважається одномовною й відображається як раніше.
+   */
+  defaultLanguage?: string;
+  languages?: string[];
+  translations?: FormTranslations | null;
 }
 
 export const fetchPublicForm = async (shareId: string): Promise<PublicFormFields> => {
@@ -20,8 +27,13 @@ export const submitFormResponses = async (
   shareId: string,
   answers: FormAnswers,
   sessionKey?: string,
+  language?: string,
 ): Promise<void> => {
-  const response = await publicApi.post(`/forms/${shareId}/responses`, { answers, sessionKey });
+  const response = await publicApi.post(`/forms/${shareId}/responses`, {
+    answers,
+    sessionKey,
+    language,
+  });
   return response.data;
 };
 

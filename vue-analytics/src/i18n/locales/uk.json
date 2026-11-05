@@ -81,7 +81,8 @@
     "responseDetail": {
       "placeholder": "Оберіть відповідь зі списку ліворуч для перегляду деталей",
       "title": "Перегляд відповіді",
-      "submittedAt": "Надіслано: {date}"
+      "submittedAt": "Надіслано: {date}",
+      "language": "Мова форми: {language}"
     },
     "export": {
       "trigger": "Експорт",

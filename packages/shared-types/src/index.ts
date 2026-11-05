@@ -419,6 +419,8 @@ export interface FormFunnelDto {
 export interface ResponseSummary {
   id: string;
   createdAt: string;
+  /** Мова форми, якою відповів респондент (null/відсутня - невідомо). */
+  language?: string | null;
 }
 
 export interface ResponseListDto {
@@ -442,6 +444,8 @@ export interface ResponseDetailsDto {
   id: string;
   formId: string;
   createdAt: string;
+  /** Мова форми, якою відповів респондент (null - не визначена, напр. старі відповіді). */
+  language: string | null;
   answers: EnrichedAnswer[];
 }
 
@@ -538,6 +542,23 @@ export const pickContentLanguage = (
   }
 
   return fallback;
+};
+
+/**
+ * Мова, яку записуємо у відповідь респондента: надіслана клієнтом, але лише
+ * якщо вона справді є мовою цієї форми (основною або додатковою). Інакше null:
+ * застарілий кеш форми чи довільний рядок не повинні забруднювати дані.
+ */
+export const resolveResponseLanguage = (
+  candidate: unknown,
+  defaultLanguage: string,
+  languages: readonly string[],
+): string | null => {
+  if (typeof candidate !== "string") return null;
+
+  const primary = toPrimaryLanguage(candidate);
+
+  return primary && (primary === defaultLanguage || languages.includes(primary)) ? primary : null;
 };
 
 const filled = (value: unknown): value is string =>

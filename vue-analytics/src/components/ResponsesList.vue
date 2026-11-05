@@ -38,7 +38,10 @@ const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
         @click="emit('select', resp.id)"
       >
         <div class="item-id">ID: {{ resp.id }}</div>
-        <div class="item-date">{{ formatDate(resp.createdAt) }}</div>
+        <div class="item-date">
+          {{ formatDate(resp.createdAt) }}
+          <span v-if="resp.language" class="item-lang" :title="resp.language">{{ resp.language.toUpperCase() }}</span>
+        </div>
       </button>
     </div>
 
@@ -129,6 +132,18 @@ const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
   margin-top: 4px;
   font-size: 10px;
   color: #94a3b8;
+}
+.item-lang {
+  margin-left: 6px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: #e2e8f0;
+  color: #475569;
+  font-weight: 600;
+}
+.item--selected .item-lang {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 .item--selected .item-date {
   color: #c7d2fe;

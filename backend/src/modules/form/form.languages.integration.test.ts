@@ -13,6 +13,8 @@ const { prisma } = await import("../../prisma/prisma.js");
 const { updateForm, getUserForm, getFormByShareId, duplicateForm, createForm } = await import(
   "./form.service.js"
 );
+const { submitResponse } = await import("../response/response.service.js");
+const { getResponses, getResponseById } = await import("../analytics/analytics.service.js");
 
 const USER = "user-lang";
 const FORM = "form-lang";
@@ -260,5 +262,46 @@ describe("публічна форма й дублювання", () => {
 
     expect(copied.translations).toBeNull();
     expect(copied.languages).toEqual([]);
+  });
+});
+
+describe("мова відповіді респондента", () => {
+  beforeEach(async () => {
+    await save({ languages: ["en"] });
+  });
+
+  it("зберігається у відповіді та повертається в списку й деталях для власника", async () => {
+    const answered = await submitResponse("share-lang", { "q-choice": "o1" }, undefined, "en-GB");
+
+    const stored = await prisma.response.findUniqueOrThrow({ where: { id: answered.id } });
+    expect(stored.language).toBe("en");
+
+    const list = await getResponses(FORM, USER);
+    expect(list.data[0]).toMatchObject({ id: answered.id, language: "en" });
+
+    const details = await getResponseById(FORM, answered.id, USER);
+    expect(details.language).toBe("en");
+  });
+
+  it("основна мова теж записується", async () => {
+    const answered = await submitResponse("share-lang", { "q-choice": "o1" }, undefined, "uk");
+
+    expect((await prisma.response.findUniqueOrThrow({ where: { id: answered.id } })).language).toBe(
+      "uk",
+    );
+  });
+
+  it("мова, якої немає у форми, не блокує відповідь і не записується", async () => {
+    const answered = await submitResponse("share-lang", { "q-choice": "o1" }, undefined, "pl");
+
+    expect((await prisma.response.findUniqueOrThrow({ where: { id: answered.id } })).language).toBeNull();
+  });
+
+  it("мову, яку з форми видалили, відповідь уже не отримає (кеш респондента застарів)", async () => {
+    await save({ languages: [] });
+
+    const answered = await submitResponse("share-lang", { "q-choice": "o1" }, undefined, "en");
+
+    expect((await prisma.response.findUniqueOrThrow({ where: { id: answered.id } })).language).toBeNull();
   });
 });

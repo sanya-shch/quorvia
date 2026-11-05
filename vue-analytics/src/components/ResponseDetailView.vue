@@ -22,6 +22,9 @@ const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
       <div>
         <h3 class="detail-title">{{ t("analytics.responseDetail.title") }}</h3>
         <p class="detail-subtitle">{{ t("analytics.responseDetail.submittedAt", { date: formatDate(data.createdAt) }) }}</p>
+        <p v-if="data.language" class="detail-subtitle">
+          {{ t("analytics.responseDetail.language", { language: data.language.toUpperCase() }) }}
+        </p>
       </div>
       <span class="detail-id">ID: {{ data.id }}</span>
     </div>

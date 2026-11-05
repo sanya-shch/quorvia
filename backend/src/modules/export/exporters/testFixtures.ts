@@ -94,6 +94,7 @@ export const buildResponses = (): SurveyResponse[] => [
     id: "resp-1",
     formId: "form-1",
     visibleQuestionIds: null,
+    language: null,
     createdAt: new Date("2026-01-15T10:00:00.000Z"),
     answers: {
       "q-text": 'Олександр, "сеньйор"',
@@ -108,6 +109,7 @@ export const buildResponses = (): SurveyResponse[] => [
     id: "resp-2",
     formId: "form-1",
     visibleQuestionIds: null,
+    language: null,
     createdAt: new Date("2026-01-16T12:30:00.000Z"),
     answers: {
       "q-text": "",

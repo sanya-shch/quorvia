@@ -1,5 +1,7 @@
-import { useParams } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { useParams, useSearchParams } from "react-router-dom";
+import { I18nextProvider, useTranslation } from "react-i18next";
+import { localizeForm, localizeQuestion, pickContentLanguage } from "@quorvia/shared-types";
+import i18n, { createIsolatedI18n } from "../../i18n";
 import { type FormAnswers } from "../../types/formViewer";
 import { usePublicFormQuery, useSubmitResponsesMutation } from "./hooks/usePublicForm";
 import FormViewer from "./FormViewer";
@@ -8,6 +10,13 @@ import { useMemo, useState } from "react";
 import { getOrCreateSessionKey } from "./sessionKey";
 import { type FieldValidationError } from "./questionValidation";
 import { getApiErrorMessage } from "../../i18n/errorCodes";
+import ViewerLanguageSwitcher from "./components/ViewerLanguageSwitcher";
+import {
+  getMainLanguage,
+  getRequestedLanguages,
+  getUiLanguageFor,
+  readBrowserLanguages,
+} from "./contentLanguage";
 
 interface ExpectedError {
   response?: {
@@ -18,11 +27,93 @@ interface ExpectedError {
   data?: any;
 }
 
+function ThankYou() {
+  const { t } = useTranslation();
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm animate-in fade-in zoom-in-95 duration-200">
+        <div className="h-12 w-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="2.5"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-bold text-slate-800">{t("viewer.thankYou.title")}</h2>
+        <p className="text-sm text-slate-500 mt-2">{t("viewer.thankYou.subtitle")}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function PublicFormPage() {
   const { t } = useTranslation();
   const { shareId } = useParams<{ shareId: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { data: formData, isLoading, error } = usePublicFormQuery(shareId);
+
+  // Мови браузера читаємо один раз: вони не змінюються під час перегляду.
+  const [browserLanguages] = useState(readBrowserLanguages);
+
+  const mainLanguage = getMainLanguage(formData?.defaultLanguage);
+  const formLanguages = useMemo(
+    () => [mainLanguage, ...(formData?.languages ?? [])],
+    [mainLanguage, formData?.languages],
+  );
+  // Усе, що стосується мов, діє лише для багатомовних форм: у одномовної
+  // defaultLanguage - це просто значення за замовчуванням (воно могло й не
+  // збігатися з реальною мовою тексту), тож чіпати мову інтерфейсу не можна.
+  const isMultilingual = formLanguages.length > 1;
+
+  const requestedLang = searchParams.get("lang");
+  const language = useMemo(
+    () =>
+      isMultilingual
+        ? pickContentLanguage(
+            getRequestedLanguages(requestedLang ? `lang=${requestedLang}` : "", browserLanguages),
+            formLanguages,
+            mainLanguage,
+          )
+        : mainLanguage,
+    [isMultilingual, requestedLang, browserLanguages, formLanguages, mainLanguage],
+  );
+
+  // Форма й питання мовою respondent-а; для основної мови (і одномовних форм)
+  // localize* повертають ті самі об'єкти, тож зайвих перерендерів немає.
+  const localized = useMemo(() => {
+    if (!formData || !isMultilingual) return formData;
+
+    return {
+      ...localizeForm(formData, language),
+      questions: formData.questions.map((question) => localizeQuestion(question, language)),
+    };
+  }, [formData, isMultilingual, language]);
+
+  // Службові тексти (кнопки, помилки) - мовою форми, але в ОКРЕМОМУ екземплярі
+  // i18n без детектора: вибір респондента не міняє мову застосунку й не
+  // пишеться в localStorage.
+  const uiLanguage = getUiLanguageFor(language);
+  const viewerI18n = useMemo(
+    () => (isMultilingual ? createIsolatedI18n(uiLanguage) : i18n),
+    [isMultilingual, uiLanguage],
+  );
+
+  const handleLanguageChange = (next: string) => {
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        params.set("lang", next);
+        return params;
+      },
+      { replace: true },
+    );
+  };
 
   const [formServerErrors, setFormServerErrors] = useState<Record<string, FieldValidationError>>(
     {},
@@ -54,7 +145,12 @@ export default function PublicFormPage() {
 
     if (shareId)
       submitResponses(
-        { shareId, answers: cleanedAnswers, sessionKey },
+        {
+          shareId,
+          answers: cleanedAnswers,
+          sessionKey,
+          language: isMultilingual ? language : undefined,
+        },
         {
           onError: (error: unknown) => {
             const err = error as ExpectedError;
@@ -98,7 +194,7 @@ export default function PublicFormPage() {
     );
   }
 
-  if (error || !formData) {
+  if (error || !formData || !localized) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="max-w-md w-full bg-white rounded-2xl border border-slate-200 p-6 text-center shadow-sm">
@@ -124,53 +220,53 @@ export default function PublicFormPage() {
     );
   }
 
-  if (isSubmitted) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm animate-in fade-in zoom-in-95 duration-200">
-          <div className="h-12 w-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2.5"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-            </svg>
+  const content = isSubmitted ? (
+    <ThankYou />
+  ) : (
+    <>
+      {isMultilingual && (
+        <div className="bg-slate-50 px-4 pt-3">
+          <div className="mx-auto max-w-3xl">
+            <ViewerLanguageSwitcher
+              languages={formLanguages}
+              value={language}
+              onChange={handleLanguageChange}
+            />
           </div>
-          <h2 className="text-xl font-bold text-slate-800">{t("viewer.thankYou.title")}</h2>
-          <p className="text-sm text-slate-500 mt-2">{t("viewer.thankYou.subtitle")}</p>
         </div>
+      )}
+
+      <div className={isSubmitting ? "opacity-60 pointer-events-none transition-opacity" : ""}>
+        {localized.responseMode === "STEP_BY_STEP" ? (
+          <QuestionStepper
+            formTitle={localized.title}
+            formDescription={localized.description}
+            questions={localized.questions}
+            serverErrors={formServerErrors}
+            onClearServerError={handleClearServerError}
+            onSubmit={handleFormSubmit}
+            shareId={shareId}
+            sessionKey={sessionKey}
+          />
+        ) : (
+          <FormViewer
+            formTitle={localized.title}
+            formDescription={localized.description}
+            questions={localized.questions}
+            serverErrors={formServerErrors}
+            onClearServerError={handleClearServerError}
+            onSubmit={handleFormSubmit}
+            shareId={shareId}
+            sessionKey={sessionKey}
+          />
+        )}
       </div>
-    );
-  }
+    </>
+  );
 
   return (
-    <div className={isSubmitting ? "opacity-60 pointer-events-none transition-opacity" : ""}>
-      {formData.responseMode === "STEP_BY_STEP" ? (
-        <QuestionStepper
-          formTitle={formData.title}
-          formDescription={formData.description}
-          questions={formData.questions}
-          serverErrors={formServerErrors}
-          onClearServerError={handleClearServerError}
-          onSubmit={handleFormSubmit}
-          shareId={shareId}
-          sessionKey={sessionKey}
-        />
-      ) : (
-        <FormViewer
-          formTitle={formData.title}
-          formDescription={formData.description}
-          questions={formData.questions}
-          serverErrors={formServerErrors}
-          onClearServerError={handleClearServerError}
-          onSubmit={handleFormSubmit}
-          shareId={shareId}
-          sessionKey={sessionKey}
-        />
-      )}
-    </div>
+    <I18nextProvider i18n={viewerI18n}>
+      {isMultilingual ? <div lang={language}>{content}</div> : content}
+    </I18nextProvider>
   );
 }

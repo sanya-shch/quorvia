@@ -31,18 +31,7 @@ export const getAvailableLanguages = (form: FormState): string[] => {
 export const canAddLanguage = (form: FormState): boolean =>
   getAdditionalLanguages(form).length < MAX_ADDITIONAL_LANGUAGES;
 
-/** Назва мови мовою інтерфейсу ("англійська" / "English"); при збої - сам код. */
-export const getLanguageName = (code: string, uiLanguage: string): string => {
-  try {
-    const name = new Intl.DisplayNames([uiLanguage], { type: "language" }).of(code);
-
-    if (!name) return code;
-
-    return name.charAt(0).toLocaleUpperCase(uiLanguage) + name.slice(1);
-  } catch {
-    return code;
-  }
-};
+export { getLanguageName } from "../../i18n/languageNames";
 
 export type TranslationFieldKind =
   | "formTitle"

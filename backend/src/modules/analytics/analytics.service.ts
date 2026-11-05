@@ -889,6 +889,7 @@ export const getResponses = async (
       select: {
         id: true,
         createdAt: true,
+        language: true,
         // answers: true,
       },
     }),
@@ -1004,6 +1005,7 @@ export const getResponseById = async (
     id: response.id,
     formId: response.formId,
     createdAt: response.createdAt,
+    language: response.language,
     answers: enrichedAnswers,
   };
 };

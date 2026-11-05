@@ -37,7 +37,7 @@ describe("POST /api/public-forms/:shareId/responses", () => {
       .send({ answers: { "q-1": "ok" } });
 
     expect(res.status).toBe(200);
-    expect(submitResponse).toHaveBeenCalledWith("share-1", { "q-1": "ok" }, undefined);
+    expect(submitResponse).toHaveBeenCalledWith("share-1", { "q-1": "ok" }, undefined, undefined);
   });
 
   it("повертає лише id/createdAt, не весь об'єкт відповіді", async () => {

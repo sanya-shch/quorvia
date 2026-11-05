@@ -9,9 +9,9 @@ export const submitResponseHandler = async (
 ) => {
   try {
     const { shareId } = req.params;
-    const { answers, sessionKey } = req.body;
+    const { answers, sessionKey, language } = req.body;
 
-    const result = await submitResponse(shareId, answers, sessionKey);
+    const result = await submitResponse(shareId, answers, sessionKey, language);
 
     res.json({ id: result.id, createdAt: result.createdAt });
   } catch (err) {

@@ -18,10 +18,13 @@ export function useSubmitResponsesMutation() {
       shareId,
       answers,
       sessionKey,
+      language,
     }: {
       shareId: string;
       answers: FormAnswers;
       sessionKey?: string;
-    }) => submitFormResponses(shareId, answers, sessionKey),
+      /** Мова, якою респондент бачив багатомовну форму (для одномовних - не передається). */
+      language?: string;
+    }) => submitFormResponses(shareId, answers, sessionKey, language),
   });
 }

@@ -7,4 +7,7 @@ export const submitResponseSchema = z.object({
   // completedAt - funnel-аналітика бачитиме її як завершену, а не покинуту.
   sessionKey: z.string().min(1).max(MAX_SESSION_KEY_LENGTH).optional(),
   answers: answersSchema,
+  // Мова, якою респондент бачив форму. Необов'язкова й перевіряється м'яко
+  // (див. resolveResponseLanguage): неправильна мова не блокує відповідь.
+  language: z.string().max(35).optional(),
 });

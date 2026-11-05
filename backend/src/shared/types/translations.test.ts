@@ -6,6 +6,7 @@ import {
   normalizeFormTranslations,
   normalizeQuestionTranslations,
   pickContentLanguage,
+  resolveResponseLanguage,
   toPrimaryLanguage,
   type QuestionConfig,
 } from "@quorvia/shared-types";
@@ -213,5 +214,20 @@ describe("normalizeQuestionTranslations", () => {
     expect(
       normalizeQuestionTranslations({ en: { minLabel: "Bad", maxLabel: "Good" } }, ["en"], {}),
     ).toEqual({ en: { minLabel: "Bad", maxLabel: "Good" } });
+  });
+});
+
+describe("resolveResponseLanguage", () => {
+  it("основна й додаткові мови форми приймаються, регіон відкидається", () => {
+    expect(resolveResponseLanguage("uk", "uk", ["en"])).toBe("uk");
+    expect(resolveResponseLanguage("en", "uk", ["en"])).toBe("en");
+    expect(resolveResponseLanguage("EN-gb", "uk", ["en"])).toBe("en");
+  });
+
+  it("чужа, некоректна або відсутня мова - null", () => {
+    expect(resolveResponseLanguage("pl", "uk", ["en"])).toBeNull();
+    expect(resolveResponseLanguage("???", "uk", ["en"])).toBeNull();
+    expect(resolveResponseLanguage(undefined, "uk", ["en"])).toBeNull();
+    expect(resolveResponseLanguage(5, "uk", ["en"])).toBeNull();
   });
 });

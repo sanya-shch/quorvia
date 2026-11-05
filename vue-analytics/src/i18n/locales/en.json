@@ -81,7 +81,8 @@
     "responseDetail": {
       "placeholder": "Select a response from the list on the left to view its details",
       "title": "Response details",
-      "submittedAt": "Submitted: {date}"
+      "submittedAt": "Submitted: {date}",
+      "language": "Form language: {language}"
     },
     "export": {
       "trigger": "Export",
