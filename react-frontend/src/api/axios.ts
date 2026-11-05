@@ -34,13 +34,18 @@ api.interceptors.request.use((config) => {
  * на кожен - інакше кожен з них ротував би cookie і "перегравав" один
  * одного.
  */
-let inFlightRefresh: Promise<string | null> | null = null;
+interface RefreshResult {
+  accessToken: string;
+  user?: { id: string; email: string };
+}
 
-const requestNewAccessToken = (): Promise<string | null> => {
+let inFlightRefresh: Promise<RefreshResult | null> | null = null;
+
+const requestNewAccessToken = (): Promise<RefreshResult | null> => {
   if (!inFlightRefresh) {
     inFlightRefresh = publicApi
-      .post<{ accessToken: string }>("/auth/refresh")
-      .then((res) => res.data.accessToken)
+      .post<RefreshResult>("/auth/refresh")
+      .then((res) => res.data)
       .catch(() => null)
       .finally(() => {
         inFlightRefresh = null;
@@ -56,13 +61,21 @@ const requestNewAccessToken = (): Promise<string | null> => {
  * (див. VueAnalyticsHost.tsx) - усі діляться ОДНИМ запитом (inFlightRefresh).
  */
 export const refreshAccessToken = async (): Promise<string | null> => {
-  const newToken = await requestNewAccessToken();
+  const result = await requestNewAccessToken();
 
-  if (newToken) {
-    useAuthStore.getState().setToken(newToken);
+  if (!result) return null;
+
+  // The refresh response carries the user, which is what lets ProtectedRoute
+  // skip a separate /auth/me request.
+  const store = useAuthStore.getState();
+
+  if (result.user) {
+    store.setAuth(result.user, result.accessToken);
+  } else {
+    store.setToken(result.accessToken);
   }
 
-  return newToken;
+  return result.accessToken;
 };
 
 /**

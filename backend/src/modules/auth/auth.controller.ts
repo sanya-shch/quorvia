@@ -56,14 +56,14 @@ export const login = async (req: Request<{}, {}, LoginInput>, res: Response<Logi
 export const refresh = async (req: Request, res: Response<RefreshDto>) => {
   const refreshToken = req.cookies?.[REFRESH_TOKEN_COOKIE_NAME] as string | undefined;
 
-  const tokens = await refreshAccessToken(refreshToken);
+  const { user, ...tokens } = await refreshAccessToken(refreshToken);
 
   res.cookie(
     REFRESH_TOKEN_COOKIE_NAME,
     tokens.refreshToken,
     refreshTokenCookieOptions(tokens.refreshTokenExpiresAt),
   );
-  res.json({ accessToken: tokens.accessToken });
+  res.json({ accessToken: tokens.accessToken, user });
 };
 
 export const logout = async (req: Request, res: Response<{ success: true }>) => {

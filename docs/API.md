@@ -25,7 +25,7 @@ Exceeding a limit returns `429 RATE_LIMITED`. Limits are per IP unless noted (in
 | --- | --- | --- |
 | POST | `/auth/register` | Create an account. Body: `{ email, password }` (password 8-72 bytes, upper+lower case letter and digit). Email is trimmed and lowercased. |
 | POST | `/auth/login` | Body: `{ email, password }`. Returns `{ user, accessToken }` and sets the httpOnly `refreshToken` cookie (path `/api/auth`). |
-| POST | `/auth/refresh` | Rotates the refresh cookie and returns a new `accessToken`. Replaying an already-used token revokes all of the user's sessions. |
+| POST | `/auth/refresh` | Rotates the refresh cookie and returns a new `accessToken` together with the `user`, so clients do not need a follow-up `/auth/me` call. Replaying an already-used token revokes all of the user's sessions. |
 | POST | `/auth/logout` | Revokes the refresh token and clears the cookie. |
 | GET 🔒 | `/auth/me` | Current user. |
 

@@ -1,8 +1,6 @@
 import React, { useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { authApi } from "../api/auth";
 import { useAuthStore } from "../store/useAuthStore";
 import { restoreSession } from "../api/axios";
 
@@ -11,38 +9,12 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { token, isAuthenticated, isInitialized, setAuth, clearAuth } = useAuthStore();
+  const { token, isAuthenticated, isInitialized } = useAuthStore();
   const { t } = useTranslation();
 
-  const {
-    data: user,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["authMe", token],
-    queryFn: async () => {
-      try {
-        const userData = await authApi.getMe();
-        // Навмисно НЕ використовуємо `token` із замикання: якщо access-токен
-        // протух, axios-інтерцептор (api/axios.ts) міг непомітно обміняти
-        // його на новий ПІД ЧАС цього запиту - беремо актуальне значення
-        // напряму зі стору, інакше тут знову збережеться вже недійсний
-        // старий токен.
-        setAuth(userData, useAuthStore.getState().token!);
-        return userData;
-      } catch (error) {
-        clearAuth();
-        throw error;
-      }
-    },
-    enabled: !!token && isAuthenticated,
-    retry: false,
-    staleTime: 10 * 60 * 1000,
-  });
-
-  // Токен лише в пам'яті: після перезавантаження сторінки він порожній, і
-  // спершу треба спробувати відновити сесію з refresh-cookie, а вже потім
-  // вирішувати, чи редіректити на /login.
+  // The token lives only in memory, so after a page reload it is empty and the
+  // session must be restored from the refresh cookie before deciding on /login.
+  // The refresh response already contains the user: no /auth/me request needed.
   useEffect(() => {
     if (!isInitialized) {
       void restoreSession();
@@ -53,7 +25,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!isInitialized || isLoading) {
+  if (!isInitialized) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-2">
@@ -62,10 +34,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
         </div>
       </div>
     );
-  }
-
-  if (isError || !user) {
-    return <Navigate to="/login" replace />;
   }
 
   return children;

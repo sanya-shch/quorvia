@@ -141,7 +141,12 @@ export const refreshAccessToken = async (refreshToken: string | undefined) => {
   }
 
   const tokenHash = hashRefreshToken(refreshToken);
-  const stored = await prisma.refreshToken.findUnique({ where: { tokenHash } });
+  // The user comes with the token row (one query), so the client does not need a
+  // separate /auth/me round trip after restoring a session.
+  const stored = await prisma.refreshToken.findUnique({
+    where: { tokenHash },
+    include: { user: { select: { id: true, email: true } } },
+  });
 
   if (!stored) {
     throw new AppError(ErrorCode.AUTH_REFRESH_TOKEN_INVALID, 401);
@@ -171,7 +176,9 @@ export const refreshAccessToken = async (refreshToken: string | undefined) => {
     throw new AppError(ErrorCode.AUTH_REFRESH_TOKEN_INVALID, 401);
   }
 
-  return issueTokenPair(stored.userId);
+  const tokens = await issueTokenPair(stored.userId);
+
+  return { ...tokens, user: { id: stored.user.id, email: stored.user.email } };
 };
 
 /**

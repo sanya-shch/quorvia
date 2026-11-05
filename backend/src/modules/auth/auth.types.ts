@@ -26,6 +26,7 @@ export type LoginDto = {
 
 export type RefreshDto = {
   accessToken: string;
+  user: AuthUser;
 };
 
 export type GetMeDto = AuthUser;

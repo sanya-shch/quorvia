@@ -1,23 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "../store/useAuthStore";
 
-const { restoreSession, getMe } = vi.hoisted(() => ({
+const { restoreSession } = vi.hoisted(() => ({
   restoreSession: vi.fn(),
-  getMe: vi.fn(),
 }));
 
 vi.mock("../api/axios", () => ({ restoreSession }));
-vi.mock("../api/auth", () => ({ authApi: { getMe } }));
 
 const { default: ProtectedRoute } = await import("./ProtectedRoute");
 
 const renderRoute = () =>
   render(
-    <QueryClientProvider client={new QueryClient()}>
-      <MemoryRouter initialEntries={["/secret"]}>
+    <MemoryRouter initialEntries={["/secret"]}>
         <Routes>
           <Route path="/login" element={<div>login-page</div>} />
           <Route
@@ -29,8 +25,7 @@ const renderRoute = () =>
             }
           />
         </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>,
+      </MemoryRouter>,
   );
 
 describe("ProtectedRoute (токен лише в пам'яті)", () => {
@@ -61,9 +56,8 @@ describe("ProtectedRoute (токен лише в пам'яті)", () => {
   });
 
   it("якщо сесію відновлено - показує захищену сторінку", async () => {
-    getMe.mockResolvedValue({ id: "u1", email: "a@b.com" });
     restoreSession.mockImplementation(async () => {
-      act(() => useAuthStore.getState().setToken("fresh"));
+      act(() => useAuthStore.getState().setAuth({ id: "u1", email: "a@b.com" }, "fresh"));
       return "fresh";
     });
 
@@ -73,7 +67,6 @@ describe("ProtectedRoute (токен лише в пам'яті)", () => {
   });
 
   it("вже ініціалізована сесія з токеном не викликає restoreSession повторно", async () => {
-    getMe.mockResolvedValue({ id: "u1", email: "a@b.com" });
     useAuthStore.setState({ token: "t", isAuthenticated: true, isInitialized: true });
 
     renderRoute();

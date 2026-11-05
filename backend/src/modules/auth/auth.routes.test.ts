@@ -142,6 +142,7 @@ describe("POST /api/auth/refresh", () => {
       accessToken: "new-access-token",
       refreshToken: "new-raw-refresh-token",
       refreshTokenExpiresAt: new Date("2099-01-01T00:00:00.000Z"),
+      user: { id: "user-1", email: "a@b.com" },
     });
 
     const res = await request(app)
@@ -149,7 +150,11 @@ describe("POST /api/auth/refresh", () => {
       .set("Cookie", ["refreshToken=old-raw-refresh-token"]);
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ accessToken: "new-access-token" });
+    expect(res.body).toEqual({
+      accessToken: "new-access-token",
+      user: { id: "user-1", email: "a@b.com" },
+    });
+    expect(JSON.stringify(res.body)).not.toContain("new-raw-refresh-token");
     expect(refreshAccessToken).toHaveBeenCalledWith("old-raw-refresh-token");
 
     const setCookie = res.headers["set-cookie"]?.[0] ?? "";

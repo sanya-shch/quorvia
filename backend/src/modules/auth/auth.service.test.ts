@@ -258,12 +258,17 @@ describe("refreshAccessToken", () => {
       userId: "user-1",
       revokedAt: null,
       expiresAt: REFRESH_EXPIRES_AT,
+      user: { id: "user-1", email: "a@b.com" },
     });
 
     (prisma.refreshToken.updateMany as any).mockResolvedValue({ count: 1 });
 
     const result = await refreshAccessToken("old-raw-token");
 
+    expect(prisma.refreshToken.findUnique).toHaveBeenCalledWith({
+      where: { tokenHash: "hashed-old-raw-token" },
+      include: { user: { select: { id: true, email: true } } },
+    });
     expect(hashRefreshToken).toHaveBeenCalledWith("old-raw-token");
     expect(prisma.refreshToken.updateMany).toHaveBeenCalledWith({
       where: { id: "rt-1", revokedAt: null },
@@ -280,6 +285,7 @@ describe("refreshAccessToken", () => {
       accessToken: "access-token",
       refreshToken: "raw-refresh-token",
       refreshTokenExpiresAt: REFRESH_EXPIRES_AT,
+      user: { id: "user-1", email: "a@b.com" },
     });
   });
 });

@@ -1,5 +1,5 @@
 import type { LoginInput, RegisterInput } from "./authSchemas";
-import { api, publicApi } from "./axios";
+import { publicApi } from "./axios";
 
 interface AuthResponse {
   // Короткоживучий (15 хв) access-токен. Довгостроковий refresh-токен у
@@ -14,6 +14,10 @@ interface AuthResponse {
 
 interface RefreshResponse {
   accessToken: string;
+  user: {
+    id: string;
+    email: string;
+  };
 }
 
 export const authApi = {
@@ -24,11 +28,6 @@ export const authApi = {
 
   register: async (data: Omit<RegisterInput, "confirmPassword">): Promise<AuthResponse> => {
     const response = await publicApi.post("/auth/register", data, { withCredentials: true });
-    return response.data;
-  },
-
-  getMe: async (): Promise<{ id: string; email: string }> => {
-    const response = await api.get("/auth/me");
     return response.data;
   },
 
