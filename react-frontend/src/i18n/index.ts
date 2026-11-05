@@ -1,54 +1,52 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "@quorvia/shared-types";
-
-import enCommon from "./locales/en/common.json";
-import enErrors from "./locales/en/errors.json";
-import enConditionErrors from "./locales/en/conditionErrors.json";
-import enAuth from "./locales/en/auth.json";
-import enDashboard from "./locales/en/dashboard.json";
-import enBuilder from "./locales/en/builder.json";
-import enViewer from "./locales/en/viewer.json";
-import enAnalytics from "./locales/en/analytics.json";
-
-import ukCommon from "./locales/uk/common.json";
-import ukErrors from "./locales/uk/errors.json";
-import ukConditionErrors from "./locales/uk/conditionErrors.json";
-import ukAuth from "./locales/uk/auth.json";
-import ukDashboard from "./locales/uk/dashboard.json";
-import ukBuilder from "./locales/uk/builder.json";
-import ukViewer from "./locales/uk/viewer.json";
-import ukAnalytics from "./locales/uk/analytics.json";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE, type SupportedLocale } from "@quorvia/shared-types";
 
 export const I18N_LOCALSTORAGE_KEY = "quorvia-language";
 
-/**
- * Кожна фіча-область (auth, dashboard, builder, viewer, analytics) - свій
- * JSON-файл per locale, для зручності рев'ю, але всі вони зливаються в
- * ОДИН неймспейс i18next ("common") - тримати десяток неймспейсів заради
- * проєкту такого розміру було б зайвою складністю.
- */
-const en = {
-  ...enCommon,
-  errors: enErrors,
-  conditionErrors: enConditionErrors,
-  auth: enAuth,
-  dashboard: enDashboard,
-  builder: enBuilder,
-  viewer: enViewer,
-  analytics: enAnalytics,
+type Bundle = Record<string, unknown>;
+
+// Only the active language is downloaded; the other one is fetched on demand
+// (language switch, or a public form whose UI language differs from the app's).
+const bundleLoaders: Record<SupportedLocale, () => Promise<{ default: Bundle }>> = {
+  en: () => import("./locales/en"),
+  uk: () => import("./locales/uk"),
 };
 
-const uk = {
-  ...ukCommon,
-  errors: ukErrors,
-  conditionErrors: ukConditionErrors,
-  auth: ukAuth,
-  dashboard: ukDashboard,
-  builder: ukBuilder,
-  viewer: ukViewer,
-  analytics: ukAnalytics,
+const bundles = new Map<string, Bundle>();
+const pendingLoads = new Map<string, Promise<void>>();
+
+const isSupportedLocale = (language: string): language is SupportedLocale =>
+  (SUPPORTED_LOCALES as readonly string[]).includes(language);
+
+export const isLocaleLoaded = (language: string): boolean => bundles.has(language);
+
+export const loadLocale = (language: string): Promise<void> => {
+  if (!isSupportedLocale(language) || bundles.has(language)) return Promise.resolve();
+
+  let pending = pendingLoads.get(language);
+
+  if (!pending) {
+    pending = bundleLoaders[language]()
+      .then((module) => {
+        bundles.set(language, module.default);
+        i18n.addResourceBundle(language, "common", module.default, true, true);
+      })
+      .finally(() => pendingLoads.delete(language));
+    pendingLoads.set(language, pending);
+  }
+
+  return pending;
+};
+
+export const loadAllLocales = (): Promise<void[]> =>
+  Promise.all(SUPPORTED_LOCALES.map((language) => loadLocale(language)));
+
+/** Loads the language bundle first so the UI never renders raw keys, then switches. */
+export const changeAppLanguage = async (language: string): Promise<void> => {
+  await loadLocale(language);
+  await i18n.changeLanguage(language);
 };
 
 /**
@@ -59,10 +57,6 @@ const uk = {
  * англійську, а не залишаємо i18next вгадувати найближчий варіант.
  */
 const baseOptions = {
-  resources: {
-    en: { common: en },
-    uk: { common: uk },
-  },
   ns: ["common"],
   defaultNS: "common",
   supportedLngs: [...SUPPORTED_LOCALES],
@@ -71,7 +65,8 @@ const baseOptions = {
   interpolation: { escapeValue: false },
 };
 
-i18n
+// Resolves once the detected language bundle is in place; main.tsx waits for it before the first render.
+export const i18nReady: Promise<void> = i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
@@ -81,6 +76,13 @@ i18n
       caches: ["localStorage"],
       lookupLocalStorage: I18N_LOCALSTORAGE_KEY,
     },
+  })
+  .then(async () => {
+    const detected = i18n.language?.split("-")[0] ?? DEFAULT_LOCALE;
+
+    await loadLocale(isSupportedLocale(detected) ? detected : DEFAULT_LOCALE);
+    // Re-resolve now that resources exist (sets resolvedLanguage, notifies subscribers).
+    await i18n.changeLanguage(i18n.language);
   });
 
 /**
@@ -88,12 +90,16 @@ i18n
  * показується мовою форми, а не мовою застосунку). Створюється БЕЗ детектора
  * мови: клон основного екземпляра (cloneInstance) ділить з ним детектор і
  * записував би вибір респондента в localStorage як мову застосунку.
- * Ресурси вбудовані, тож ініціалізація синхронна.
+ * Потрібні бандли мають бути завантажені заздалегідь (loadLocale), тоді ініціалізація синхронна.
  */
 export const createIsolatedI18n = (language: string) => {
   const instance = i18n.createInstance();
 
-  void instance.init({ ...baseOptions, lng: language, initAsync: false });
+  const resources = Object.fromEntries(
+    [...bundles].map(([locale, bundle]) => [locale, { common: bundle }]),
+  );
+
+  void instance.init({ ...baseOptions, resources, lng: language, initAsync: false });
 
   return instance;
 };

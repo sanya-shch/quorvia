@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { SUPPORTED_LOCALES, type SupportedLocale } from "@quorvia/shared-types";
+import { changeAppLanguage } from "../../i18n";
 
 interface LanguageSwitcherProps {
   className?: string;
@@ -19,7 +20,7 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
       <span className="sr-only">{t("language.switchLabel")}</span>
       <select
         value={i18n.resolvedLanguage}
-        onChange={(e) => i18n.changeLanguage(e.target.value)}
+        onChange={(e) => void changeAppLanguage(e.target.value)}
         className="cursor-pointer rounded-lg border border-slate-200 bg-white py-1 pl-2 pr-6 text-sm text-slate-600 hover:border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
         aria-label={t("language.switchLabel")}
       >

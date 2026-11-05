@@ -1,12 +1,12 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { localizeForm, localizeQuestion, pickContentLanguage } from "@quorvia/shared-types";
-import i18n, { createIsolatedI18n } from "../../i18n";
+import i18n, { createIsolatedI18n, isLocaleLoaded, loadLocale } from "../../i18n";
 import { type FormAnswers } from "../../types/formViewer";
 import { usePublicFormQuery, useSubmitResponsesMutation } from "./hooks/usePublicForm";
 import FormViewer from "./FormViewer";
 import QuestionStepper from "./QuestionStepper";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getOrCreateSessionKey } from "./sessionKey";
 import { type FieldValidationError } from "./questionValidation";
 import { getApiErrorMessage } from "../../i18n/errorCodes";
@@ -99,9 +99,26 @@ export default function PublicFormPage() {
   // i18n без детектора: вибір респондента не міняє мову застосунку й не
   // пишеться в localStorage.
   const uiLanguage = getUiLanguageFor(language);
+  // The UI bundle may differ from the app's language, so it can still be downloading.
+  const [loadedUiLanguage, setLoadedUiLanguage] = useState<string | null>(null);
+  const uiLocaleReady = !isMultilingual || isLocaleLoaded(uiLanguage) || loadedUiLanguage === uiLanguage;
+
+  useEffect(() => {
+    if (!isMultilingual) return;
+
+    let cancelled = false;
+    void loadLocale(uiLanguage).then(() => {
+      if (!cancelled) setLoadedUiLanguage(uiLanguage);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isMultilingual, uiLanguage]);
+
   const viewerI18n = useMemo(
-    () => (isMultilingual ? createIsolatedI18n(uiLanguage) : i18n),
-    [isMultilingual, uiLanguage],
+    () => (isMultilingual && uiLocaleReady ? createIsolatedI18n(uiLanguage) : i18n),
+    [isMultilingual, uiLocaleReady, uiLanguage],
   );
 
   const handleLanguageChange = (next: string) => {
@@ -183,7 +200,7 @@ export default function PublicFormPage() {
       );
   };
 
-  if (isLoading) {
+  if (isLoading || !uiLocaleReady) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
