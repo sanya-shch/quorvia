@@ -92,7 +92,7 @@ export default function ScaleField({
       </div>
 
       {variant === "numbers" && (minLabel || maxLabel) && (
-        <div className="flex justify-between gap-4 text-xs text-slate-400">
+        <div className="flex justify-between gap-4 text-xs text-slate-500">
           <span>{minLabel}</span>
           <span className="text-right">{maxLabel}</span>
         </div>
@@ -102,7 +102,7 @@ export default function ScaleField({
         <button
           type="button"
           onClick={() => onChange("")}
-          className="text-xs font-medium text-slate-400 underline hover:text-slate-600 cursor-pointer"
+          className="text-xs font-medium text-slate-500 underline hover:text-slate-600 cursor-pointer"
         >
           {t("viewer.scale.clear")}
         </button>

@@ -44,7 +44,7 @@ export default function FormCard({
           </span>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-slate-500">
               {new Date(form.updatedAt).toLocaleDateString(i18n.language)}
             </span>
 
@@ -62,7 +62,7 @@ export default function FormCard({
         <h3 className="text-base font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
           {form.title}
         </h3>
-        <p className="mt-1.5 text-sm text-slate-400 line-clamp-2">
+        <p className="mt-1.5 text-sm text-slate-500 line-clamp-2">
           {form.description || t("dashboard.card.noDescription")}
         </p>
       </div>
@@ -70,7 +70,7 @@ export default function FormCard({
       <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4">
         <div className="flex items-center gap-1.5 text-sm text-slate-500">
           <svg
-            className="h-4 w-4 text-slate-400"
+            className="h-4 w-4 text-slate-500"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth="2"
@@ -85,7 +85,7 @@ export default function FormCard({
           <span>{t("dashboard.card.responsesCount", { count: form._count?.responses ?? 0 })}</span>
         </div>
 
-        <span className="text-slate-400 group-hover:translate-x-1 group-hover:text-indigo-500 transition-transform">
+        <span className="text-slate-500 group-hover:translate-x-1 group-hover:text-indigo-500 transition-transform">
           <svg
             className="h-5 w-5"
             fill="none"

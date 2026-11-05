@@ -108,7 +108,8 @@ export default function OptionsConfigEditor({
                     >
                       <div
                         {...draggableProvided.dragHandleProps}
-                        className="text-slate-300 hover:text-slate-500 cursor-grab px-1"
+                        aria-label={t("builder.editors.options.dragOption")}
+                        className="text-slate-500 hover:text-slate-600 cursor-grab px-1"
                       >
                         <svg
                           className="h-4 w-4"
@@ -162,7 +163,7 @@ export default function OptionsConfigEditor({
                             ))}
                         </button>
                       ) : (
-                        <span className="h-5 w-5 shrink-0 text-center text-xs font-bold text-slate-400">
+                        <span className="h-5 w-5 shrink-0 text-center text-xs font-bold text-slate-500">
                           {index + 1}
                         </span>
                       )}
@@ -179,7 +180,8 @@ export default function OptionsConfigEditor({
                         type="button"
                         onClick={() => handleRemoveOption(index)}
                         disabled={regularOptions.length <= minOptions}
-                        className="opacity-0 group-hover:opacity-100 rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer disabled:opacity-0"
+                        aria-label={t("builder.editors.options.removeOption")}
+                        className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer disabled:opacity-0"
                       >
                         <svg
                           className="h-4 w-4"
@@ -218,14 +220,14 @@ export default function OptionsConfigEditor({
               className="flex-1 min-w-0 bg-transparent text-sm font-medium text-slate-700 focus:outline-none placeholder-slate-400"
               placeholder={t("builder.editors.options.otherDefaultText")}
             />
-            <span className="shrink-0 text-xs text-slate-400">
+            <span className="shrink-0 text-xs text-slate-500">
               {t("builder.editors.options.otherHint")}
             </span>
             <button
               type="button"
               onClick={handleRemoveOther}
               aria-label={t("builder.editors.options.removeOther")}
-              className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer"
+              className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer"
             >
               <svg
                 className="h-4 w-4"
@@ -287,7 +289,7 @@ export default function OptionsConfigEditor({
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   displayVariant === "list"
                     ? "bg-white text-slate-800 shadow-sm"
-                    : "text-slate-500 hover:text-slate-800"
+                    : "text-slate-600 hover:text-slate-800"
                 }`}
               >
                 {t("builder.editors.options.displayList")}
@@ -299,7 +301,7 @@ export default function OptionsConfigEditor({
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   displayVariant === "tabs"
                     ? "bg-white text-slate-800 shadow-sm"
-                    : "text-slate-500 hover:text-slate-800"
+                    : "text-slate-600 hover:text-slate-800"
                 }`}
               >
                 {t("builder.editors.options.displayTabs")}
@@ -312,7 +314,7 @@ export default function OptionsConfigEditor({
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
                   displayVariant === "dropdown"
                     ? "bg-white text-slate-800 shadow-sm"
-                    : "text-slate-500 hover:text-slate-800"
+                    : "text-slate-600 hover:text-slate-800"
                 }`}
                 title={
                   questionType === "CHOICE_MULTI"
@@ -328,7 +330,7 @@ export default function OptionsConfigEditor({
       )}
 
       {isRanking && (
-        <p className="text-xs text-slate-400">{t("builder.editors.options.rankingHint")}</p>
+        <p className="text-xs text-slate-500">{t("builder.editors.options.rankingHint")}</p>
       )}
     </div>
   );

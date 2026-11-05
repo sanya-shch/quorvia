@@ -60,14 +60,14 @@ export default function NumberSlider({
         <output
           htmlFor={id}
           className={`min-w-12 text-right text-sm font-semibold ${
-            answered ? "text-slate-800" : "text-slate-400"
+            answered ? "text-slate-800" : "text-slate-500"
           }`}
         >
           {answered ? value : t("viewer.slider.notSet")}
         </output>
       </div>
 
-      <div className="flex justify-between text-xs text-slate-400" aria-hidden="true">
+      <div className="flex justify-between text-xs text-slate-500" aria-hidden="true">
         <span>{min}</span>
         <span>{max}</span>
       </div>
@@ -76,7 +76,7 @@ export default function NumberSlider({
         <button
           type="button"
           onClick={() => onChange("")}
-          className="text-xs font-medium text-slate-400 underline hover:text-slate-600 cursor-pointer"
+          className="text-xs font-medium text-slate-500 underline hover:text-slate-600 cursor-pointer"
         >
           {t("viewer.scale.clear")}
         </button>

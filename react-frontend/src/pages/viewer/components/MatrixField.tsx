@@ -88,7 +88,7 @@ export default function MatrixField({
         <button
           type="button"
           onClick={() => onChange("")}
-          className="text-xs font-medium text-slate-400 underline hover:text-slate-600 cursor-pointer"
+          className="text-xs font-medium text-slate-500 underline hover:text-slate-600 cursor-pointer"
         >
           {t("viewer.matrix.clear")}
         </button>

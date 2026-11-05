@@ -89,7 +89,7 @@ export default function RankingField({
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-slate-400">{t("viewer.ranking.hint")}</p>
+      <p className="text-xs text-slate-500">{t("viewer.ranking.hint")}</p>
 
       <ol aria-labelledby={labelledBy} aria-describedby={describedBy} className="space-y-2">
         {order.map((id, index) => (
@@ -102,7 +102,7 @@ export default function RankingField({
               className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                 answered
                   ? "bg-indigo-600 text-white"
-                  : "border border-dashed border-slate-300 text-slate-400"
+                  : "border border-dashed border-slate-300 text-slate-500"
               }`}
             >
               {index + 1}
@@ -161,7 +161,7 @@ export default function RankingField({
             setAnnouncement("");
             onChange("");
           }}
-          className="text-xs font-medium text-slate-400 underline hover:text-slate-600 cursor-pointer"
+          className="text-xs font-medium text-slate-500 underline hover:text-slate-600 cursor-pointer"
         >
           {t("viewer.ranking.clear")}
         </button>

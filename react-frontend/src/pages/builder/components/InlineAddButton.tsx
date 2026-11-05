@@ -48,7 +48,7 @@ export default function InlineAddButton({ onAdd }: InlineAddButtonProps) {
         ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm transition-all group-hover/line:scale-110 group-hover/line:border-indigo-500 group-hover/line:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer ${
+        className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all group-hover/line:scale-110 group-hover/line:border-indigo-500 group-hover/line:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer ${
           isOpen ? "scale-110 border-indigo-500 text-indigo-600 rotate-45" : ""
         }`}
         aria-label={t("builder.inlineAdd.addHere")}

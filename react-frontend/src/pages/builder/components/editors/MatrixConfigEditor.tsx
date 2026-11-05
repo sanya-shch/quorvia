@@ -24,7 +24,7 @@ const newId = (prefix: string) =>
 const inputClass =
   "flex-1 min-w-0 h-10 rounded-xl border border-slate-200 px-3 text-sm text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
 const removeClass =
-  "rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400";
+  "rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-500";
 const addClass =
   "inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-500 bg-indigo-50/50 hover:bg-indigo-50 px-3 py-2 rounded-xl border border-dashed border-indigo-200 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed";
 
@@ -92,7 +92,7 @@ export default function MatrixConfigEditor({
 
         {rows.map((row, index) => (
           <div key={row.id} className="flex items-center gap-2">
-            <span className="w-5 shrink-0 text-center text-xs font-bold text-slate-400">
+            <span className="w-5 shrink-0 text-center text-xs font-bold text-slate-500">
               {index + 1}
             </span>
             <input
@@ -135,7 +135,7 @@ export default function MatrixConfigEditor({
 
         {columns.map((column, index) => (
           <div key={column.id} className="flex items-center gap-2">
-            <span className="w-5 shrink-0 text-center text-xs font-bold text-slate-400">
+            <span className="w-5 shrink-0 text-center text-xs font-bold text-slate-500">
               {index + 1}
             </span>
             <input
@@ -178,7 +178,7 @@ export default function MatrixConfigEditor({
         </div>
       </div>
 
-      <p className="text-xs text-slate-400">{t("builder.editors.matrix.hint")}</p>
+      <p className="text-xs text-slate-500">{t("builder.editors.matrix.hint")}</p>
     </div>
   );
 }

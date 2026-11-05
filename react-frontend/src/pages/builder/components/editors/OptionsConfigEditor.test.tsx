@@ -91,13 +91,8 @@ describe("OptionsConfigEditor - варіант «Інше»", () => {
       />,
     );
 
-    const removeButtons = screen
-      .getAllByRole("button")
-      .filter((b) => b.className.includes("hover:text-rose-600") && !b.getAttribute("aria-label"));
-
     // єдина кнопка видалення звичайного варіанта заблокована
-    expect(removeButtons.length).toBeGreaterThan(0);
-    expect(removeButtons.every((b) => (b as HTMLButtonElement).disabled)).toBe(true);
+    expect(screen.getByRole("button", { name: "Видалити варіант" })).toBeDisabled();
   });
 
   it("текст «Інше» редагується", async () => {

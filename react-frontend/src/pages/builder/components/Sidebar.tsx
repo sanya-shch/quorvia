@@ -66,7 +66,7 @@ export default function Sidebar() {
                         </div>
 
                         {snapshot.isDragging && (
-                          <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 mb-2 text-sm font-medium bg-slate-50 text-slate-400">
+                          <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 mb-2 text-sm font-medium bg-slate-50 text-slate-500">
                             <span className="text-lg">{item.icon}</span>
                             <span>{item.label}</span>
                           </div>

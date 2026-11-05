@@ -106,6 +106,8 @@
       "otherLabel": "Text of the “Other” option",
       "otherHint": "Respondent types their own answer",
       "removeOther": "Remove “Other” option",
+      "removeOption": "Remove option",
+      "dragOption": "Drag to reorder option",
       "rankingHint": "Respondents put all options in their order of preference (2–20 options)."
     },
     "condition": {

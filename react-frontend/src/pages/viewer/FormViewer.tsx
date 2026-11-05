@@ -177,7 +177,7 @@ export default function FormViewer({
                   )}
                 </label>
                 {question.description && (
-                  <p className="text-xs text-slate-400 mt-0.5">{question.description}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{question.description}</p>
                 )}
               </div>
 

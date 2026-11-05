@@ -168,7 +168,7 @@ export default function QuestionStepper({
   if (path.length === 0) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <p className="text-sm text-slate-400">{t("viewer.noQuestions")}</p>
+        <p className="text-sm text-slate-500">{t("viewer.noQuestions")}</p>
       </div>
     );
   }
@@ -176,7 +176,7 @@ export default function QuestionStepper({
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 flex flex-col items-center">
       <div className="w-full max-w-xl space-y-4">
-        <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
+        <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
           <span>{formTitle}</span>
           <span>
             {isReview
@@ -219,7 +219,7 @@ export default function QuestionStepper({
                     key={q.id || i}
                     className="flex items-center justify-between text-sm border-b border-slate-100 pb-2 last:border-0"
                   >
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-slate-500">
                       {q.text || t("viewer.questionFallback", { number: i + 1 })}
                       {" - "}
                       {formatReviewAnswer(
@@ -288,7 +288,7 @@ export default function QuestionStepper({
                     )}
                   </label>
                   {current.description && (
-                    <p className="text-xs text-slate-400 mt-1">{current.description}</p>
+                    <p className="text-xs text-slate-500 mt-1">{current.description}</p>
                   )}
                 </div>
 

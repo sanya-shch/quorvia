@@ -53,7 +53,7 @@ export default function ConditionEditor({
 
   if (availableTargets.length === 0) {
     return (
-      <p className="text-[11px] text-slate-400 italic">
+      <p className="text-[11px] text-slate-500 italic">
         {t("builder.editors.condition.noTargetsHint")}
       </p>
     );
@@ -126,7 +126,7 @@ export default function ConditionEditor({
         <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3 space-y-2.5">
           {condition.rules.length > 1 && (
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-slate-400">
+              <span className="text-[11px] text-slate-500">
                 {t("builder.editors.condition.executeLabel")}
               </span>
               <div className="flex gap-1 bg-white p-0.5 rounded-lg border border-slate-200 w-fit">
@@ -156,7 +156,7 @@ export default function ConditionEditor({
 
             return (
               <div key={index} className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[11px] text-slate-400 w-10 shrink-0">
+                <span className="text-[11px] text-slate-500 w-10 shrink-0">
                   {index === 0
                     ? t("builder.editors.condition.ifWord")
                     : t("builder.editors.condition.andWord")}

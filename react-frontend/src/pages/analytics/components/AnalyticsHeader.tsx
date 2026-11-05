@@ -22,7 +22,7 @@ export default function AnalyticsHeader({
         <div className="flex items-center gap-2 text-sm font-semibold">
           <button
             onClick={() => navigate("/dashboard")}
-            className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+            className="text-slate-500 hover:text-slate-600 transition-colors cursor-pointer"
           >
             {t("analytics.header.dashboardLink")}
           </button>
@@ -39,7 +39,7 @@ export default function AnalyticsHeader({
 
           <button
             onClick={() => navigate(`/analytics/${formId}`)}
-            className={`transition-colors ${currentBreadcrumb ? "text-slate-400 hover:text-slate-600 cursor-pointer" : "text-slate-800"}`}
+            className={`transition-colors ${currentBreadcrumb ? "text-slate-500 hover:text-slate-600 cursor-pointer" : "text-slate-800"}`}
           >
             {resolvedFormTitle}
           </button>

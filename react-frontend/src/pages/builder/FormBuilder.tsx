@@ -249,8 +249,8 @@ export default function FormBuilder() {
             <span
               className={`text-xs font-semibold hidden sm:inline-flex items-center gap-1.5 ${
                 isDirty
-                  ? "text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md"
-                  : "text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md"
+                  ? "text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md"
+                  : "text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md"
               }`}
             >
               <span
@@ -265,7 +265,7 @@ export default function FormBuilder() {
               type="button"
               onClick={handleSaveForm}
               disabled={!isDirty || saveMutation.isPending}
-              className="inline-flex h-10 items-center justify-center rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white cursor-pointer hover:bg-indigo-500 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white cursor-pointer hover:bg-indigo-500 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               {saveMutation.isPending ? t("builder.saving") : t("builder.saveForm")}
             </button>
@@ -279,7 +279,9 @@ export default function FormBuilder() {
             <LanguageBar
               form={form}
               activeLanguage={currentLanguage}
-              onSelect={(language) => setActiveLanguage(language === mainLanguage ? null : language)}
+              onSelect={(language) =>
+                setActiveLanguage(language === mainLanguage ? null : language)
+              }
               onChange={updateForm}
             />
 
@@ -316,7 +318,7 @@ export default function FormBuilder() {
                     <p className="text-xs font-semibold text-slate-600">
                       {t("builder.responseMode.label")}
                     </p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
+                    <p className="text-[11px] text-slate-500 mt-0.5">
                       {t("builder.responseMode.hint")}
                     </p>
                   </div>
@@ -343,7 +345,6 @@ export default function FormBuilder() {
                     ))}
                   </div>
                 </div>
-
                 {errors.title && <ErrorInfo errorText={t(errors.title)} />}
               </div>
 
@@ -436,7 +437,9 @@ export default function FormBuilder() {
                                       <div className="relative w-full max-w-md">
                                         <select
                                           disabled
-                                          value={question.options.find((o) => o.isDefault)?.id || ""}
+                                          value={
+                                            question.options.find((o) => o.isDefault)?.id || ""
+                                          }
                                           className="w-full h-10 rounded-xl border border-slate-200 bg-slate-50/50 px-3 pr-10 text-sm font-medium text-slate-700 cursor-not-allowed appearance-none"
                                         >
                                           {!question.options.some((o) => o.isDefault) && (
@@ -452,7 +455,7 @@ export default function FormBuilder() {
                                           ))}
                                         </select>
 
-                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500">
                                           <svg
                                             className="h-4 w-4"
                                             fill="none"
@@ -507,9 +510,13 @@ export default function FormBuilder() {
                                     rows={question.config?.rows ?? []}
                                     columns={question.options}
                                     onChangeRows={(rows) =>
-                                      updateQuestion(index, { config: { ...question.config, rows } })
+                                      updateQuestion(index, {
+                                        config: { ...question.config, rows },
+                                      })
                                     }
-                                    onChangeColumns={(options) => updateQuestion(index, { options })}
+                                    onChangeColumns={(options) =>
+                                      updateQuestion(index, { options })
+                                    }
                                   />
                                 )}
 
@@ -532,13 +539,13 @@ export default function FormBuilder() {
                                 )}
 
                                 {question.type === "NPS" && (
-                                  <p className="py-2 text-xs text-slate-400 animate-in fade-in duration-150">
+                                  <p className="py-2 text-xs text-slate-500 animate-in fade-in duration-150">
                                     {t("builder.editors.nps.hint")}
                                   </p>
                                 )}
 
                                 {question.type === "DATE" && (
-                                  <div className="flex items-center gap-2 py-2 text-slate-400 text-xs animate-in fade-in duration-150">
+                                  <div className="flex items-center gap-2 py-2 text-slate-500 text-xs animate-in fade-in duration-150">
                                     {calendarIcon}
                                     <span>{t("builder.datePreview")}</span>
                                   </div>
@@ -556,7 +563,7 @@ export default function FormBuilder() {
 
                     {form.questions.length === 0 && (
                       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-12 pb-24 text-center mt-4">
-                        <p className="text-sm text-slate-400">{t("builder.emptyState")}</p>
+                        <p className="text-sm text-slate-500">{t("builder.emptyState")}</p>
                       </div>
                     )}
 

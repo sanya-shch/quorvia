@@ -59,7 +59,7 @@ export default function QuestionCard({
 
         <div className="flex-1 space-y-2">
           <div className="flex gap-2 items-center">
-            <span className="text-xs font-bold text-slate-400 font-mono">#{index + 1}</span>
+            <span className="text-xs font-bold text-slate-500 font-mono">#{index + 1}</span>
             <input
               type="text"
               value={question.text}
@@ -76,7 +76,7 @@ export default function QuestionCard({
             onChange={(e) => onUpdate({ description: e.target.value })}
             placeholder={t("builder.questionCard.descriptionPlaceholder")}
             aria-label={t("builder.questionCard.descriptionAriaLabel")}
-            className="w-full text-xs text-slate-500 placeholder:text-slate-300 bg-transparent border-b border-transparent hover:border-slate-100 focus:border-indigo-500 focus:outline-none pb-1 transition-colors"
+            className="w-full text-xs text-slate-500 placeholder:text-slate-400 bg-transparent border-b border-transparent hover:border-slate-100 focus:border-indigo-500 focus:outline-none pb-1 transition-colors"
           />
 
           {error && <ErrorInfo errorText={error} />}
@@ -87,7 +87,7 @@ export default function QuestionCard({
         {children ? (
           children
         ) : (
-          <div className="text-xs text-slate-400 italic">
+          <div className="text-xs text-slate-500 italic">
             {t("builder.questionCard.configPlaceholder", { type: question.type })}
           </div>
         )}
@@ -154,7 +154,7 @@ export default function QuestionCard({
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-3 text-slate-400">
+        <div className="flex items-center gap-1.5 sm:gap-3 text-slate-500">
           <label className="flex items-center gap-2 cursor-pointer pr-2 border-r border-slate-200 select-none">
             <span className="text-xs font-medium text-slate-500">{t("common.required")}</span>
             <div className="relative">

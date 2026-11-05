@@ -28,7 +28,7 @@ export default function BooleanConfigEditor({ config, onChange }: BooleanConfigE
           className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
             !defaultValue
               ? "bg-white text-slate-800 shadow-sm"
-              : "text-slate-500 hover:text-slate-800"
+              : "text-slate-600 hover:text-slate-800"
           }`}
         >
           {t("builder.editors.boolean.off")}
@@ -40,14 +40,14 @@ export default function BooleanConfigEditor({ config, onChange }: BooleanConfigE
           className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
             defaultValue
               ? "bg-indigo-600 text-white shadow-sm"
-              : "text-slate-500 hover:text-slate-800"
+              : "text-slate-600 hover:text-slate-800"
           }`}
         >
           {t("builder.editors.boolean.on")}
         </button>
       </div>
 
-      <div className="flex items-center gap-2 mt-2 text-slate-400 text-[11px]">
+      <div className="flex items-center gap-2 mt-2 text-slate-500 text-[11px]">
         <span>{t("builder.editors.boolean.hint")}</span>
       </div>
     </div>

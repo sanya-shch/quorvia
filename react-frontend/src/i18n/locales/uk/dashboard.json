@@ -26,6 +26,7 @@
     "responsesCount_other": "{{count}} відповідей"
   },
   "menu": {
+    "open": "Дії з опитуванням",
     "copyLink": "Копіювати лінк",
     "analytics": "Аналітика відповідей",
     "unpublish": "Зняти з публікації",

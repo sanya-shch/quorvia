@@ -70,7 +70,7 @@ export default function TranslationPanel({
           className="flex flex-wrap items-baseline gap-x-2 text-xs font-semibold text-slate-500"
         >
           {label}
-          <span className="font-normal text-slate-400">
+          <span className="font-normal text-slate-500">
             {t("builder.languages.sourceLabel", { language: mainName })}: {field.source}
           </span>
         </label>
@@ -103,7 +103,7 @@ export default function TranslationPanel({
             <h2 className="text-lg font-bold text-slate-800">
               {t("builder.languages.panelTitle", { language: languageName })}
             </h2>
-            <p className="mt-0.5 text-xs text-slate-400">{t("builder.languages.fallbackHint")}</p>
+            <p className="mt-0.5 text-xs text-slate-500">{t("builder.languages.fallbackHint")}</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -136,7 +136,7 @@ export default function TranslationPanel({
       </div>
 
       {fields.length === 0 && (
-        <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-400">
+        <p className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
           {t("builder.languages.nothingToTranslate")}
         </p>
       )}
@@ -146,7 +146,7 @@ export default function TranslationPanel({
           key={group.questionIndex ?? "form"}
           className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4"
         >
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
             {group.questionIndex === null
               ? t("builder.languages.formSection")
               : t("builder.languages.questionSection", { number: group.questionIndex + 1 })}

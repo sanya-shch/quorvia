@@ -40,9 +40,13 @@ export default function FormCardMenu({
           e.stopPropagation(); // Зупиняємо перехід у білдер при кліку на трипки
           setIsOpen(!isOpen);
         }}
-        className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
+        aria-label={t("dashboard.menu.open")}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
       >
         <svg
+          aria-hidden="true"
           className="h-5 w-5"
           fill="none"
           viewBox="0 0 24 24"

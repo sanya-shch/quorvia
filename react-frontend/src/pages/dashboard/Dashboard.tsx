@@ -96,7 +96,7 @@ export default function Dashboard() {
               <p className="text-sm font-semibold text-slate-700">
                 {t("dashboard.header.userLabel")}
               </p>
-              <p className="text-xs text-slate-400">{user?.email}</p>
+              <p className="text-xs text-slate-500">{user?.email}</p>
             </div>
             <button
               onClick={handleLogout}
@@ -124,17 +124,17 @@ export default function Dashboard() {
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8">
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm font-medium text-slate-400">{t("dashboard.stats.totalForms")}</p>
+            <p className="text-sm font-medium text-slate-500">{t("dashboard.stats.totalForms")}</p>
             <p className="mt-2 text-3xl font-bold tracking-tight">{forms.length}</p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm font-medium text-slate-400">{t("dashboard.stats.published")}</p>
+            <p className="text-sm font-medium text-slate-500">{t("dashboard.stats.published")}</p>
             <p className="mt-2 text-3xl font-bold tracking-tight text-emerald-600">
               {forms.filter((f) => f.isPublished).length}
             </p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm font-medium text-slate-400">
+            <p className="text-sm font-medium text-slate-500">
               {t("dashboard.stats.totalResponses")}
             </p>
             <p className="mt-2 text-3xl font-bold tracking-tight text-indigo-600">
@@ -145,7 +145,7 @@ export default function Dashboard() {
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
           <div className="relative max-w-md w-full">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
               <svg
                 className="h-5 w-5"
                 fill="none"
@@ -165,7 +165,7 @@ export default function Dashboard() {
               placeholder={t("dashboard.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-shadow"
+              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-shadow"
             />
           </div>
 
@@ -192,7 +192,7 @@ export default function Dashboard() {
             <h3 className="text-sm font-semibold text-slate-900">
               {t("dashboard.emptyState.title")}
             </h3>
-            <p className="mt-1 text-sm text-slate-400">{t("dashboard.emptyState.subtitle")}</p>
+            <p className="mt-1 text-sm text-slate-500">{t("dashboard.emptyState.subtitle")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

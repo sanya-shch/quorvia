@@ -59,7 +59,7 @@ export default function LanguageBar({ form, activeLanguage, onSelect, onChange }
             className={tabClass(activeLanguage === main)}
           >
             {name(main)}
-            <span className="text-[10px] font-medium opacity-70">
+            <span className="text-[10px] font-medium">
               {t("builder.languages.mainBadge")}
             </span>
           </button>
@@ -130,7 +130,7 @@ export default function LanguageBar({ form, activeLanguage, onSelect, onChange }
         </label>
       </div>
 
-      <p className="mt-2 text-[11px] text-slate-400">{t("builder.languages.mainHint")}</p>
+      <p className="mt-2 text-[11px] text-slate-500">{t("builder.languages.mainHint")}</p>
     </section>
   );
 }

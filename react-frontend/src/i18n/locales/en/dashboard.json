@@ -24,6 +24,7 @@
     "responsesCount_other": "{{count}} responses"
   },
   "menu": {
+    "open": "Form actions",
     "copyLink": "Copy link",
     "analytics": "Response analytics",
     "unpublish": "Unpublish",
