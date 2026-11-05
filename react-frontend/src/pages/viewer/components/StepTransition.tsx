@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { AnimatePresence, LazyMotion, domAnimation, useIsPresent } from "motion/react";
+import { AnimatePresence, LazyMotion, MotionConfig, domAnimation, useIsPresent } from "motion/react";
 import * as m from "motion/react-m";
 import type { Variants } from "motion/react";
 
@@ -13,7 +13,7 @@ const OFFSET_PX = 32;
  * зі сторони напрямку - як гортання сторінок. `custom` передає напрямок і
  * екрану, що вже виходить (його власні пропси застарілі, тому AnimatePresence
  * підставляє свіже значення). Виїзд коротший за в'їзд: користувач не чекає.
- * При prefers-reduced-motion (MotionConfig у App) зміщення вимикається,
+ * При prefers-reduced-motion (MotionConfig below) зміщення вимикається,
  * лишається лише прозорість.
  */
 const variants: Variants = {
@@ -63,13 +63,17 @@ export default function StepTransition({
   children: ReactNode;
 }) {
   return (
-    <LazyMotion features={domAnimation} strict>
-      {/* initial={false}: перший екран з'являється без анімації */}
-      <AnimatePresence mode="wait" initial={false} custom={direction}>
-        <StepCard key={stepKey} direction={direction}>
-          {children}
-        </StepCard>
-      </AnimatePresence>
-    </LazyMotion>
+    // MotionConfig lives here, not in App: motion/react is only needed by the
+    // viewer, and importing it at the root put ~80 KB on every page.
+    <MotionConfig reducedMotion="user">
+      <LazyMotion features={domAnimation} strict>
+        {/* initial={false}: перший екран з'являється без анімації */}
+        <AnimatePresence mode="wait" initial={false} custom={direction}>
+          <StepCard key={stepKey} direction={direction}>
+            {children}
+          </StepCard>
+        </AnimatePresence>
+      </LazyMotion>
+    </MotionConfig>
   );
 }
