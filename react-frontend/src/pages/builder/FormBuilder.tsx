@@ -40,13 +40,12 @@ export default function FormBuilder() {
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const toast = useToast();
   const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
-  // Відкрита вкладка мови: null - основна. Окремо скидати її при завантаженні
-  // форми не треба: вкладка мови, якої в формі немає, веде на основну (див. currentLanguage).
+  // Open language tab: null is the main one. It does not need resetting on form load: a tab for
+  // a language the form does not have leads to the main one (see currentLanguage).
   const [activeLanguage, setActiveLanguage] = useState<string | null>(null);
   const [languageToRemove, setLanguageToRemove] = useState<string | null>(null);
-  // Версія форми, яку редактор зараз тримає (optimistic lock). Зберігається
-  // поза станом форми: її зміна не повинна позначати форму "брудною" чи
-  // перерисовувати редактор.
+  // The form version the editor currently holds (optimistic lock). Kept outside the form state:
+  // changing it must not mark the form dirty or re-render the editor.
   const versionRef = useRef<number | undefined>(undefined);
   const { t, i18n } = useTranslation();
 
@@ -103,9 +102,8 @@ export default function FormBuilder() {
     queryKey: ["formAdmin", formId],
     queryFn: () => formsApi.getAdminForm(formId!),
     enabled: !!formId,
-    // Редактор не повинен тихо замінювати незбережені правки даними з сервера
-    // при поверненні на вкладку; актуальну версію користувач завантажує
-    // свідомо (діалог конфлікту).
+    // The editor must not silently replace unsaved edits with server data when returning to the
+    // tab; the user loads the current version deliberately (the conflict dialog).
     refetchOnWindowFocus: false,
   });
 
@@ -130,9 +128,9 @@ export default function FormBuilder() {
     if (serverForm) applyServerForm(serverForm);
   }, [serverForm, applyServerForm]);
 
-  // Змінна мутації - revision: скільки правок було в момент відправки (див.
-  // useFormBuilder). Після успіху чистою вважається саме ця ревізія, а не все,
-  // що є зараз, тож правки, зроблені під час запиту, лишаються незбереженими.
+  // The mutation variable is revision: how many edits there were when the request was sent (see
+  // useFormBuilder). After success exactly that revision counts as clean, not everything there is
+  // now, so edits made during the request stay unsaved.
   const saveMutation = useMutation<UpdateFormResult, unknown, number>({
     mutationFn: () => {
       const normalizedQuestions = form.questions.map((q) => {
@@ -201,11 +199,9 @@ export default function FormBuilder() {
     );
   }
 
-  // const validateForm = (formData: typeof form): string | null => { ... }; -
-  // прибрано: логіка валідації тепер живе в useFormBuilder().validate()
 
   const mainLanguage = getMainLanguage(form);
-  // Вкладка, що вже не існує (мову видалили), мовчки веде на основну.
+  // A tab that no longer exists (the language was removed) silently leads to the main one.
   const currentLanguage =
     activeLanguage && getAdditionalLanguages(form).includes(activeLanguage)
       ? activeLanguage
@@ -294,9 +290,9 @@ export default function FormBuilder() {
               />
             )}
 
-            {/* Структура форми редагується лише у вкладці основної мови; у режимі
-                перекладу її приховано (hidden), а не розмонтовано - стан drag-and-drop
-                та фокус не губляться. */}
+            {/* The form structure is edited only in the main-language tab; in
+                translation mode it is hidden, not unmounted, so drag-and-drop state
+                and focus are not lost. */}
             <div hidden={isTranslating}>
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                 <input

@@ -1,13 +1,13 @@
 /**
- * Keyset-обхід великої вибірки порціями.
+ * Keyset walk of a large result set in batches.
  *
- * Аналітика не повинна тримати в пам'яті всі відповіді форми: функції
- * агрегації й так накопичують результат інкрементально, тож їм достатньо
- * бачити по одній порції. Пам'ять обмежується розміром порції, а між
- * порціями подія-цикл Node.js вільний для інших запитів.
+ * Analytics must not hold every response of a form in memory: the aggregation functions
+ * accumulate incrementally anyway, so they only need to see one batch at a time. Memory is
+ * bounded by the batch size, and between batches the Node.js event loop is free for other
+ * requests.
  *
- * `fetchPage` має впорядковувати рядки детерміновано (унікальним ключем) і
- * приймати Prisma-курсор: `{ take, skip, cursor }`.
+ * `fetchPage` must order rows deterministically (by a unique key) and accept a Prisma
+ * cursor: `{ take, skip, cursor }`.
  */
 export type PageArgs = { take: number; skip?: number; cursor?: { id: string } };
 
@@ -27,8 +27,8 @@ export async function* paginate<T extends { id: string }>(
     if (rows.length < size) return;
 
     const nextCursorId = rows[rows.length - 1].id;
-    // Запобіжник: якщо курсор не просунувся (помилка в fetchPage, наприклад
-    // курсор включно без skip), цикл читав би ту саму порцію безкінечно.
+    // Safety net: if the cursor did not advance (a bug in fetchPage, for example an inclusive
+    // cursor without skip), the loop would read the same batch forever.
     if (nextCursorId === cursorId) {
       throw new Error("paginate: курсор не просунувся - fetchPage повертає ту саму порцію");
     }

@@ -4,12 +4,12 @@ import userEvent from "@testing-library/user-event";
 import { ToastProvider, useToast } from "./Toast";
 import { playToastAnimation } from "./toastMotion";
 
-// Самі анімації (WAAPI) у jsdom недоступні: життєвий цикл повідомлення
-// перевіряємо з керованою моєю, а toastMotion.ts - окремим тестом.
+// The animations themselves (WAAPI) are not available in jsdom: the message lifecycle is checked
+// with a controlled mock, and toastMotion.ts has its own test.
 vi.mock("./toastMotion", () => ({ playToastAnimation: vi.fn() }));
 const mockedPlay = vi.mocked(playToastAnimation);
 
-/** Хук рендериться всередині провайдера; самі повідомлення видно через screen. */
+// The hook renders inside the provider; the messages themselves are visible through screen.
 let api: ReturnType<typeof useToast>;
 
 const setup = () => {
@@ -40,9 +40,8 @@ describe("Toast", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Не вдалося");
   });
 
-  // Зникнення - це exit-анімація motion, яка завершується асинхронно (на кадрі),
-  // тому "зникло" перевіряємо через waitFor. У тестах анімації миттєві
-  // (MotionGlobalConfig.skipAnimations у test/setup.ts).
+  // Disappearing is a motion exit animation that finishes asynchronously (on a frame), so "gone" is
+  // checked with waitFor. Animations are instant in tests (MotionGlobalConfig.skipAnimations in test/setup.ts).
   it("успіх зникає через 4 с", async () => {
     setup();
     act(() => api.success("Збережено"));
@@ -145,8 +144,8 @@ describe("Toast", () => {
       await user.click(screen.getByRole("button", { name: "Закрити" }));
 
       expect(mockedPlay).toHaveBeenCalledWith(screen.getByRole("status"), "exit");
-      expect(screen.getByText("Збережено")).toBeInTheDocument(); // анімація ще йде
-      expect(screen.getByRole("status")).toHaveClass("pointer-events-none"); // але натискати вже не можна
+      expect(screen.getByText("Збережено")).toBeInTheDocument(); // the animation is still running
+      expect(screen.getByRole("status")).toHaveClass("pointer-events-none"); // but it can no longer be clicked
 
       await act(async () => finishExit());
 
@@ -186,7 +185,7 @@ describe("Toast", () => {
     });
 
     it("витіснене (понад 4) повідомлення зникає одразу, без очікування анімації", () => {
-      mockedPlay.mockImplementation(() => new Promise<void>(() => {})); // жодна анімація не завершується
+      mockedPlay.mockImplementation(() => new Promise<void>(() => {})); // no animation finishes
       setup();
 
       act(() => {

@@ -25,7 +25,7 @@ interface QuestionControlProps {
 }
 
 interface QuestionFieldProps extends QuestionControlProps {
-  /** Текст варіанта «Інше» (answers[otherAnswerKey(qId)]). */
+  // The "Other" option text (answers[otherAnswerKey(qId)]).
   otherValue?: AnswerValue;
   onOtherChange?: (text: string) => void;
 }
@@ -367,16 +367,14 @@ function QuestionControl({
     );
   }
 
-  // Усі типи питань оброблені вище: тут question.type має звузитись до never.
-  // Новий тип у QUESTION_TYPES без власної гілки зламає компіляцію.
+  // All question types are handled above: question.type must narrow to never here. A new type in
+  // QUESTION_TYPES without its own branch breaks compilation.
   return assertNever(question.type, "question type");
 }
 
-/**
- * Поле відповіді + (для питань із варіантом «Інше») текстове поле, яке
- * з'являється, коли «Інше» обрано. Саме керування (QuestionControl) про
- * «Інше» нічого не знає - так варіанти list/tabs/dropdown не дублюють логіку.
- */
+// The answer field plus (for questions with an "Other" option) a text field that appears when
+// "Other" is selected. The control itself (QuestionControl) knows nothing about "Other", so the
+// list/tabs/dropdown variants do not duplicate the logic.
 export default function QuestionField({
   otherValue,
   onOtherChange,
@@ -386,8 +384,8 @@ export default function QuestionField({
   const { question, qId, value, describedBy, invalid } = controlProps;
   const showOther = isOtherSelected(question.type, question.options, value);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Фокус на поле лише коли воно щойно з'явилось через вибір, а не при першому
-  // рендері (напр. після повернення на крок зі вже обраним «Інше»).
+  // Focus the field only when it has just appeared through a selection, not on the first render
+  // (for example after returning to a step with "Other" already selected).
   const wasShown = useRef(showOther);
 
   useEffect(() => {

@@ -4,7 +4,7 @@ import type { MatrixRow, QuestionOption } from "../../../../types/formBuilder";
 
 interface MatrixConfigEditorProps {
   rows: MatrixRow[];
-  /** Колонки матриці - це options питання. */
+  // Matrix columns are the question's options.
   columns: QuestionOption[];
   onChangeRows: (rows: MatrixRow[]) => void;
   onChangeColumns: (columns: QuestionOption[]) => void;
@@ -72,8 +72,8 @@ export default function MatrixConfigEditor({
       },
     ]);
 
-  // Шкала Лайкерта - готовий набір колонок. Колонки отримують нові id, тож
-  // відповіді, зібрані на старі колонки, перестануть зіставлятися.
+  // A Likert scale is a ready set of columns. The columns get new ids, so answers collected for the
+  // old columns will no longer match.
   const applyLikert = () =>
     onChangeColumns(
       LIKERT_KEYS.map((key) => ({

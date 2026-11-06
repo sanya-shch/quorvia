@@ -21,8 +21,8 @@ interface SidebarItem {
   icon: string | React.ReactNode;
 }
 
-// Функція, а не статичний масив: підписи мають перераховуватись при зміні
-// мови, а не застигати на момент першого завантаження модуля.
+// A function, not a static array: labels must be recomputed when the language changes, not frozen
+// at the first module load.
 export const getSidebarItems = (t: TFunction): SidebarItem[] => [
   { type: "TEXT", label: t(QUESTION_TYPE_LABEL_KEYS.TEXT), icon: textIcon },
   { type: "NUMBER", label: t(QUESTION_TYPE_LABEL_KEYS.NUMBER), icon: numberIcon },

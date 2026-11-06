@@ -15,14 +15,12 @@ interface RankingFieldProps {
 type Direction = "up" | "down";
 
 /**
- * Ранжування кнопками "вище/нижче" (а не лише перетягуванням): це працює з
- * клавіатури, на дотик і зі скрінрідерами, а бібліотека drag-and-drop не
- * потрапляє в бандл публічної форми.
+ * Ranking with "up/down" buttons (not just drag and drop): it works from the keyboard, by touch
+ * and with screen readers, and a drag-and-drop library stays out of the public form bundle.
  *
- * Відповідь з'являється лише після взаємодії (перша зміна порядку або
- * "Підтвердити цей порядок"): початковий порядок на екрані - не відповідь
- * респондента, інакше необов'язкове питання завжди мало б відповідь, а
- * обов'язкове - не вимагало б жодної дії.
+ * The answer appears only after interaction (the first reorder or "Confirm this order"): the
+ * initial on-screen order is not the respondent's answer, otherwise an optional question would
+ * always have an answer and a required one would need no action.
  */
 export default function RankingField({
   options,
@@ -40,8 +38,8 @@ export default function RankingField({
   const defaultOrder = options.map((option) => option.id);
   const textById = new Map(options.map((option) => [option.id, option.text]));
 
-  // Відповідь вважаємо наявною, лише якщо це повна перестановка поточних
-  // варіантів (старий стан після зміни варіантів не показуємо як відповідь).
+  // The answer counts as present only if it is a full permutation of the current options (stale
+  // state after the options changed is not shown as an answer).
   const answered =
     Array.isArray(value) &&
     value.length === defaultOrder.length &&
@@ -50,8 +48,8 @@ export default function RankingField({
   const order = answered ? (value as string[]) : defaultOrder;
   const orderKey = order.join("|");
 
-  // Після переміщення елемент у DOM міняє місце - повертаємо фокус на ту саму
-  // кнопку (або на сусідню, якщо ця стала недоступною на краю списку).
+  // After a move the element changes place in the DOM, so focus goes back to the same button (or
+  // to its neighbor if this one became unavailable at the list edge).
   useEffect(() => {
     const pending = pendingFocus.current;
     if (!pending) return;

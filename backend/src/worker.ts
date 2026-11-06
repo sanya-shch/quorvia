@@ -17,7 +17,7 @@ const DAY_MS = 24 * HOUR_MS;
 
 const maintenance = startMaintenance([
   {
-    // Прострочені/відкликані refresh-токени.
+    // Expired/revoked refresh tokens.
     name: "token-cleanup",
     intervalMs: HOUR_MS,
     run: async () => {
@@ -26,7 +26,7 @@ const maintenance = startMaintenance([
     },
   },
   {
-    // Готові експорти старші за EXPORT_RETENTION_DAYS + файли без запису в БД.
+    // Finished exports older than EXPORT_RETENTION_DAYS plus files without a DB row.
     name: "export-cleanup",
     intervalMs: DAY_MS,
     run: async () => {
@@ -40,7 +40,7 @@ const maintenance = startMaintenance([
     },
   },
   {
-    // Покинуті (незавершені) проходження старші за ATTEMPT_RETENTION_DAYS.
+    // Abandoned (unfinished) sessions older than ATTEMPT_RETENTION_DAYS.
     name: "attempt-cleanup",
     intervalMs: DAY_MS,
     run: async () => {

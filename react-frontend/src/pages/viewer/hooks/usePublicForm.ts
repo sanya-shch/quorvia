@@ -23,7 +23,7 @@ export function useSubmitResponsesMutation() {
       shareId: string;
       answers: FormAnswers;
       sessionKey?: string;
-      /** Мова, якою респондент бачив багатомовну форму (для одномовних - не передається). */
+      // Language the respondent saw a multilingual form in (not passed for single-language ones).
       language?: string;
     }) => submitFormResponses(shareId, answers, sessionKey, language),
   });

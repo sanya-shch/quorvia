@@ -83,7 +83,7 @@ describe("FormBuilder - мови контенту", () => {
 
     expect(bar.getByRole("button", { name: /Англійська/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("region", { name: "Переклад: Англійська" })).toBeInTheDocument();
-    // поле назви основною мовою прихована разом зі структурою
+    // the title field in the main language is hidden together with the structure
     expect(screen.getByDisplayValue("Опитування")).not.toBeVisible();
     expect(screen.queryByRole("button", { name: /Додати питання/ })).not.toBeInTheDocument();
   });
@@ -95,7 +95,7 @@ describe("FormBuilder - мови контенту", () => {
 
     await user.selectOptions(bar.getByRole("combobox", { name: "Додати мову перекладу" }), "en");
 
-    // заголовок, опис, питання, 2 варіанти
+    // title, description, question, 2 options
     expect(bar.getByLabelText("Не перекладено: 5")).toBeInTheDocument();
 
     await user.type(screen.getByLabelText("Переклад (Англійська): Заголовок"), "Survey");
@@ -170,7 +170,7 @@ describe("FormBuilder - мови контенту", () => {
     renderBuilder();
     const bar = await languageBar();
 
-    // англійська перекладена повністю - бейджа немає; польська - 5 порожніх полів
+    // English is fully translated: no badge; Polish has 5 empty fields
     expect(bar.getByRole("button", { name: /Англійська/ })).not.toHaveTextContent(/\d/);
     expect(bar.getByLabelText("Не перекладено: 5")).toBeInTheDocument();
   });
@@ -192,7 +192,7 @@ describe("FormBuilder - мови контенту", () => {
     await user.click(screen.getByRole("button", { name: "Видалити" }));
 
     expect(bar.queryByRole("button", { name: /Англійська/ })).not.toBeInTheDocument();
-    // після видалення активної вкладки повертаємось на основну мову
+    // after deleting the active tab we return to the main language
     expect(screen.getByDisplayValue("Опитування")).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "Зберегти форму" }));

@@ -38,7 +38,7 @@ describe("evaluateCondition", () => {
     };
     expect(evaluateCondition(gt, { q1: 25 })).toBe(true);
     expect(evaluateCondition(gt, { q1: 10 })).toBe(false);
-    expect(evaluateCondition(gt, { q1: "25" })).toBe(false); // тип не число - не збігається
+    expect(evaluateCondition(gt, { q1: "25" })).toBe(false); // a non-number never matches
 
     const lt = {
       logic: "AND" as const,
@@ -164,7 +164,7 @@ describe("validateConditionGraph", () => {
   });
 
   it("виявляє прямий цикл (Q1 -> Q2 -> Q1)", () => {
-    // навмисно ставимо однаковий order, щоб forward-reference не заглушив CYCLE-кейс
+    // same order on purpose, so the forward-reference check does not mask the CYCLE case
     const result = validateConditionGraph([
       q("q1", 0, { logic: "AND", rules: [{ questionId: "q2", operator: "equals", value: "yes" }] }),
       q("q2", 0, { logic: "AND", rules: [{ questionId: "q1", operator: "equals", value: "yes" }] }),

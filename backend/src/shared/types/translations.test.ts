@@ -52,7 +52,7 @@ describe("isContentLocale", () => {
   it("лише коди зі списку", () => {
     expect(isContentLocale("en")).toBe(true);
     expect(isContentLocale("en-US")).toBe(false);
-    // RTL-мови свідомо не підтримуються
+    // RTL languages are deliberately not supported
     expect(isContentLocale("ar")).toBe(false);
     expect(isContentLocale(5)).toBe(false);
   });

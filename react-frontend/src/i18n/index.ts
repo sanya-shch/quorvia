@@ -43,18 +43,18 @@ export const loadLocale = (language: string): Promise<void> => {
 export const loadAllLocales = (): Promise<void[]> =>
   Promise.all(SUPPORTED_LOCALES.map((language) => loadLocale(language)));
 
-/** Loads the language bundle first so the UI never renders raw keys, then switches. */
+// Loads the language bundle first so the UI never renders raw keys, then switches.
 export const changeAppLanguage = async (language: string): Promise<void> => {
   await loadLocale(language);
   await i18n.changeLanguage(language);
 };
 
 /**
- * Порядок визначення мови: спершу explicit-вибір користувача (localStorage,
- * записується автоматично при зміні мови через LanguageSwitcher), інакше -
- * мова браузера. `supportedLngs` + `fallbackLng` разом гарантують: якщо
- * navigator.language не "uk" і не "en" (напр. "fr", "de-DE") - беремо
- * англійську, а не залишаємо i18next вгадувати найближчий варіант.
+ * Language resolution order: first the user's explicit choice (localStorage, written
+ * automatically when the language changes through LanguageSwitcher), otherwise the browser
+ * language. `supportedLngs` + `fallbackLng` together guarantee that if navigator.language is
+ * neither "uk" nor "en" (for example "fr", "de-DE") we take English instead of letting i18next
+ * guess the nearest variant.
  */
 const baseOptions = {
   ns: ["common"],
@@ -86,11 +86,11 @@ export const i18nReady: Promise<void> = i18n
   });
 
 /**
- * Окремий екземпляр i18n з фіксованою мовою (для публічної форми, яка
- * показується мовою форми, а не мовою застосунку). Створюється БЕЗ детектора
- * мови: клон основного екземпляра (cloneInstance) ділить з ним детектор і
- * записував би вибір респондента в localStorage як мову застосунку.
- * Потрібні бандли мають бути завантажені заздалегідь (loadLocale), тоді ініціалізація синхронна.
+ * A separate i18n instance with a fixed language (for the public form, which is shown in the
+ * form's language, not the app's). It is created WITHOUT a language detector: a clone of the main
+ * instance (cloneInstance) shares its detector and would write the respondent's choice to
+ * localStorage as the app language. The needed bundles must be loaded beforehand (loadLocale);
+ * initialization is then synchronous.
  */
 export const createIsolatedI18n = (language: string) => {
   const instance = i18n.createInstance();

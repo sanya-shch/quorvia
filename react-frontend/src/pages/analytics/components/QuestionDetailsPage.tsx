@@ -324,7 +324,7 @@ export default function QuestionDetailsPage() {
                     )
                     .map((item, idx) => {
                       const n = ranking.length;
-                      // Найкращий варіант (позиція 1) = повна смуга, найгірший = порожня.
+                      // The best option (position 1) is a full bar, the worst is empty.
                       const score =
                         item.avgPosition === null || n < 2
                           ? 0

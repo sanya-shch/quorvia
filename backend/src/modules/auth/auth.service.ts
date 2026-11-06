@@ -9,19 +9,15 @@ import {
 import { AppError } from "../../shared/middleware/errorHandler.js";
 import { ErrorCode } from "@quorvia/shared-types";
 
-/**
- * Cost-фактор bcrypt: 12 раундів (~250 мс на сучасному CPU) - сучасний
- * мінімум; 10 було дефолтом із туторіалів 2010-х. Старі хеші (cost 10)
- * лишаються валідними - bcrypt зберігає cost усередині самого хеша.
- */
+// bcrypt cost factor: 12 rounds (~250 ms on a modern CPU), the current sensible minimum.
+// Older hashes (cost 10) stay valid because bcrypt stores the cost inside the hash.
 export const BCRYPT_COST = 12;
 
 /**
- * Хеш-пустушка для вирівнювання часу відповіді: якщо користувача з таким
- * email немає, ми все одно виконуємо bcrypt.compare, інакше відповідь на
- * неіснуючий email помітно швидша за відповідь на невірний пароль, і за
- * часом можна визначати, які email зареєстровані. Рахується один раз,
- * ліниво (щоб не гальмувати імпорт модуля і тести).
+ * A dummy hash to equalize response time: when no user has the email we still run
+ * bcrypt.compare, otherwise the answer for an unknown email is noticeably faster than for a
+ * wrong password and timing reveals which emails are registered. Computed once, lazily
+ * (so it does not slow module import and tests).
  */
 let dummyHashPromise: Promise<string> | undefined;
 const getDummyHash = () =>
@@ -33,12 +29,8 @@ type TokenPair = {
   refreshTokenExpiresAt: Date;
 };
 
-/**
- * Спільна точка видачі пари токенів для register/login/refresh - раніше
- * register і login дублювали (і розсинхронізовували) цю логіку: register
- * ходив через generateToken (15 хв), а login підписував токен інлайново з
- * TTL 7 днів. Тепер джерело правди одне.
- */
+// Single place that issues a token pair for register/login/refresh. Register and login
+// used to duplicate (and desynchronize) this logic with different TTLs.
 const issueTokenPair = async (userId: string): Promise<TokenPair> => {
   const accessToken = generateAccessToken({ userId });
   const refresh = generateRefreshToken();
@@ -114,26 +106,20 @@ export const loginHandler = async (email: string, password: string) => {
   };
 };
 
-/**
- * Вікно, у межах якого повторне використання вже відкликаного токена
- * вважається "гонкою" легітимного клієнта (дві вкладки одночасно оновили
- * сесію), а не крадіжкою. Поза цим вікном - див. refreshAccessToken.
- */
+// Window in which reuse of an already revoked token counts as a legitimate client race
+// (two tabs refreshing at once), not theft. Outside it see refreshAccessToken.
 const REFRESH_REUSE_GRACE_MS = 10_000;
 
 /**
- * Обмін refresh-токена на нову пару.
+ * Exchanges a refresh token for a new pair.
  *
- * Ротація: використаний токен відкликається, перш ніж видати новий.
- * Відкликання АТОМАРНЕ (updateMany з умовою revokedAt: null і перевіркою
- * count): раніше було findUnique -> update, і два паралельні запити з
- * одним токеном обидва проходили перевірку та отримували по валідній
- * парі. Тепер переможе рівно один.
+ * Rotation: the used token is revoked before the new one is issued. Revocation is ATOMIC
+ * (updateMany with revokedAt: null and a count check): a findUnique -> update let two
+ * parallel requests with one token both pass and each get a valid pair. Now exactly one wins.
  *
- * Reuse detection: якщо приходить токен, який ВЖЕ відкликано (і це не
- * гонка в межах REFRESH_REUSE_GRACE_MS), значить його або вкрали, або
- * клієнт зберіг старий - у будь-якому разі відкликаємо ВСІ активні
- * токени користувача, і сесію доведеться відкрити заново логіном.
+ * Reuse detection: a token that is ALREADY revoked (and not a race within
+ * REFRESH_REUSE_GRACE_MS) was either stolen or kept by a stale client; either way ALL of the
+ * user's active tokens are revoked and the session must be reopened with a login.
  */
 export const refreshAccessToken = async (refreshToken: string | undefined) => {
   if (!refreshToken) {
@@ -181,12 +167,9 @@ export const refreshAccessToken = async (refreshToken: string | undefined) => {
   return { ...tokens, user: { id: stored.user.id, email: stored.user.email } };
 };
 
-/**
- * Реальний (а не no-op) logout: відкликає refresh-токен у БД. Сам
- * access-токен, як завжди з JWT, лишається технічно дійсним до свого
- * 15-хвилинного спливу - але без дійсного refresh-токена сесію більше не
- * можна продовжити.
- */
+// A real (not no-op) logout: revokes the refresh token in the DB. The access token, as
+// always with JWT, stays technically valid until its 15-minute expiry, but without a valid
+// refresh token the session cannot be extended.
 export const revokeRefreshToken = async (refreshToken: string | undefined) => {
   if (!refreshToken) {
     return;
@@ -202,12 +185,9 @@ export const revokeRefreshToken = async (refreshToken: string | undefined) => {
 
 const REFRESH_TOKEN_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 
-/**
- * Видаляє токени, що прострочені або відкликані понад тиждень тому
- * (тиждень лишається для розслідувань/reuse detection). Без цього таблиця
- * RefreshToken росте безкінечно - по рядку на кожен login і кожне
- * оновлення access-токена. Викликається періодично з worker.ts.
- */
+// Deletes tokens that expired or were revoked more than a week ago (the week is kept for
+// investigations/reuse detection). Without it the RefreshToken table grows forever: a row
+// per login and per access-token refresh. Called periodically from worker.ts.
 export const cleanupRefreshTokens = async (now = new Date()) => {
   const threshold = new Date(now.getTime() - REFRESH_TOKEN_RETENTION_MS);
 

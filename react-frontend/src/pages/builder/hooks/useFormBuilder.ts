@@ -15,10 +15,9 @@ const INITIAL_STATE: FormState = {
 export function useFormBuilder(initialData?: FormState) {
   const { t } = useTranslation();
   const [form, setForm] = useState<FormState>(initialData || INITIAL_STATE);
-  // "Брудність" - це лічильник правок, а не булевий прапорець: збереження
-  // фіксує, скільки правок було на момент відправки (markSaved), тож правки,
-  // зроблені поки запит летів, лишаються незбереженими. З прапорцем
-  // успішна відповідь скидала б його й для них.
+  // "Dirtiness" is an edit counter, not a boolean: saving records how many edits there were
+  // when the request was sent (markSaved), so edits made while the request was in flight stay
+  // unsaved. With a flag, a successful response would reset it for them too.
   const editsRef = useRef(0);
   const [edits, setEdits] = useState(0);
   const [savedEdits, setSavedEdits] = useState(0);
@@ -32,12 +31,9 @@ export function useFormBuilder(initialData?: FormState) {
   const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  /**
-   * Значення в `errors` - НЕ готовий текст, а повний ключ перекладу i18next
-   * ("errors.VALIDATION_FIELD_REQUIRED" або "conditionErrors.CYCLE") - той
-   * самий формат для обох джерел, щоб FormBuilder.tsx міг просто робити
-   * t(errors[key]) без розбору, звідки саме прийшла помилка.
-   */
+  // Values in `errors` are NOT display text but a full i18next translation key
+  // ("errors.VALIDATION_FIELD_REQUIRED" or "conditionErrors.CYCLE"), the same format for both
+  // sources, so FormBuilder.tsx can simply do t(errors[key]) without caring where the error came from.
   const validate = useCallback((formData: FormState): Record<string, string> => {
     const newErrors: Record<string, string> = {};
     if (!formData.title.trim())
@@ -80,17 +76,15 @@ export function useFormBuilder(initialData?: FormState) {
     [form, validate],
   );
 
-  /** Позначає форму чистою відносно ПОТОЧНОГО стану (завантаження з сервера). */
+  // Marks the form clean relative to the CURRENT state (loading from the server).
   const resetDirty = useCallback(() => setSavedEdits(editsRef.current), []);
 
-  /** Позначає чистою відносно стану на момент відправки (revision - значення `edits` тоді). */
+  // Marks it clean relative to the state when the request was sent (revision is the value of `edits` then).
   const markSaved = useCallback((revision: number) => setSavedEdits(revision), []);
 
-  /**
-   * Довільна зміна всього стану форми чистою функцією (мови й переклади
-   * зачіпають і форму, і кожне питання одразу - окремі виклики
-   * updateFormMeta/updateQuestion дали б N правок замість однієї).
-   */
+  // Arbitrary change of the whole form state with a pure function (languages and translations
+  // touch the form and every question at once; separate updateFormMeta/updateQuestion calls
+  // would count N edits instead of one).
   const updateForm = useCallback(
     (updater: (prev: FormState) => FormState) => {
       setForm((prev) => {
@@ -119,32 +113,6 @@ export function useFormBuilder(initialData?: FormState) {
     },
     [hasAttemptedSave, validate, markDirty],
   );
-
-  // const addQuestion = useCallback((type: QuestionType) => {
-  //   const isChoice = ["CHOICE_SINGLE", "CHOICE_MULTI"].includes(type);
-
-  //   setForm((prev) => {
-  //     const newQuestion: Question = {
-  //       type,
-  //       text: "",
-  //       required: false,
-  //       order: prev.questions.length,
-  //       options: isChoice ? [{ id: `opt-${Date.now()}`, text: "Варіант 1", isDefault: false }] : [],
-  //       config: isChoice
-  //         ? { displayVariant: "list" }
-  //         : type === "TEXT"
-  //           ? { variant: "input" }
-  //           : type === "BOOLEAN"
-  //             ? { defaultValue: false }
-  //             : null,
-  //     };
-  //     return {
-  //       ...prev,
-  //       questions: [...prev.questions, newQuestion],
-  //     };
-  //   });
-  //   markDirty();
-  // }, []);
 
   const updateQuestion = useCallback(
     (index: number, patch: Partial<Question>) => {
@@ -226,22 +194,25 @@ export function useFormBuilder(initialData?: FormState) {
     [hasAttemptedSave, validate, markDirty],
   );
 
-  const moveOption = useCallback((questionIndex: number, fromIndex: number, toIndex: number) => {
-    setForm((prev) => {
-      const questions = [...prev.questions];
-      const targetQuestion = { ...questions[questionIndex] };
-      const updatedOptions = [...targetQuestion.options];
+  const moveOption = useCallback(
+    (questionIndex: number, fromIndex: number, toIndex: number) => {
+      setForm((prev) => {
+        const questions = [...prev.questions];
+        const targetQuestion = { ...questions[questionIndex] };
+        const updatedOptions = [...targetQuestion.options];
 
-      const [removed] = updatedOptions.splice(fromIndex, 1);
-      updatedOptions.splice(toIndex, 0, removed);
+        const [removed] = updatedOptions.splice(fromIndex, 1);
+        updatedOptions.splice(toIndex, 0, removed);
 
-      targetQuestion.options = updatedOptions;
-      questions[questionIndex] = targetQuestion;
+        targetQuestion.options = updatedOptions;
+        questions[questionIndex] = targetQuestion;
 
-      return { ...prev, questions };
-    });
-    markDirty();
-  }, [markDirty]);
+        return { ...prev, questions };
+      });
+      markDirty();
+    },
+    [markDirty],
+  );
 
   const addQuestionAtPosition = useCallback(
     (type: QuestionType, index: number) => {
@@ -287,13 +258,12 @@ export function useFormBuilder(initialData?: FormState) {
     errors,
     trySave,
     isDirty,
-    /** Номер поточної правки: передається в markSaved після успішного збереження. */
+    // Number of the current edit: passed to markSaved after a successful save.
     revision: edits,
     resetDirty,
     markSaved,
     updateFormMeta,
     updateForm,
-    // addQuestion,
     updateQuestion,
     deleteQuestion,
     duplicateQuestion,

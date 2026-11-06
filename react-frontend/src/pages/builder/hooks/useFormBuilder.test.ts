@@ -20,7 +20,7 @@ describe("useFormBuilder", () => {
 
     act(() => result.current.addQuestionAtPosition("TEXT", 0));
     act(() => result.current.addQuestionAtPosition("NUMBER", 1));
-    act(() => result.current.addQuestionAtPosition("BOOLEAN", 1)); // вставка між двома існуючими
+    act(() => result.current.addQuestionAtPosition("BOOLEAN", 1)); // an insert between two existing ones
 
     const types = result.current.form.questions.map((q) => q.type);
     expect(types).toEqual(["TEXT", "BOOLEAN", "NUMBER"]);
@@ -77,9 +77,8 @@ describe("useFormBuilder", () => {
 
     const [q1, q2] = result.current.form.questions;
 
-    // Штучно створюємо цикл: q1 залежить від q2 (forward-reference), і
-    // навпаки - обидва мають однаковий order-конфлікт, який
-    // validateConditionGraph повинен впіймати як CYCLE.
+    // We create a cycle artificially: q1 depends on q2 (forward reference) and vice versa; both have
+    // the same order conflict, which validateConditionGraph must catch as CYCLE.
     act(() => {
       result.current.updateQuestion(0, {
         condition: {
@@ -122,7 +121,7 @@ describe("useFormBuilder", () => {
     act(() => result.current.addQuestionAtPosition("NUMBER", 1));
     act(() => result.current.addQuestionAtPosition("BOOLEAN", 2));
 
-    act(() => result.current.deleteQuestion(0)); // видаляємо TEXT
+    act(() => result.current.deleteQuestion(0)); // delete the TEXT one
 
     const types = result.current.form.questions.map((q) => q.type);
     expect(types).toEqual(["NUMBER", "BOOLEAN"]);
@@ -153,8 +152,8 @@ describe("useFormBuilder", () => {
       act(() => result.current.updateFormMeta({ title: "A" }));
       const revisionAtSend = result.current.revision;
 
-      act(() => result.current.updateFormMeta({ title: "AB" })); // користувач друкує далі
-      act(() => result.current.markSaved(revisionAtSend)); // відповідь на старе збереження
+      act(() => result.current.updateFormMeta({ title: "AB" })); // the user keeps typing
+      act(() => result.current.markSaved(revisionAtSend)); // the response to the old save
 
       expect(result.current.isDirty).toBe(true);
     });

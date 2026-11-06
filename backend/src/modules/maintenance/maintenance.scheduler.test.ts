@@ -37,8 +37,8 @@ describe("startMaintenance", () => {
     );
     await vi.advanceTimersByTimeAsync(5000);
 
-    expect(fast).toHaveBeenCalledTimes(6); // старт + 5 тактів
-    expect(slow).toHaveBeenCalledTimes(2); // старт + 1 такт
+    expect(fast).toHaveBeenCalledTimes(6); // start + 5 ticks
+    expect(slow).toHaveBeenCalledTimes(2); // start + 1 tick
     stop();
   });
 
@@ -72,7 +72,7 @@ describe("startMaintenance", () => {
     await vi.advanceTimersByTimeAsync(1000);
 
     expect(logger.error).toHaveBeenCalledWith("[failing] помилка:", boom);
-    expect(failing).toHaveBeenCalledTimes(2); // після збою наступний запуск відбувся
+    expect(failing).toHaveBeenCalledTimes(2); // the next run happened after the failure
     expect(healthy).toHaveBeenCalledTimes(2);
     stop();
   });
@@ -82,7 +82,7 @@ describe("startMaintenance", () => {
     const run = vi.fn(() => new Promise<void>((resolve) => (release = resolve)));
 
     const { stop } = startMaintenance([{ name: "slow", intervalMs: 1000, run }], logger);
-    await vi.advanceTimersByTimeAsync(3500); // 3 такти інтервалу, а перший запуск не завершено
+    await vi.advanceTimersByTimeAsync(3500); // 3 interval ticks and the first run has not finished
 
     expect(run).toHaveBeenCalledTimes(1);
 

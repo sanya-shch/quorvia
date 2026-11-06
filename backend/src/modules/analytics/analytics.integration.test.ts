@@ -2,12 +2,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { vi } from "vitest";
 import type { Prisma } from "@prisma/client";
 
-/**
- * Інтеграційний тест аналітики на РЕАЛЬНОМУ Prisma-клієнті й Postgres
- * (PGlite у WASM, міграції проєкту) - без моків findMany. Головна перевірка:
- * порційний (keyset) обхід дає той самий результат, що й читання одним
- * запитом, у тому числі коли в багатьох рядків однаковий createdAt.
- */
+// Analytics integration test on a REAL Prisma client and Postgres (PGlite in WASM, project
+// migrations) with no findMany mocks. The main check: the batched (keyset) walk gives the same
+// result as reading in one query, including when many rows share the same createdAt.
 vi.mock("../../prisma/prisma.js", async () =>
   (await import("../../test/createTestPrisma.js")).createTestPrisma(),
 );
@@ -25,7 +22,7 @@ const OPTIONS = [
   { id: "opt-b", text: "B" },
 ];
 
-// 11 відповідей; created-at навмисно з дублікатами (тайбрейк за id).
+// 11 responses; created-at deliberately has duplicates (tiebreak by id).
 const TEXTS = ["a", "b", "a", "constructor", "__proto__", "a", "b", "constructor", undefined, "a", "toString"];
 const NUMS = [10, 20, 20, 5, 1.5, undefined, 100, 7, 3, 3, 12];
 const BOOLS = [true, false, true, true, undefined, false, true, false, true, true, false];
@@ -44,9 +41,9 @@ const responseRows = TEXTS.map((_, i) => {
     id: `resp-${String(i).padStart(2, "0")}`,
     formId: FORM,
     answers: answers as Prisma.InputJsonObject,
-    // перші 8 - явні visible; останні 3 - legacy (null), видимість виводиться з answers
+    // the first 8 have explicit visible; the last 3 are legacy (null), visibility is derived from answers
     visibleQuestionIds: i < 8 ? Object.values(Q) : undefined,
-    createdAt: new Date(Date.UTC(2026, 0, 1, 0, 0, Math.floor(i / 4))), // по 4 рядки з однаковим createdAt
+    createdAt: new Date(Date.UTC(2026, 0, 1, 0, 0, Math.floor(i / 4))), // 4 rows each with the same createdAt
   };
 });
 
@@ -74,7 +71,7 @@ beforeAll(async () => {
   });
   await prisma.response.createMany({ data: responseRows });
 
-  // 9 проходжень: 4 завершені; першим двом reached ще немає (legacy -> fallback на visible)
+  // 9 attempts: 4 completed; the first two have no reached yet (legacy -> fallback to visible)
   await prisma.responseAttempt.createMany({
     data: Array.from({ length: 9 }, (_, i) => ({
       id: `att-${i}`,
@@ -148,7 +145,7 @@ describe("аналітика на реальному Prisma + Postgres", () => {
     expect(byValue["__proto__"]).toBe(1);
     expect(byValue.toString).toBe(1);
     expect(byValue.a).toBe(4);
-    // розподіл відсортований за частотою
+    // the distribution is sorted by frequency
     expect(result.distribution[0]).toEqual({ value: "a", count: 4 });
     expect(result.answersTruncated).toBe(false);
   });
@@ -160,7 +157,7 @@ describe("аналітика на реальному Prisma + Postgres", () => {
       const result = (await getQuestionAnalytics(FORM, Q.text, USER)) as any;
       expect(result.answers).toHaveLength(3);
       expect(result.answersTruncated).toBe(true);
-      expect(result.totalAnswers).toBe(TEXTS.filter((t) => t !== undefined).length); // повна кількість
+      expect(result.totalAnswers).toBe(TEXTS.filter((t) => t !== undefined).length); // the full count
     } finally {
       analyticsConfig.maxTextAnswers = previous;
     }
@@ -171,7 +168,7 @@ describe("аналітика на реальному Prisma + Postgres", () => {
 
     expect(funnel.totalAttempts).toBe(9);
     expect(funnel.totalCompletions).toBe(5); // i = 0,2,4,6,8
-    // Перше питання бачать усі 9 (legacy -> усі 5 visible, решта -> щонайменше 1)
+    // All 9 see the first question (legacy -> all 5 visible, the rest -> at least 1)
     expect(funnel.nodes[0].reachedCount).toBe(9);
   });
 

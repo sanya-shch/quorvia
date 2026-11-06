@@ -29,7 +29,7 @@ describe("formatReviewAnswer", () => {
       );
       expect(formatReviewAnswer(q({ type }), "", undefined, labels)).toBe("Без відповіді");
     }
-    // 0 - справжня відповідь (NPS, шкала з нуля), а не порожнє значення
+    // 0 is a real answer (NPS, a scale from zero), not an empty value
     expect(formatReviewAnswer(q({ type: "NPS" }), 0, undefined, labels)).toBe("0");
   });
 

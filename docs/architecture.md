@@ -225,7 +225,6 @@ Quorvia/
 │   └── shared-types/
 │
 ├── docs/                (architecture, security, API, guides)
-├── .github/            (CI, CodeQL, Dependabot)
 ├── docker-compose.yml
 ├── package.json
 └── pnpm-workspace.yaml

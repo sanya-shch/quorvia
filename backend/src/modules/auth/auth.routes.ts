@@ -9,11 +9,8 @@ import { refreshLimiter } from "../../shared/middleware/rateLimiters.js";
 
 const router = Router();
 
-/**
- * Нічим не обмежені /login і /register - готовий вектор для brute-force
- * підбору паролів чи масової реєстрації ботами. Ліміт per-IP, 15-хвилинне
- * вікно.
- */
+// Unprotected /login and /register would be a ready vector for password brute force or
+// mass bot registration. Per-IP limit, 15-minute window.
 const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 10,

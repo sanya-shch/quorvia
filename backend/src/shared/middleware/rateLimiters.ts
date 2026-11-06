@@ -3,18 +3,18 @@ import type { Request } from "express";
 import { ErrorCode } from "@quorvia/shared-types";
 
 /**
- * Ліміти зберігаються в пам'яті процесу (дефолт express-rate-limit), тому
- * при кількох інстансах бекенду кожен рахує окремо. Для горизонтального
- * масштабування підключіть rate-limit-redis (Redis у проєкті вже є).
+ * Limits are kept in process memory (the express-rate-limit default), so with several
+ * backend instances each one counts separately. For horizontal scaling plug in
+ * rate-limit-redis (Redis is already in the project).
  *
- * За reverse proxy обов'язково виставте TRUST_PROXY (див. app.ts), інакше
- * req.ip - це адреса проксі, і всі користувачі ділять один ліміт.
+ * Behind a reverse proxy set TRUST_PROXY (see app.ts), otherwise req.ip is the proxy's
+ * address and all users share one limit.
  */
 const rateLimited = { message: ErrorCode.RATE_LIMITED };
 
 const ip = (req: Request) => ipKeyGenerator(req.ip ?? "unknown");
 
-/** Загальна "стеля" на весь API для одного IP. */
+// General "ceiling" for the whole API per IP.
 export const createApiLimiter = (limit = 600) =>
   rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -25,7 +25,7 @@ export const createApiLimiter = (limit = 600) =>
     keyGenerator: ip,
   });
 
-/** POST /api/forms/:shareId/responses - публічна відправка відповіді. */
+// POST /api/forms/:shareId/responses: public answer submission.
 export const createSubmitResponseLimiter = (limit = 20) =>
   rateLimit({
     windowMs: 10 * 60 * 1000,
@@ -36,7 +36,7 @@ export const createSubmitResponseLimiter = (limit = 20) =>
     keyGenerator: (req) => `${ip(req)}:${req.params.shareId}`,
   });
 
-/** PUT /api/forms/:shareId/attempt - autosave (debounced, тож частіший). */
+// PUT /api/forms/:shareId/attempt: autosave (debounced, so more frequent).
 export const createSaveAttemptLimiter = (limit = 120) =>
   rateLimit({
     windowMs: 60 * 1000,
@@ -47,7 +47,7 @@ export const createSaveAttemptLimiter = (limit = 120) =>
     keyGenerator: (req) => `${ip(req)}:${req.params.shareId}`,
   });
 
-/** POST /api/auth/refresh - дешевший за login, але теж не безлімітний. */
+// POST /api/auth/refresh: cheaper than login but not unlimited either.
 export const createRefreshLimiter = (limit = 60) =>
   rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -58,10 +58,8 @@ export const createRefreshLimiter = (limit = 60) =>
     keyGenerator: ip,
   });
 
-/**
- * POST /api/forms/:formId/export - створення важкого завдання (PDF/Excel на
- * всю таблицю відповідей). Ключ - користувач, а не IP: ендпоінт під auth.
- */
+// POST /api/forms/:formId/export: creates a heavy job (PDF/Excel over the whole response
+// table). Keyed by user, not IP: the endpoint requires auth.
 export const createExportLimiter = (limit = 10) =>
   rateLimit({
     windowMs: 60 * 60 * 1000,

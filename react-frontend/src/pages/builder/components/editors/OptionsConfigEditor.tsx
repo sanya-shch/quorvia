@@ -22,13 +22,12 @@ export default function OptionsConfigEditor({
 }: OptionsConfigEditorProps) {
   const { t } = useTranslation();
 
-  // «Інше» завжди останнє (так вимагає й схема форми на сервері), тому звичайні
-  // варіанти - це префікс масиву, і їхні індекси збігаються з індексами в options
-  // (саме їх використовує drag-and-drop: «Інше» у Droppable не входить).
+  // "Other" is always last (the server form schema requires it too), so regular options are an
+  // array prefix and their indexes match the indexes in options (which drag-and-drop uses: "Other"
+  // is not in the Droppable).
   const otherOption = getOtherOption(options);
   const regularOptions = options.filter((option) => !option.isOther);
-  // Ранжування: лише список варіантів (без "за замовчуванням", «Інше» і стилю
-  // відображення), від 2 до 20 штук.
+  // Ranking: just a list of options (no "default", "Other" or display style), 2 to 20 of them.
   const isRanking = questionType === "RANKING";
   const minOptions = isRanking ? RANKING_LIMITS.minOptions : 1;
   const canAddOption = !isRanking || regularOptions.length < RANKING_LIMITS.maxOptions;

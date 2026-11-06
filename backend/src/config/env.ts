@@ -1,11 +1,10 @@
 import { z } from "zod";
 
 /**
- * Раніше майже кожен модуль читав process.env.X! напряму (non-null
- * assertion) - якщо змінну забути виставити, застосунок падав десь
- * углибині коду (наприклад, jwt.sign отримував "undefined" як секрет) із
- * незрозумілою помилкою, а не одразу при старті. Тут - єдине джерело
- * правди для того, які змінні середовища взагалі потрібні застосунку.
+ * Almost every module used to read process.env.X! directly (a non-null assertion): a
+ * forgotten variable crashed the app somewhere deep (for example jwt.sign got "undefined" as
+ * the secret) with a confusing error instead of failing at startup. This is the single source
+ * of truth for which environment variables the app needs at all.
  */
 const MIN_PRODUCTION_SECRET_LENGTH = 32;
 
@@ -17,16 +16,15 @@ const envSchema = z
   DATABASE_URL: z.string().min(1, "DATABASE_URL є обов'язковим"),
   REDIS_URL: z.string().min(1).default("redis://localhost:6379"),
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
-  // Кількість довірених reverse proxy перед бекендом ("1" для одного nginx/
-  // Render/Railway) або значення Express "trust proxy" ("loopback" тощо).
-  // Без цього за проксі req.ip - адреса самого проксі, і rate limit
-  // (однаковий для всіх користувачів) спрацьовує на всіх одразу.
+  // Number of trusted reverse proxies in front of the backend ("1" for one nginx/Render/Railway)
+  // or an Express "trust proxy" value ("loopback", etc.). Without it, behind a proxy req.ip is the
+  // proxy's own address, and the rate limit (shared by all users) trips for everyone at once.
   TRUST_PROXY: z.string().optional(),
-  // Скільки днів зберігаються готові експорти (файл + запис ExportJob).
+  // How many days finished exports (file + ExportJob row) are kept.
   EXPORT_RETENTION_DAYS: z.coerce.number().int().min(1).default(7),
-  // Скільки днів зберігаються НЕзавершені проходження (ResponseAttempt).
-  // 0 = не видаляти. Завершені проходження не видаляються ніколи: без них
-  // funnel втратив би завершення (див. README, "Data retention").
+  // How many days UNFINISHED sessions (ResponseAttempt) are kept. 0 = never delete. Completed
+  // sessions are never deleted: the funnel would lose its completions (see docs/security.md,
+  // "Data retention").
   ATTEMPT_RETENTION_DAYS: z.coerce.number().int().min(0).default(180),
   })
   .superRefine((env, ctx) => {
@@ -60,14 +58,11 @@ const envSchema = z
 export type Env = z.infer<typeof envSchema>;
 
 /**
- * Повна валідація process.env - викликається явно з точок входу
- * (server.ts, worker.ts), а НЕ з app.ts чи будь-якого модуля, що
- * імпортується тестами: тести виставляють лише ті змінні, які їм
- * реально потрібні (наприклад, лише JWT_SECRET), і не повинні падати
- * через відсутність DATABASE_URL чи інших несуттєвих для конкретного
- * тесту змінних. Якщо щось не так - кидає ОДНУ помилку з повним списком
- * усіх проблем одразу, замість того, щоб застосунок падав по черзі на
- * кожній відсутній змінній.
+ * Full validation of process.env. It is called explicitly from the entry points (server.ts,
+ * worker.ts), NOT from app.ts or any module imported by tests: tests set only the variables
+ * they really need (for example just JWT_SECRET) and must not fail because DATABASE_URL or
+ * other irrelevant variables are missing. If anything is wrong it throws ONE error listing all
+ * problems at once, instead of the app failing on each missing variable in turn.
  */
 export const validateEnv = (): Env => {
   const result = envSchema.safeParse(process.env);
@@ -82,13 +77,9 @@ export const validateEnv = (): Env => {
   return result.data;
 };
 
-/**
- * Точкові гетери для окремих модулів (jwt.ts, prisma.ts,
- * redisConnection.ts). Читають process.env у момент ВИКЛИКУ, а не при
- * імпорті модуля - це свідомо, щоб не ламати наявні тести, які
- * встановлюють env-змінні в beforeAll/beforeEach ПЕРЕД динамічним
- * імпортом модуля, що їх використовує.
- */
+// Targeted getters for individual modules (jwt.ts, prisma.ts, redisConnection.ts). They read
+// process.env at CALL time, not at module import, deliberately, so existing tests that set env
+// variables in beforeAll/beforeEach BEFORE dynamically importing the module keep working.
 export const getJwtSecret = (): string => {
   const value = process.env.JWT_SECRET;
   if (!value) {
@@ -107,10 +98,8 @@ export const getDatabaseUrl = (): string => {
 
 export const getRedisUrl = (): string => process.env.REDIS_URL ?? "redis://localhost:6379";
 
-/**
- * Перетворює TRUST_PROXY на значення для app.set("trust proxy", ...):
- * число хопів ("1"), true/false або рядок-пресет Express ("loopback").
- */
+// Turns TRUST_PROXY into a value for app.set("trust proxy", ...): a hop count ("1"),
+// true/false or an Express preset string ("loopback").
 export const parseTrustProxy = (value: string | undefined): boolean | number | string => {
   if (value === undefined || value === "" || value === "false") return false;
   if (value === "true") return true;

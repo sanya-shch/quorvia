@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { paginate, type PageArgs } from "./paginate.js";
 
-/** Fake-джерело, що поводиться як Prisma findMany з cursor/skip/take. */
+// A fake source that behaves like Prisma findMany with cursor/skip/take.
 const source = (n: number) => {
   const rows = Array.from({ length: n }, (_, i) => ({ id: `id-${String(i).padStart(3, "0")}` }));
   return vi.fn(async ({ take, skip = 0, cursor }: PageArgs) => {

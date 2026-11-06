@@ -10,11 +10,9 @@ import {
 } from "@quorvia/shared-types";
 import { compileSafePattern, MAX_PATTERN_LENGTH } from "../../shared/utils/safeRegex.js";
 
-/**
- * Верхні межі потрібні, щоб один запит (навіть у межах 100 КБ ліміту
- * express.json) не міг створити тисячі питань/опцій чи гігантські рядки,
- * які потім потрапляють в БД, експорти (PDF/Excel) і аналітику.
- */
+// Upper bounds so a single request (even within the 100 KB express.json limit) cannot
+// create thousands of questions/options or huge strings that later end up in the DB,
+// exports (PDF/Excel) and analytics.
 export const FORM_LIMITS = {
   title: 200,
   description: 2_000,
@@ -35,13 +33,13 @@ const contentLocaleSchema = z.enum(CONTENT_LOCALES);
 export const createFormSchema = z.object({
   title: z.string().trim().min(3).max(FORM_LIMITS.title),
   description: z.string().max(FORM_LIMITS.description).optional(),
-  // Мова, якою автор пише форму (типово uk).
+  // Language the author writes the form in (default uk).
   defaultLanguage: contentLocaleSchema.optional(),
 });
 
-// Переклади - рядки з обмеженою довжиною. Структуру (які мови, які id варіантів
-// існують) тут не перевіряємо: сервіс нормалізує її сам (normalize*Translations),
-// тож застарілі ключі після видалення варіанта чи мови не ламають збереження.
+// Translations are length-limited strings. The structure (which languages, which option
+// ids exist) is not checked here: the service normalizes it (normalize*Translations), so
+// stale keys after removing an option or a language do not break saving.
 const textMap = (maxItems: number) =>
   z
     .record(z.string().max(FORM_LIMITS.id), z.string().max(FORM_LIMITS.optionText))
@@ -87,8 +85,8 @@ export const conditionSchema = z.object({
 
 const base = {
   translations: translationsOf(questionTranslationSchema).nullable().optional(),
-  // Суфікс зарезервований під ключ тексту «Інше» в answers (otherAnswerKey):
-  // id питання, що ним закінчується, міг би зіткнутися з чужим ключем.
+  // The suffix is reserved for the "Other" text key in answers (otherAnswerKey): a question
+  // id ending with it could collide with someone else's key.
   id: z
     .string()
     .max(FORM_LIMITS.id)
@@ -105,8 +103,8 @@ const configSchema = z.object({
   variant: z.enum(["input", "textarea", "email", "name"]).optional(),
   minLength: z.number().int().min(0).max(FORM_LIMITS.textLength).optional(),
   maxLength: z.number().int().min(0).max(FORM_LIMITS.textLength).optional(),
-  // Шаблон має компілюватись у RE2 (без lookahead/backreferences) - інакше
-  // його не можна безпечно виконувати на сервері (ReDoS, див. safeRegex.ts).
+  // The pattern must compile in RE2 (no lookahead/backreferences); otherwise it cannot be
+  // run safely on the server (ReDoS, see safeRegex.ts).
   pattern: z
     .string()
     .max(MAX_PATTERN_LENGTH)
@@ -121,9 +119,9 @@ const optionSchema = z.object({
   isOther: z.boolean().optional(),
 });
 
-// «Інше»: не більше одного, завжди останнім (так його легко "закріпити" при
-// рандомізації варіантів), і не може бути варіантом за замовчуванням -
-// інакше форма стартувала б з обраним «Інше» і порожнім обов'язковим текстом.
+// "Other": at most one, always last (so it is easy to "pin" when options are randomized),
+// and never the default option: the form would otherwise start with "Other" selected and an
+// empty required text.
 const optionsSchema = z
   .array(optionSchema)
   .min(1)
@@ -136,9 +134,9 @@ const optionsSchema = z
     return others.length === 1 && options[options.length - 1].isOther && !others[0].isDefault;
   }, ErrorCode.REQUEST_BODY_INVALID);
 
-// RANKING: від 2 до 20 варіантів; id унікальні, бо відповідь - перестановка id
-// (дублікат зробив би валідну відповідь неможливою). «Інше»/isDefault для
-// ранжування не мають сенсу: isOther відкидається схемою (omit).
+// RANKING: 2 to 20 options; ids are unique because the answer is a permutation of ids (a
+// duplicate would make a valid answer impossible). "Other"/isDefault make no sense for
+// ranking: isOther is dropped by the schema (omit).
 const rankingOptionsSchema = z
   .array(optionSchema.omit({ isOther: true }))
   .min(RANKING_LIMITS.minOptions)
@@ -148,9 +146,8 @@ const rankingOptionsSchema = z
     ErrorCode.REQUEST_BODY_INVALID,
   );
 
-// MATRIX: колонки - це options (2-10, унікальні id, без «Інше»), рядки - config.rows
-// (1-30, унікальні id). Відповідь - { rowId: columnId }, тому id в обох списках
-// мають бути унікальними всередині свого списку.
+// MATRIX: columns are options (2-10, unique ids, no "Other"), rows are config.rows (1-30,
+// unique ids). The answer is { rowId: columnId }, so ids must be unique inside each list.
 const matrixColumnsSchema = z
   .array(optionSchema.omit({ isOther: true }))
   .min(MATRIX_LIMITS.minColumns)
@@ -230,7 +227,7 @@ export const questionSchema = z.discriminatedUnion("type", [
         numberVariant: z.enum(["input", "slider"]).optional(),
         step: z.number().positive().optional(),
       })
-      // Слайдеру потрібен скінченний діапазон, інакше немає що рухати.
+      // A slider needs a finite range, otherwise there is nothing to move.
       .refine(
         (c) =>
           c.numberVariant !== "slider" ||
@@ -308,8 +305,8 @@ export const updateFormSchema = z.object({
   title: z.string().max(FORM_LIMITS.title),
   description: z.string().max(FORM_LIMITS.description).optional(),
   responseMode: z.enum(["ALL_AT_ONCE", "STEP_BY_STEP"]).optional(),
-  // Мови контенту. Усі три поля необов'язкові: старий клієнт, що їх не знає,
-  // нічого не змінює (зокрема не стирає переклади).
+  // Content languages. All three fields are optional: an old client that does not know them
+  // changes nothing (in particular it does not erase translations).
   defaultLanguage: contentLocaleSchema.optional(),
   languages: z
     .array(contentLocaleSchema)
@@ -318,9 +315,9 @@ export const updateFormSchema = z.object({
     .optional(),
   translations: translationsOf(formTranslationSchema).nullable().optional(),
   questions: z.array(questionSchema).max(FORM_LIMITS.questions),
-  // Версія форми, яку редагував клієнт (optimistic lock). Якщо передана і вже
-  // не збігається з поточною - 409 FORM_VERSION_CONFLICT. Без неї застосовується
-  // версія, прочитана на початку запиту: захищає від гонки всередині самого
-  // запиту, але не від застарілого редактора.
+  // Form version the client edited (optimistic lock). If sent and no longer equal to the
+  // current one: 409 FORM_VERSION_CONFLICT. Without it the version read at the start of the
+  // request applies: it protects against a race inside the request itself, but not against a
+  // stale editor.
   version: z.number().int().min(1).optional(),
 });

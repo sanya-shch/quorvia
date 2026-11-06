@@ -15,7 +15,7 @@ const { t } = useI18n();
 
 const closeButtonRef = ref<HTMLButtonElement | null>(null);
 
-// Найкращі (найменша середня позиція) - зверху; без ранжувань - в кінці.
+// Best (lowest average position) on top; options without rankings go last.
 const sortedRanking = computed<RankingOptionStats[]>(() =>
   [...(props.data?.ranking ?? [])].sort(
     (a, b) =>
@@ -23,7 +23,7 @@ const sortedRanking = computed<RankingOptionStats[]>(() =>
   ),
 );
 
-// Смуга: позиція 1 - повна, остання - порожня.
+// Bar: position 1 is full, the last one is empty.
 const rankScore = (item: RankingOptionStats): number => {
   const n = props.data?.ranking?.length ?? 0;
   return item.avgPosition === null || n < 2 ? 0 : ((n - item.avgPosition) / (n - 1)) * 100;

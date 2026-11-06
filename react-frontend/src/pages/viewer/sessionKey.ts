@@ -1,11 +1,10 @@
 const STORAGE_PREFIX = "quorvia:attempt:";
 
 /**
- * Один sessionKey на (shareId, вкладка браузера) - sessionStorage
- * навмисно, не localStorage: нова вкладка = новий "заход" для
- * funnel-цілей, а оновлення сторінки в межах ТІЄЇ САМОЇ вкладки має
- * продовжити той самий attempt, а не почати новий (інакше funnel рахував
- * би одного респондента як кількох при кожному випадковому refresh).
+ * One sessionKey per (shareId, browser tab). sessionStorage on purpose, not localStorage: a new tab
+ * is a new "visit" for the funnel, while a page reload in the SAME tab must continue the same
+ * attempt instead of starting a new one (otherwise the funnel would count one respondent as
+ * several on every accidental refresh).
  */
 export function getOrCreateSessionKey(shareId: string): string {
   const key = `${STORAGE_PREFIX}${shareId}`;

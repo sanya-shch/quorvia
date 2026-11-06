@@ -28,9 +28,9 @@ vi.mock("../../prisma/prisma.js", () => ({
   },
 }));
 
-// Реальний @prisma/client тут не потрібен (і в цьому середовищі клієнт
-// взагалі не згенерований) - мокаємо лише мінімальний клас помилки, який
-// production-код перевіряє через `instanceof Prisma.PrismaClientKnownRequestError`.
+// The real @prisma/client is not needed here (and the client is not even generated in this
+// environment); we mock only the minimal error class that production code checks with
+// `instanceof Prisma.PrismaClientKnownRequestError`.
 vi.mock("@prisma/client", () => {
   class PrismaClientKnownRequestError extends Error {
     code: string;
@@ -135,8 +135,8 @@ describe("loginHandler", () => {
       statusCode: 401,
       message: ErrorCode.AUTH_INVALID_CREDENTIALS,
     });
-    // Виконується фіктивний compare - вирівнює час відповіді з випадком
-    // "email є, пароль невірний" (захист від user enumeration за таймінгом).
+    // A dummy compare runs: it equalizes the response time with the "email exists, wrong
+    // password" case (protection against user enumeration by timing).
     expect(bcrypt.compare).toHaveBeenCalledTimes(1);
     expect((bcrypt.compare as any).mock.calls[0][0]).toBe("pw");
   });

@@ -10,18 +10,15 @@ import {
 import type { FormState, Question } from "../../types/formBuilder";
 import { questionTypeUsesOptions } from "./questionConfig";
 
-/**
- * Усе, що стосується перекладу форми в конструкторі, - чисті функції над
- * FormState (без React): їх легко тестувати, а UI лише викликає їх через
- * `updateForm(updater)`.
- */
+// Everything about translating a form in the builder: pure functions over FormState (no
+// React), easy to test; the UI only calls them through `updateForm(updater)`.
 
 export const getMainLanguage = (form: FormState): string =>
   form.defaultLanguage ?? DEFAULT_CONTENT_LANGUAGE;
 
 export const getAdditionalLanguages = (form: FormState): string[] => form.languages ?? [];
 
-/** Мови, які ще можна додати: усі підтримувані, крім основної та вже доданих. */
+// Languages that can still be added: every supported one except the main and the already added.
 export const getAvailableLanguages = (form: FormState): string[] => {
   const taken = new Set([getMainLanguage(form), ...getAdditionalLanguages(form)]);
 
@@ -44,26 +41,24 @@ export type TranslationFieldKind =
   | "maxLabel";
 
 export interface TranslationField {
-  /** Стабільний ключ для React і тестів. */
+  // Stable key for React and tests.
   key: string;
   kind: TranslationFieldKind;
-  /** Індекс питання в form.questions; null для полів самої форми. */
+  // Index in form.questions; null for the form's own fields.
   questionIndex: number | null;
-  /** id варіанта/колонки (option) або рядка матриці (row). */
+  // Option/column (option) or matrix row (row) id.
   refId: string | null;
-  /** Текст основною мовою. */
+  // Text in the main language.
   source: string;
-  /** Поточний переклад (порожній рядок, якщо немає). */
+  // Current translation (empty string if none).
   value: string;
   multiline: boolean;
 }
 
 const isBlank = (value: string | null | undefined): boolean => !value || value.trim() === "";
 
-/**
- * Усі поля, які можна перекласти, з їхнім поточним перекладом мовою `language`.
- * Поля, де основний текст порожній, пропускаються: перекладати там нічого.
- */
+// Every translatable field with its current translation in `language`. Fields whose main
+// text is empty are skipped: there is nothing to translate.
 export const listTranslationFields = (form: FormState, language: string): TranslationField[] => {
   const fields: TranslationField[] = [];
   const formEntry: FormTranslation | undefined = form.translations?.[language];
@@ -165,11 +160,11 @@ export const listTranslationFields = (form: FormState, language: string): Transl
   return fields;
 };
 
-/** Скільки полів ще не перекладено мовою `language` (порожній переклад = не перекладено). */
+// How many fields are still untranslated in `language` (an empty translation = untranslated).
 export const countMissingTranslations = (form: FormState, language: string): number =>
   listTranslationFields(form, language).filter((field) => isBlank(field.value)).length;
 
-/** Мапа "ключ -> значення" без порожніх значень; порожня мапа -> undefined. */
+// A "key -> value" map without empty values; an empty map -> undefined.
 const withMapValue = (
   map: Record<string, string> | undefined,
   key: string,
@@ -183,7 +178,7 @@ const withMapValue = (
   return Object.keys(next).length > 0 ? next : undefined;
 };
 
-/** Запис мови без порожніх полів; повністю порожній запис -> undefined. */
+// A language entry without empty fields; a fully empty entry -> undefined.
 const compact = <T extends object>(entry: T): T | undefined => {
   const cleaned = Object.fromEntries(
     Object.entries(entry).filter(([, value]) => value !== undefined),
@@ -192,7 +187,7 @@ const compact = <T extends object>(entry: T): T | undefined => {
   return Object.keys(cleaned).length > 0 ? cleaned : undefined;
 };
 
-/** Додає/змінює/прибирає запис мови; порожній результат -> null (так само, як на сервері). */
+// Adds/changes/removes a language entry; an empty result -> null (same as on the server).
 const withLanguageEntry = <E extends object>(
   translations: Record<string, E> | null | undefined,
   language: string,
@@ -206,7 +201,7 @@ const withLanguageEntry = <E extends object>(
   return Object.keys(next).length > 0 ? next : null;
 };
 
-/** Новий стан форми, де поле `field` мовою `language` має значення `value` (порожнє - прибирає переклад). */
+// The new form state where `field` in `language` has the value `value` (empty removes the translation).
 export const setFieldTranslation = (
   form: FormState,
   language: string,
@@ -268,7 +263,7 @@ export const setFieldTranslation = (
   };
 };
 
-/** Додає додаткову мову (ігнорує невідомі коди, дублікати, основну мову й перевищення ліміту). */
+// Adds an additional language (ignores unknown codes, duplicates, the main language and anything over the limit).
 export const addLanguage = (form: FormState, language: string): FormState => {
   if (
     !isContentLocale(language) ||
@@ -282,7 +277,7 @@ export const addLanguage = (form: FormState, language: string): FormState => {
   return { ...form, languages: [...getAdditionalLanguages(form), language] };
 };
 
-/** Прибирає мову разом з усіма її перекладами (форми й питань). */
+// Removes a language together with all its translations (form and questions).
 export const removeLanguage = (form: FormState, language: string): FormState => {
   if (!getAdditionalLanguages(form).includes(language)) return form;
 
@@ -298,17 +293,15 @@ export const removeLanguage = (form: FormState, language: string): FormState => 
   };
 };
 
-/**
- * Змінює мову, якою написана форма. Мову, що вже є додатковою, обрати не можна
- * (сервер відхилив би таку форму): спершу її треба видалити.
- */
+// Changes the language the form is written in. A language that is already additional cannot
+// be chosen (the server would reject such a form): remove it first.
 export const changeMainLanguage = (form: FormState, language: string): FormState => {
   if (!isContentLocale(language) || getAdditionalLanguages(form).includes(language)) return form;
 
   return { ...form, defaultLanguage: language };
 };
 
-/** Заповнює основним текстом лише ті поля, де перекладу ще немає. */
+// Fills with the main text only the fields that have no translation yet.
 export const copyMissingFromMain = (form: FormState, language: string): FormState =>
   listTranslationFields(form, language)
     .filter((field) => isBlank(field.value))

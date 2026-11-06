@@ -1,14 +1,13 @@
 import { animate } from "motion/mini";
 
 /**
- * Анімації Toast через motion/mini (WAAPI, ~3 кБ gzip). Toast лежить у
- * головному бандлі, тому тут навмисно не повний motion з AnimatePresence
- * (~28 кБ gzip): він завантажується лише з лінивим маршрутом публічної форми.
+ * Toast animations through motion/mini (WAAPI, ~3 kB gzip). Toast is in the main bundle, so the
+ * full motion with AnimatePresence (~28 kB gzip) is deliberately not used here: it loads only with
+ * the lazy public-form route.
  *
- * Анімація - поступове покращення, а не умова працездатності: функція НІКОЛИ
- * не кидає помилку й не зависає. Немає WAAPI (старий браузер, jsdom), анімацію
- * скасовано або вона впала - проміс просто завершується, і повідомлення
- * з'являється/зникає без ефекту.
+ * The animation is progressive enhancement, not a requirement: the function NEVER throws and never
+ * hangs. If WAAPI is missing (an old browser, jsdom), or the animation was cancelled or failed,
+ * the promise just resolves and the message appears/disappears without the effect.
  */
 export type ToastPhase = "enter" | "exit";
 
@@ -22,7 +21,7 @@ const prefersReducedMotion = () =>
 export const playToastAnimation = async (element: HTMLElement, phase: ToastPhase): Promise<void> => {
   if (typeof element.animate !== "function") return;
 
-  // prefers-reduced-motion: без руху - лише прозорість.
+  // prefers-reduced-motion: no movement, only opacity.
   const movement = prefersReducedMotion()
     ? {}
     : {
@@ -39,6 +38,6 @@ export const playToastAnimation = async (element: HTMLElement, phase: ToastPhase
       { duration: DURATION_S[phase], ease: phase === "enter" ? "easeOut" : "easeIn" },
     ).finished;
   } catch {
-    // Скасовано або не підтримується - не критично.
+    // Cancelled or unsupported: not critical.
   }
 };

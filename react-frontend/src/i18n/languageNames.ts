@@ -1,4 +1,4 @@
-/** Назва мови мовою `uiLanguage` ("англійська" / "English"), з великої літери; при збої - сам код. */
+// Language name in `uiLanguage` ("English" / "англійська"), capitalized; the code itself on failure.
 export const getLanguageName = (code: string, uiLanguage: string): string => {
   try {
     const name = new Intl.DisplayNames([uiLanguage], { type: "language" }).of(code);

@@ -8,12 +8,9 @@ import { exportersByFormat } from "./exporters/index.js";
 import { EXPORTS_DIR } from "./export.service.js";
 import { ExportQueueJobData } from "./export.types.js";
 
-/**
- * Верхня межа кількості відповідей в одному експорті: воркер вантажить їх
- * усі в пам'ять (і ще раз - при побудові PDF/Excel), тож форма з мільйоном
- * відповідей інакше валить процес по OOM. Потрібен стрімінг/пагінація
- * експортерів - тоді ліміт можна прибрати.
- */
+// Upper bound on responses per export: the worker loads them all into memory (and again
+// when building PDF/Excel), so a form with a million responses would otherwise crash the
+// process with OOM. Streaming/paginating exporters would let us remove the limit.
 export const MAX_EXPORT_RESPONSES = 20_000;
 
 export const EXPORT_ERROR_FAILED = "EXPORT_FAILED";
@@ -78,9 +75,8 @@ export const processExportJob = async (job: Job<ExportQueueJobData>) => {
       },
     });
   } catch (err) {
-    // У БД (і далі в API/UI) потрапляє лише стабільний код, а не сире
-    // err.message - у ньому можуть бути шляхи, SQL чи інші внутрішні
-    // деталі. Повна помилка лишається в логах воркера.
+    // Only a stable code reaches the DB (and then the API/UI), not the raw err.message, which
+    // may contain paths, SQL or other internals. The full error stays in the worker logs.
     console.error(`[export-worker] job ${exportJobId} error:`, err);
 
     await prisma.exportJob.update({

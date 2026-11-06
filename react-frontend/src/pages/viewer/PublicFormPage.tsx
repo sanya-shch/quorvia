@@ -58,7 +58,7 @@ export default function PublicFormPage() {
 
   const { data: formData, isLoading, error } = usePublicFormQuery(shareId);
 
-  // Мови браузера читаємо один раз: вони не змінюються під час перегляду.
+  // Browser languages are read once: they do not change while viewing.
   const [browserLanguages] = useState(readBrowserLanguages);
 
   const mainLanguage = getMainLanguage(formData?.defaultLanguage);
@@ -66,9 +66,9 @@ export default function PublicFormPage() {
     () => [mainLanguage, ...(formData?.languages ?? [])],
     [mainLanguage, formData?.languages],
   );
-  // Усе, що стосується мов, діє лише для багатомовних форм: у одномовної
-  // defaultLanguage - це просто значення за замовчуванням (воно могло й не
-  // збігатися з реальною мовою тексту), тож чіпати мову інтерфейсу не можна.
+  // Everything about languages applies only to multilingual forms: for a single-language form
+  // defaultLanguage is just a default (it may not match the real language of the text), so the
+  // interface language must not be touched.
   const isMultilingual = formLanguages.length > 1;
 
   const requestedLang = searchParams.get("lang");
@@ -84,8 +84,8 @@ export default function PublicFormPage() {
     [isMultilingual, requestedLang, browserLanguages, formLanguages, mainLanguage],
   );
 
-  // Форма й питання мовою respondent-а; для основної мови (і одномовних форм)
-  // localize* повертають ті самі об'єкти, тож зайвих перерендерів немає.
+  // The form and questions in the respondent's language; for the main language (and single-language
+  // forms) localize* return the same objects, so there are no extra re-renders.
   const localized = useMemo(() => {
     if (!formData || !isMultilingual) return formData;
 
@@ -95,9 +95,9 @@ export default function PublicFormPage() {
     };
   }, [formData, isMultilingual, language]);
 
-  // Службові тексти (кнопки, помилки) - мовою форми, але в ОКРЕМОМУ екземплярі
-  // i18n без детектора: вибір респондента не міняє мову застосунку й не
-  // пишеться в localStorage.
+  // Service texts (buttons, errors) in the form's language, but in a SEPARATE i18n instance
+  // without the detector: the respondent's choice does not change the app language and is not
+  // written to localStorage.
   const uiLanguage = getUiLanguageFor(language);
   // The UI bundle may differ from the app's language, so it can still be downloading.
   const [loadedUiLanguage, setLoadedUiLanguage] = useState<string | null>(null);
@@ -136,10 +136,9 @@ export default function PublicFormPage() {
     {},
   );
 
-  // Один sessionKey на shareId, стабільний у межах вкладки (sessionStorage) -
-  // об'єднує autosave-чернетку (useAttemptAutosave у FormViewer/
-  // QuestionStepper) з фінальним сабмітом, щоб бекенд позначив ту саму
-  // спробу completedAt замість того, щоб вона лишилась "покинутою".
+  // One sessionKey per shareId, stable within a tab (sessionStorage): it ties the autosave draft
+  // (useAttemptAutosave in FormViewer/QuestionStepper) to the final submit, so the backend marks
+  // the same attempt completedAt instead of leaving it "abandoned".
   const sessionKey = useMemo(() => (shareId ? getOrCreateSessionKey(shareId) : ""), [shareId]);
 
   const {

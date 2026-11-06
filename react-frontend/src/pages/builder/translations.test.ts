@@ -119,7 +119,7 @@ describe("countMissingTranslations", () => {
   it("рахує поля без перекладу; пробіли = немає перекладу", () => {
     const form = baseForm({ translations: { en: { title: "Survey", description: "   " } } });
 
-    // title є; description (пробіли), питання та 2 варіанти - немає
+    // title exists; description (whitespace), the question and 2 options do not
     expect(countMissingTranslations(form, "en")).toBe(4);
   });
 
@@ -233,7 +233,7 @@ describe("addLanguage / removeLanguage / changeMainLanguage", () => {
     expect(next.languages).toEqual(["pl"]);
     expect(next.translations).toEqual({ pl: { title: "Ankieta" } });
     expect(next.questions[0].translations).toEqual({ pl: { text: "P" } });
-    // питання, де лишалась тільки видалена мова, не тримає порожній об'єкт
+    // a question where only the deleted language was left does not keep an empty object
     expect(next.questions[1].translations).toBeNull();
   });
 

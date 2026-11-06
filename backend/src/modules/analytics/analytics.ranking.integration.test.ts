@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { Prisma } from "@prisma/client";
 
-/** RANKING в аналітиці та розшифровці відповіді (реальний Prisma + PGlite з міграціями). */
+// RANKING in analytics and in the response breakdown (real Prisma + PGlite with migrations).
 vi.mock("../../prisma/prisma.js", async () =>
   (await import("../../test/createTestPrisma.js")).createTestPrisma(),
 );
@@ -32,7 +32,7 @@ beforeAll(async () => {
     ["a", "b", "c"],
     ["a", "c", "b"],
     ["b", "a", "c"],
-    // некоректні (старі дані після зміни варіантів): неповне, дубль, чужий id
+    // invalid ones (old data after the options changed): incomplete, duplicate, foreign id
     ["a", "b"],
     ["a", "a", "b"],
     ["a", "b", "gone"],
@@ -70,7 +70,7 @@ describe("аналітика RANKING", () => {
     expect(byId.b.avgPosition).toBe(2);
     expect(byId.c.positions).toEqual([0, 1, 2]);
     expect(byId.c.avgPosition).toBeCloseTo(8 / 3);
-    // порядок і підписи - як у питанні
+    // order and labels as in the question
     expect(detail.ranking.map((r) => r.text)).toEqual(["Кава", "Чай", "Какао"]);
   });
 

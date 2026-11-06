@@ -7,10 +7,10 @@ interface LanguageSwitcherProps {
 }
 
 /**
- * Проста випадаюча зміна мови. Вибір автоматично зберігається в
- * localStorage через i18next-browser-languagedetector (детектор налаштований
- * читати/писати саме туди - див. i18n/index.ts), тому наступний візит уже
- * підхопить обрану мову без повторної автодетекції по navigator.language.
+ * A simple dropdown language switch. The choice is stored in localStorage through
+ * i18next-browser-languagedetector (the detector is configured to read/write exactly there, see
+ * i18n/index.ts), so the next visit picks up the chosen language without auto-detecting from
+ * navigator.language again.
  */
 export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const { t, i18n } = useTranslation();

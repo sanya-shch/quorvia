@@ -9,7 +9,6 @@ import {
 import type { UpdateFormInput, UserFormsDto } from "./form.types.js";
 
 type IncomingQuestion = UpdateFormInput["questions"][number];
-/** Питання, якому вже гарантовано призначено id (клієнтський або згенерований). */
 type ResolvedQuestion = IncomingQuestion & { id: string };
 import { toJson, toNullableJson } from "../../shared/utils/helpers.js";
 import { validateConditionGraph } from "@quorvia/condition-engine";
@@ -29,7 +28,7 @@ export const createForm = async ({
     data: {
       title,
       description,
-      // undefined -> типове значення з schema.prisma
+      // undefined -> the default from schema.prisma
       defaultLanguage,
       userId,
     },
@@ -133,8 +132,8 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
   const existingQuestions = form.questions;
   const incomingQuestions = data.questions;
 
-  // Мови: що не передали - лишається як було. Основна мова не може одночасно
-  // бути додатковою (її текст - це самі поля форми, а не переклад).
+  // Languages: anything not sent stays as it was. The main language cannot also be an
+  // additional one (its text is the form's own fields, not a translation).
   const defaultLanguage = data.defaultLanguage ?? form.defaultLanguage;
   const languages = data.languages ?? form.languages;
 
@@ -142,21 +141,19 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
     throw new AppError(ErrorCode.REQUEST_BODY_INVALID, 400);
   }
 
-  // Нормалізуємо й збережені (якщо клієнт не прислав): перелік мов міг скоротитись.
+  // Normalize the stored ones too (when the client sent none): the language list may have shrunk.
   const formTranslations = normalizeFormTranslations(
     data.translations !== undefined ? data.translations : form.translations,
     languages,
   );
   const previousQuestionById = new Map(existingQuestions.map((q) => [q.id, q]));
 
-  /**
-   * Переклади питання до збереження. Якщо клієнт `translations` не прислав
-   * (старий клієнт), беремо збережені - але так само нормалізуємо, бо
-   * варіанти чи мови могли змінитись у цьому ж запиті.
-   */
+  // Question translations before saving. If the client did not send `translations` (an old
+  // client) we take the stored ones and normalize them anyway, because options or languages
+  // may have changed in this same request.
   const translationsFor = (q: ResolvedQuestion) =>
     normalizeQuestionTranslations(
-      // undefined (поле не передали) -> збережене; null (явне стирання) і об'єкт - як є.
+      // undefined (field not sent) -> stored; null (explicit clear) and an object -> as is.
       q.translations !== undefined ? q.translations : previousQuestionById.get(q.id)?.translations,
       languages,
       {
@@ -167,18 +164,18 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
 
   const existingIds = new Set(existingQuestions.map((q) => q.id));
 
-  // Питанням без клієнтського id призначаємо його самі до валідації графа,
-  // щоб condition інших питань могли на них посилатись і щоб id, який ми
-  // валідували, збігався з тим, що реально запишеться в БД.
+  // Questions without a client id get one here, before the graph validation, so other
+  // questions' conditions can reference them and the id we validated is the one actually
+  // written to the DB.
   const withResolvedIds: ResolvedQuestion[] = incomingQuestions.map((q) => ({
     ...q,
     id: q.id ?? crypto.randomUUID(),
   }));
 
-  // Клієнт може передати власний id для НОВОГО питання (щоб умови інших
-  // питань могли на нього посилатись). Якщо такий id уже існує в БД (в
-  // іншій формі), запис упав би з unique-помилкою (500) і заодно
-  // підтвердив би існування чужого id - віддаємо контрольований 409.
+  // A client may send its own id for a NEW question (so other questions' conditions can
+  // reference it). If that id already exists in the DB (in another form), the insert would
+  // fail with a unique error (500) and also confirm that someone else's id exists, so we
+  // return a controlled 409.
   const clientNewIds = incomingQuestions.flatMap((q) =>
     q.id && !existingIds.has(q.id) ? [q.id] : [],
   );
@@ -196,25 +193,24 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
   );
 
   if (!graphValidation.valid) {
-    // errors - структурований масив { questionId, reason, detail } з
-    // condition-engine; переклад на фронтенді будується з `reason`
-    // (стабільний код), а не з українського `detail`.
+    // errors is a structured { questionId, reason, detail } array from condition-engine; the
+    // frontend translation is built from `reason` (a stable code), not from the Ukrainian `detail`.
     throw new AppError(ErrorCode.FORM_INVALID_CONDITIONS, 400, graphValidation.errors);
   }
 
   const incomingIds = new Set(withResolvedIds.map((q) => q.id));
   const toDelete = existingQuestions.filter((q) => !incomingIds.has(q.id)).map((q) => q.id);
 
-  // Версія, відносно якої клієнт редагував (або, якщо не передав, та, що ми
-  // прочитали вище). Усе, що вище прочитано й провалідовано, істинне лише
-  // для цієї версії - тому перевірка й інкремент іде ПЕРШОЮ дією транзакції.
+  // The version the client edited (or, if none was sent, the one read above). Everything
+  // read and validated above holds only for this version, so the check and the increment
+  // are the FIRST action of the transaction.
   const expectedVersion = data.version ?? form.version;
 
   return prisma.$transaction(async (tx) => {
-    // Умовний UPDATE ... WHERE version = N атомарний: рядок блокується до кінця
-    // транзакції, а конкурентний запит з тим самим N після нашого commit
-    // побачить уже N+1, не знайде рядка (count = 0) і отримає 409. Усі зміни
-    // питань нижче тому виконуються тільки над тим станом, який ми читали.
+    // The conditional UPDATE ... WHERE version = N is atomic: the row is locked until the
+    // transaction ends, and a concurrent request with the same N sees N+1 after our commit,
+    // finds no row (count = 0) and gets 409. All question changes below therefore apply only
+    // to the state we read.
     const { count } = await tx.form.updateMany({
       where: { id: formId, version: expectedVersion },
       data: {
@@ -332,9 +328,9 @@ export const duplicateForm = async (formId: string, userId: string) => {
       },
     });
 
-    // Копії питань отримують нові id (старі вже зайняті оригіналом), тому
-    // condition.rules[].questionId треба ремапнути на нові id - інакше умови
-    // в дублікаті посилатимуться на питання іншої (оригінальної) форми.
+    // Copied questions get new ids (the old ones belong to the original), so
+    // condition.rules[].questionId must be remapped to them; otherwise the duplicate's
+    // conditions would point at questions of the original form.
     const idMap = new Map(form.questions.map((q) => [q.id, crypto.randomUUID()]));
 
     const remapCondition = (condition: unknown): Prisma.InputJsonValue | undefined => {
@@ -360,8 +356,8 @@ export const duplicateForm = async (formId: string, userId: string) => {
         options: Array.isArray(q.options) ? (q.options as Prisma.InputJsonValue) : [],
         config: q.config as Prisma.InputJsonValue,
         condition: remapCondition(q.condition),
-        // Переклади прив'язані до id варіантів/рядків усередині питання, а вони
-        // при копіюванні не змінюються - переносимо як є.
+        // Translations are keyed by option/row ids inside the question, which do not change when
+        // copying, so they are carried over as is.
         translations: q.translations == null ? undefined : toJson(q.translations),
         formId: newForm.id,
       })),

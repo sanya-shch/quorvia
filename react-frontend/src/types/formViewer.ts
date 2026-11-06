@@ -6,7 +6,7 @@ export interface FormResponsePayload {
   }[];
 }
 
-/** MATRIX: { [rowId]: columnId } - по одній колонці на рядок. */
+// MATRIX: { [rowId]: columnId }, one column per row.
 export type MatrixAnswerValue = Record<string, string>;
 
 export type AnswerValue = string | number | boolean | string[] | MatrixAnswerValue;

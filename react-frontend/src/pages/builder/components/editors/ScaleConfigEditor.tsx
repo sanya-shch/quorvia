@@ -16,11 +16,11 @@ const inputClass =
 export default function ScaleConfigEditor({ config, onChange }: ScaleConfigEditorProps) {
   const { t } = useTranslation();
   const id = useId();
-  // Межі з getScaleBounds, а не з "сирого" config: для старих/неповних даних
-  // редактор показує те саме, що побачить респондент.
+  // Bounds come from getScaleBounds, not the "raw" config: for old/incomplete data the editor shows
+  // what the respondent will see.
   const { min, max } = getScaleBounds("SCALE", config);
 
-  // Кінець шкали має бути строго більшим за початок.
+  // The scale end must be strictly greater than the start.
   const endOptions = Array.from(
     { length: SCALE_LIMITS.scaleEnd.max - Math.max(SCALE_LIMITS.scaleEnd.min, min + 1) + 1 },
     (_, i) => Math.max(SCALE_LIMITS.scaleEnd.min, min + 1) + i,

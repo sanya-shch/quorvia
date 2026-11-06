@@ -12,19 +12,18 @@ const originOf = (url: string): string => {
 };
 
 /**
- * Content-Security-Policy для PRODUCTION-збірки (у dev не додається:
- * Vite HMR потребує inline-скриптів і WebSocket).
+ * Content-Security-Policy for the PRODUCTION build (not added in dev: Vite HMR needs
+ * inline scripts and a WebSocket).
  *
- * Чому це важливо саме тут: Vue-аналітика підвантажується як federated
- * remote ЗІ ІНШОГО origin і виконується в контексті React-сторінки. Без
- * CSP компрометація того хостингу = довільний JS на сторінці з сесією
- * користувача. З CSP скрипти дозволені лише з власного origin і з
- * ЯВНО вказаного origin remote (VITE_VUE_ANALYTICS_URL), а запити -
- * лише до API.
+ * Why it matters here: the Vue analytics is loaded as a federated remote FROM ANOTHER
+ * origin and runs in the context of the React page. Without a CSP, compromising that
+ * host means arbitrary JS on a page that holds the user's session. With it, scripts are
+ * allowed only from our own origin and from the EXPLICITLY configured remote origin
+ * (VITE_VUE_ANALYTICS_URL), and requests only to the API.
  *
- * <meta> не підтримує frame-ancestors/report-uri: для них (та для повного
- * захисту) віддавайте CSP заголовком HTTP з хостингу - див. README.
- * Вимкнути: VITE_DISABLE_CSP=true.
+ * <meta> does not support frame-ancestors/report-uri: for those (and for full protection)
+ * serve the CSP as an HTTP header from the hosting, see docs/security.md.
+ * Disable with VITE_DISABLE_CSP=true.
  */
 const cspPlugin = (env: Record<string, string>): Plugin => ({
   name: "inject-csp",
@@ -38,7 +37,7 @@ const cspPlugin = (env: Record<string, string>): Plugin => ({
     const policy = [
       "default-src 'self'",
       `script-src 'self' ${remote}`,
-      // 'unsafe-inline' для стилів: Tailwind/Vue-remote інжектять <style>.
+      // 'unsafe-inline' for styles: Tailwind/the Vue remote inject <style>.
       `style-src 'self' 'unsafe-inline' ${remote}`,
       `connect-src 'self' ${api} ${remote}`,
       "img-src 'self' data: blob:",

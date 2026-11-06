@@ -8,16 +8,15 @@ import { ExportJobDto, ExportQueueJobData } from "./export.types.js";
 import { ExportFormat } from "@prisma/client";
 
 /**
- * Скільки експортів одного користувача може одночасно стояти в черзі/
- * виконуватись. Разом із rate limit на ендпоінті не дає одному акаунту
- * забити чергу BullMQ і воркер важкими PDF/Excel. Завдання старші за
- * ACTIVE_JOB_WINDOW_MS не рахуються - інакше "зависле" PENDING (наприклад,
- * воркер був вимкнений) блокувало б користувача назавжди.
+ * How many exports of one user may be queued/running at once. Together with the endpoint
+ * rate limit it keeps one account from clogging the BullMQ queue and the worker with heavy
+ * PDF/Excel jobs. Jobs older than ACTIVE_JOB_WINDOW_MS are not counted, otherwise a "stuck"
+ * PENDING (for example the worker was down) would block the user forever.
  */
 export const MAX_ACTIVE_EXPORTS_PER_USER = 3;
 const ACTIVE_JOB_WINDOW_MS = 15 * 60 * 1000;
 
-// Реекспорт: воркер і тести імпортують EXPORTS_DIR звідси.
+// Re-export: the worker and tests import EXPORTS_DIR from here.
 export { EXPORTS_DIR };
 
 const toDto = (job: {

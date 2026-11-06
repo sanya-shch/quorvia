@@ -9,27 +9,25 @@ import {
 } from "@quorvia/shared-types";
 
 /**
- * Результат валідації - НЕ готовий текст, а ключ перекладу i18next (+
- * параметри для інтерполяції, напр. {{min}}) - переклад відбувається у
- * компоненті показу (QuestionField.tsx) через t(error.key, error.params).
- * Ця функція - чистий, синхронний utility без доступу до React-контексту
- * (і, відповідно, без доступу до поточної обраної мови), тому фізично не
- * може повернути вже перекладений рядок.
+ * The validation result is NOT display text but an i18next translation key (+ interpolation
+ * params such as {{min}}); translation happens in the display component (QuestionField.tsx)
+ * via t(error.key, error.params). This function is a pure synchronous utility with no access
+ * to React context (and so to the selected language), so it physically cannot return an
+ * already translated string.
  */
 export type FieldValidationError = { key: string; params?: Record<string, unknown> };
 
 /**
- * Валідація одного поля відповіді - винесена окремо від FormViewer, щоб
- * той самий набір правил (required, min/max length, email/name regex,
- * кастомний pattern, min/max для чисел) однаково працював і в режимі
- * "усі питання на сторінці" (FormViewer), і в режимі "по одному питанню"
- * (QuestionStepper). Дублювання цих правил у двох місцях рано чи пізно
- * розійшлося б (наприклад, поправили regex email в одному, забули в іншому).
+ * Validation of a single answer field, separate from FormViewer so the same rules (required,
+ * min/max length, email/name regex, custom pattern, number min/max) work identically in the
+ * "all questions on one page" mode (FormViewer) and the "one question at a time" mode
+ * (QuestionStepper). Duplicating them in two places would sooner or later drift apart (for
+ * example the email regex fixed in one place and forgotten in the other).
  */
 export const validateField = (
   q: Question,
   value: AnswerValue,
-  /** Текст варіанта «Інше» (answers[otherAnswerKey(id)]) - потрібен лише питанням із вибором. */
+  // The "Other" text (answers[otherAnswerKey(id)]) is only needed by choice questions.
   otherText?: AnswerValue,
 ): FieldValidationError | null => {
   const isEmptyText = typeof value === "string" && value.trim() === "";
@@ -44,7 +42,7 @@ export const validateField = (
 
   if (isEmpty) return null;
 
-  // Обов'язкова матриця: заповнені мають бути всі рядки (необов'язкова - будь-яка частина).
+  // A required matrix needs every row filled (an optional one, any part).
   if (q.type === "MATRIX" && q.required) {
     const cells = toMatrixAnswer(value);
 
@@ -53,7 +51,7 @@ export const validateField = (
     }
   }
 
-  // Обране «Інше» без тексту - порожня відповідь, навіть якщо питання не обов'язкове.
+  // "Other" selected without text is an empty answer, even if the question is optional.
   if (isOtherSelected(q.type, q.options, value)) {
     const text = typeof otherText === "string" ? otherText.trim() : "";
 
@@ -126,14 +124,14 @@ export const getDefaultAnswer = (q: Question): AnswerValue => {
     case "NPS":
     case "RANKING":
     case "MATRIX":
-      // Ранжування й матриця - без відповіді, доки респондент не взаємодіяв.
+      // Ranking and matrix have no answer until the respondent interacts.
       return "";
     default:
       return assertNever(q.type, "question type");
   }
 };
 
-/** Валідує набір питань (типово - лише видимі) і повертає мапу помилок questionId -> ключ перекладу. */
+// Validates a set of questions (visible ones by default) and returns a questionId -> translation key error map.
 export const validateAll = (
   questions: Question[],
   answers: Record<string, AnswerValue>,
@@ -148,11 +146,10 @@ export const validateAll = (
 };
 
 /**
- * Формує payload для відправки: пропускає порожні необов'язкові поля,
- * лишає тільки питання з переданого списку (типово - лише видимі/пройдені).
- * Той самий фінальний "cleanup", що й submitResponse на бекенді (Етап 2),
- * але тут - для чистоти запиту, а не для безпеки (сервер все одно
- * перевіряє видимість самостійно).
+ * Builds the submit payload: skips empty optional fields and keeps only the questions from
+ * the given list (visible/reached by default). The same final cleanup as submitResponse on
+ * the backend, but here it is for a clean request, not for security (the server checks
+ * visibility on its own anyway).
  */
 export const buildCleanedAnswers = (
   questions: Question[],
@@ -175,7 +172,7 @@ export const buildCleanedAnswers = (
 
     cleaned[qId] = value;
 
-    // Текст «Інше» - лише якщо воно зараз обране (старий текст після зміни вибору не шлемо).
+    // The "Other" text only while it is currently selected (stale text after changing the choice is not sent).
     if (isOtherSelected(question.type, question.options, value)) {
       const text = answers[otherAnswerKey(qId)];
       cleaned[otherAnswerKey(qId)] = typeof text === "string" ? text.trim() : "";

@@ -9,10 +9,8 @@ export interface PublicFormFields {
   description?: string;
   responseMode: ResponseMode;
   questions: Question[];
-  /**
-   * Мови форми. Необов'язкові: форма без них (або відповідь старого сервера)
-   * вважається одномовною й відображається як раніше.
-   */
+  // Form languages. Optional: a form without them (or a response from an old server) is treated as
+  // single-language and shown as before.
   defaultLanguage?: string;
   languages?: string[];
   translations?: FormTranslations | null;

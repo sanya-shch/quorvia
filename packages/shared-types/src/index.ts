@@ -1,13 +1,11 @@
 export const AUTH_EXPIRED_EVENT = "quorvia:auth-expired";
 
 /**
- * Стабільні коди помилок API - те, що бекенд кладе у поле `message` JSON-
- * відповіді для `AppError` (backend/src/shared/middleware/errorHandler.ts).
- * Це НЕ готовий для показу текст, а ідентифікатор - переклад у конкретну
- * мову відбувається на фронтенді через i18next
- * (react-frontend/src/i18n/errorCodes.ts, vue-analytics аналогічно).
- * Бекенд свідомо не знає жодної мови: додавання нової мови ніколи не
- * вимагає змін тут чи в backend/.
+ * Stable API error codes: what the backend puts into the `message` field of the JSON
+ * response for `AppError` (backend/src/shared/middleware/errorHandler.ts).
+ * They are identifiers, not display text; the frontends translate them with i18next
+ * (react-frontend/src/i18n/errorCodes.ts, vue-analytics likewise). The backend knows
+ * no language, so adding a language never requires changes here or in backend/.
  */
 export const ErrorCode = {
   AUTH_EMAIL_ALREADY_IN_USE: "AUTH_EMAIL_ALREADY_IN_USE",
@@ -60,11 +58,8 @@ export const ErrorCode = {
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
 
-/**
- * Мови, підтримувані в UI (React і Vue-модуль аналітики). Розширення
- * списку - додавання одного елемента тут + відповідних locale-файлів,
- * без змін логіки.
- */
+// Interface languages (React and the Vue analytics module). To add one, add an
+// item here plus the matching locale files; no logic changes.
 export const SUPPORTED_LOCALES = ["uk", "en"] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 export const DEFAULT_LOCALE: SupportedLocale = "en";
@@ -72,11 +67,11 @@ export const DEFAULT_LOCALE: SupportedLocale = "en";
 export type ResponseMode = "ALL_AT_ONCE" | "STEP_BY_STEP";
 
 /**
- * Єдине джерело правди про типи питань. Prisma-enum `QuestionType`
- * (backend/prisma/schema.prisma) має збігатися з цим списком - це
- * перевіряється на етапі компіляції (backend/src/shared/types/questions.check.ts).
- * Додаючи тип: оновіть цей список, і TypeScript підсвітить усі місця, де
- * `switch`/ланцюжок `if` за типом став неповним (див. assertNever).
+ * Single source of truth for question types. The Prisma enum `QuestionType`
+ * (backend/prisma/schema.prisma) must match this list; this is checked at compile time
+ * (backend/src/shared/types/questions.check.ts). When adding a type, update this list
+ * and TypeScript flags every `switch`/`if` chain by type that became incomplete
+ * (see assertNever).
  */
 export const QUESTION_TYPES = [
   "TEXT",
@@ -100,16 +95,13 @@ export interface QuestionOption {
   id: string;
   text: string;
   isDefault: boolean;
-  /**
-   * Варіант «Інше»: коли респондент його обирає, він вписує власний текст.
-   * Не більше одного на питання і завжди останній у списку; не буває
-   * варіантом за замовчуванням. Текст лежить в `answers` окремим ключем
-   * (див. otherAnswerKey), тож відповідь на саме питання лишається id варіанта.
-   */
+  // "Other" option: the respondent types their own text when picking it. At most one
+  // per question, always last, never the default. The text lives in `answers` under a
+  // separate key (see otherAnswerKey), so the answer to the question itself stays the option id.
   isOther?: boolean;
 }
 
-/** Суфікс ключа в `answers`, де зберігається текст варіанта «Інше». */
+// Suffix of the `answers` key that holds the "Other" text.
 export const OTHER_ANSWER_SUFFIX = "__other";
 export const OTHER_ANSWER_MAX_LENGTH = 500;
 
@@ -121,7 +113,6 @@ export const getOtherOption = <T extends { isOther?: boolean }>(
   options: readonly T[] | null | undefined,
 ): T | undefined => options?.find((option) => option.isOther);
 
-/** Чи обрано у відповіді варіант «Інше» (лише для питань із вибором). */
 export const isOtherSelected = (
   type: QuestionType,
   options: readonly { id: string; isOther?: boolean }[] | null | undefined,
@@ -145,30 +136,27 @@ export interface QuestionConfig {
   max?: number;
   defaultValue?: boolean;
   displayVariant?: QuestionDisplayVariant;
-  /** NUMBER: "slider" вимагає min < max (крок - `step`, типово 1). */
+  // NUMBER: "slider" requires min < max (`step`, default 1).
   numberVariant?: NumberVariant;
   step?: number;
-  /** SCALE: підписи крайніх значень (напр. "Зовсім не згоден" / "Повністю згоден"). */
+  // SCALE: labels for the end values (for example "Strongly disagree" / "Strongly agree").
   minLabel?: string;
   maxLabel?: string;
-  /** MATRIX: рядки (твердження). Колонки (варіанти відповіді) - це `options` питання. */
+  // MATRIX: rows (statements). The columns (answer choices) are the question's `options`.
   rows?: MatrixRow[];
 }
 
 export type NumberVariant = "input" | "slider";
 
-/**
- * RANKING: респондент розставляє ВСІ варіанти за порядком. Відповідь - масив
- * id варіантів від найвищої позиції до найнижчої (повна перестановка).
- */
+// RANKING: the respondent orders ALL options. The answer is an array of option ids,
+// best first (a full permutation).
 export const RANKING_LIMITS = { minOptions: 2, maxOptions: 20 } as const;
 
 /**
- * MATRIX: таблиця "рядки x колонки", в кожному рядку обирається одна колонка.
- * Рядки - у `config.rows`, колонки - у `options` питання (так колонки
- * переважають механізми варіантів: id, підписи, переклади).
- * Відповідь - об'єкт { [rowId]: columnId }. Для обов'язкового питання
- * заповнені мають бути всі рядки, для необов'язкового - будь-яка їх частина.
+ * MATRIX: a "rows x columns" table, one column per row. Rows are in `config.rows`,
+ * columns are the question's `options` (so columns reuse the option machinery: ids,
+ * labels, translations). The answer is an object { [rowId]: columnId }. A required
+ * question needs every row answered; an optional one accepts any subset.
  */
 export const MATRIX_LIMITS = {
   minRows: 1,
@@ -184,41 +172,39 @@ export interface MatrixRow {
 
 export type MatrixAnswer = Record<string, string>;
 
-/** Статистика матриці: counts[i] - скільки разів у рядку обрано колонку columns[i]. */
+// Matrix statistics: counts[i] is how many times columns[i] was picked in the row.
 export interface MatrixStats {
   columns: { id: string; text: string }[];
   rows: { rowId: string; text: string; answered: number; counts: number[] }[];
 }
 
-/** Статистика позицій одного варіанта в питанні RANKING. */
+// Position statistics of one RANKING option.
 export interface RankingOptionStats {
   optionId: string;
   text: string;
-  /** Середня позиція (1 - найвища); null, якщо ще немає жодного ранжування. */
+  // Average position (1 is best); null while there are no rankings.
   avgPosition: number | null;
-  /** positions[i] - скільки респондентів поставили варіант на позицію i + 1. */
+  // positions[i] is how many respondents put the option at place i + 1.
   positions: number[];
 }
 
-/**
- * Шкальні типи: відповідь - ціле число в межах [min, max], які визначаються
- * типом і config (див. getScaleBounds). Умови та аналітика працюють з ними як
- * з числами; NPS додатково має розбивку на promoters/passives/detractors.
- */
+// Scale types: the answer is an integer within [min, max], determined by the type
+// and config (see getScaleBounds). Conditions and analytics treat them as numbers;
+// NPS also has a promoters/passives/detractors breakdown.
 export const SCALE_QUESTION_TYPES = ["RATING", "SCALE", "NPS"] as const;
 export type ScaleQuestionType = (typeof SCALE_QUESTION_TYPES)[number];
 
 export const isScaleQuestionType = (type: QuestionType): type is ScaleQuestionType =>
   (SCALE_QUESTION_TYPES as readonly QuestionType[]).includes(type);
 
-/** Допустимі межі налаштувань шкал (їх же перевіряє бекенд-схема форми). */
+// Allowed scale settings (the backend form schema checks the same limits).
 export const SCALE_LIMITS = {
-  /** RATING: кількість зірок (максимальне значення), min завжди 1. */
+  // RATING: number of stars (the max value), min is always 1.
   ratingMax: { min: 3, max: 10, default: 5 },
-  /** SCALE: початок шкали 0 або 1, кінець 2..10 і строго більший за початок. */
+  // SCALE: start is 0 or 1, end is 2..10 and strictly greater than the start.
   scaleStart: { allowed: [0, 1], default: 1 },
   scaleEnd: { min: 2, max: 10, default: 5 },
-  /** NPS фіксований: 0..10. */
+  // NPS is fixed: 0..10.
   nps: { min: 0, max: 10 },
   labelMaxLength: 100,
 } as const;
@@ -228,10 +214,8 @@ export interface ScaleBounds {
   max: number;
 }
 
-/**
- * Межі значень шкали з урахуванням config. Некоректний або відсутній config
- * (старі дані, ручні правки БД) не ламає відповіді: повертаємо типові межі.
- */
+// Scale bounds for a config. A missing or invalid config (old data, manual DB edits)
+// falls back to the defaults instead of breaking answers.
 export const getScaleBounds = (
   type: ScaleQuestionType,
   config: QuestionConfig | null | undefined,
@@ -268,21 +252,19 @@ export const getScaleBounds = (
   }
 };
 
-/** Розбивка NPS: promoters 9-10, passives 7-8, detractors 0-6. */
 export interface NpsBreakdown {
   promoters: number;
   passives: number;
   detractors: number;
-  /** (promoters - detractors) / total * 100, одне знак після коми; null, якщо відповідей немає. */
+  // (promoters - detractors) / total * 100 with one decimal; null without answers.
   score: number | null;
 }
 
 /**
- * Перевірка вичерпності: у кінці `switch`/ланцюжка `if` за дискримінантом
- * значення має звузитись до `never`. Якщо з'явився новий варіант, якого
- * гілки не покривають, код перестане компілюватись; якщо ж невідоме значення
- * все одно потрапило в рантайм (рядок у БД, який випередив код), кидаємо
- * помилку замість того, щоб тихо обробити його як "останню" гілку.
+ * Exhaustiveness check: at the end of a `switch`/`if` chain over a discriminant the
+ * value must narrow to `never`. A new variant that no branch covers fails to compile;
+ * if an unknown value still reaches runtime (a DB string ahead of the code), we throw
+ * instead of silently treating it as the "last" branch.
  */
 export function assertNever(value: never, context = "value"): never {
   throw new Error(`Unhandled ${context}: ${JSON.stringify(value)}`);
@@ -335,12 +317,12 @@ export interface QuestionOverview extends Partial<QuestionVisibilityStats> {
   preview?: TextPreview[];
   stats?: NumberStats;
   distribution?: ChoiceDistribution[];
-  /** Лише для NPS. */
+  // NPS only.
   nps?: NpsBreakdown;
-  /** Лише для RANKING: по варіанту, у порядку options, і кількість повних ранжувань. */
+  // RANKING only: per option, in option order, plus the number of full rankings.
   ranking?: RankingOptionStats[];
   rankedCount?: number;
-  /** Лише для MATRIX. */
+  // MATRIX only.
   matrix?: MatrixStats;
   trueCount?: number;
   falseCount?: number;
@@ -361,21 +343,20 @@ export interface QuestionAnalyticsDto {
   totalAnswers: number;
   distribution?: { value: string | number; optionId: string; count: number; text: string }[];
   stats?: NumberStats;
-  /** Лише для NPS. */
+  // NPS only.
   nps?: NpsBreakdown;
-  /** Лише для RANKING: по варіанту, у порядку options, і кількість повних ранжувань. */
+  // RANKING only: per option, in option order, plus the number of full rankings.
   ranking?: RankingOptionStats[];
   rankedCount?: number;
-  /** Лише для MATRIX. */
+  // MATRIX only.
   matrix?: MatrixStats;
-  /** Питання з вибором і варіантом «Інше»: власні відповіді за частотою (топ). */
+  // Choice questions with an "Other" option: custom answers by frequency (top).
   otherAnswers?: { value: string; count: number }[];
   answers?: string[];
   trueCount?: number;
   falseCount?: number;
 }
 
-/** Вузол шляху проходження форми - питання + скільки респондентів його бачили. */
 export interface QuestionPathNode {
   questionId: string;
   text: string;
@@ -384,11 +365,10 @@ export interface QuestionPathNode {
 }
 
 /**
- * Перехід між двома послідовними ВИДИМИМИ питаннями серед завершених
- * відповідей. fromQuestionId: null - перехід зі старту форми до першого
- * показаного питання. Це НЕ funnel/drop-off аналітика - для того є
- * FormFunnelDto (нижче), який рахується з ResponseAttempt (autosave-
- * чернетки) і бачить покинуті проходження, не лише завершені Response.
+ * A transition between two consecutive VISIBLE questions among completed responses.
+ * fromQuestionId: null is the transition from the start to the first shown question.
+ * This is NOT funnel/drop-off analytics: that is FormFunnelDto (below), computed from
+ * ResponseAttempt (autosaved drafts), which also sees abandoned sessions.
  */
 export interface QuestionPathEdge {
   fromQuestionId: string | null;
@@ -419,7 +399,7 @@ export interface FormFunnelDto {
 export interface ResponseSummary {
   id: string;
   createdAt: string;
-  /** Мова форми, якою відповів респондент (null/відсутня - невідомо). */
+  // Form language the respondent used (null/absent: unknown).
   language?: string | null;
 }
 
@@ -444,7 +424,7 @@ export interface ResponseDetailsDto {
   id: string;
   formId: string;
   createdAt: string;
-  /** Мова форми, якою відповів респондент (null - не визначена, напр. старі відповіді). */
+  // Form language the respondent used (null: unknown, e.g. older responses).
   language: string | null;
   answers: EnrichedAnswer[];
 }
@@ -464,15 +444,11 @@ export interface ExportJobDto {
   completedAt: string | null;
 }
 
-// ---------------------------------------------------------------------------
-// Мови контенту (переклад самої форми: заголовок, питання, варіанти)
-// ---------------------------------------------------------------------------
+// Content languages (translation of the form itself: title, questions, options)
 
-/**
- * Мови, якими можна перекласти форму (ISO 639-1, без регіонів: "en", а не "en-US").
- * Це НЕ мови інтерфейсу застосунку (uk/en). RTL-мови (арабська, іврит) свідомо
- * не включені: перегляд форми поки не підтримує dir="rtl".
- */
+// Languages a form can be translated into (ISO 639-1, no regions: "en", not "en-US").
+// These are NOT the application's interface languages (uk/en). RTL languages (Arabic,
+// Hebrew) are left out on purpose: the viewer does not support dir="rtl" yet.
 export const CONTENT_LOCALES = [
   "uk", "en", "pl", "de", "fr", "es", "it", "pt", "nl", "cs", "sk", "ro", "bg", "hu",
   "sv", "da", "fi", "nb", "tr", "el", "lt", "lv", "et", "hr", "sl", "zh", "ja", "ko",
@@ -481,16 +457,16 @@ export const CONTENT_LOCALES = [
 
 export type ContentLocale = (typeof CONTENT_LOCALES)[number];
 
-/** Мова, якою написано вже наявні форми (поки автор не вкаже іншу). */
+// Language of forms that already existed (until the author picks another).
 export const DEFAULT_CONTENT_LANGUAGE: ContentLocale = "uk";
 
-/** Скільки додаткових мов (понад основну) може мати одна форма. */
+// How many additional languages (besides the main one) a form can have.
 export const MAX_ADDITIONAL_LANGUAGES = 10;
 
 export const isContentLocale = (value: unknown): value is ContentLocale =>
   typeof value === "string" && (CONTENT_LOCALES as readonly string[]).includes(value);
 
-/** Тексти форми однією мовою; відсутнє або порожнє поле = "показати основну мову". */
+// Form texts in one language; a missing or empty field means "show the main language".
 export interface FormTranslation {
   title?: string;
   description?: string;
@@ -499,23 +475,23 @@ export interface FormTranslation {
 export interface QuestionTranslation {
   text?: string;
   description?: string;
-  /** id варіанта (або колонки матриці) -> текст. */
+  // option (or matrix column) id -> text
   options?: Record<string, string>;
-  /** id рядка матриці -> текст. */
+  // matrix row id -> text
   rows?: Record<string, string>;
-  /** Підписи країв шкали SCALE. */
+  // SCALE end labels
   minLabel?: string;
   maxLabel?: string;
 }
 
-/** Ключ - код мови з form.languages (основна мова тут не зберігається: це самі поля форми). */
+// Key is a language code from form.languages (the main language is not stored here: those are the form's own fields).
 export type FormTranslations = Record<string, FormTranslation>;
 export type QuestionTranslations = Record<string, QuestionTranslation>;
 
-// Старі/альтернативні коди, які надсилають браузери, -> наш код.
+// Old/alternative codes sent by browsers -> our code.
 const LANGUAGE_ALIASES: Record<string, string> = { no: "nb", nn: "nb" };
 
-/** "en-US" -> "en", "NB" -> "nb", "no" -> "nb"; не схоже на код мови -> null. */
+// "en-US" -> "en", "NB" -> "nb", "no" -> "nb"; anything that is not a language code -> null.
 export const toPrimaryLanguage = (tag: string): string | null => {
   const match = /^[a-z]{2,3}/i.exec(tag.trim());
   if (!match) return null;
@@ -524,11 +500,9 @@ export const toPrimaryLanguage = (tag: string): string | null => {
   return LANGUAGE_ALIASES[primary] ?? primary;
 };
 
-/**
- * Мова, якою показати форму: перша зі списку побажань (?lang=, потім мови
- * браузера), що є серед доступних; інакше основна мова форми. Регіони
- * відкидаються ("en-GB" підійде до "en").
- */
+// Language to show the form in: the first wish from the list (?lang=, then browser
+// languages) that is available; otherwise the form's main language. Regions are
+// dropped ("en-GB" matches "en").
 export const pickContentLanguage = (
   candidates: readonly (string | null | undefined)[],
   available: readonly string[],
@@ -544,11 +518,9 @@ export const pickContentLanguage = (
   return fallback;
 };
 
-/**
- * Мова, яку записуємо у відповідь респондента: надіслана клієнтом, але лише
- * якщо вона справді є мовою цієї форми (основною або додатковою). Інакше null:
- * застарілий кеш форми чи довільний рядок не повинні забруднювати дані.
- */
+// Language stored on the response: the one the client sent, but only if it really is
+// a language of this form (main or additional). Otherwise null, so a stale form cache
+// or an arbitrary string cannot pollute the data.
 export const resolveResponseLanguage = (
   candidate: unknown,
   defaultLanguage: string,
@@ -572,12 +544,9 @@ interface LocalizableQuestion {
   translations?: unknown;
 }
 
-/**
- * Питання мовою `language`. Кожне поле окремо повертається до основної мови,
- * якщо перекладу немає (або він порожній), тож частково перекладена форма
- * ніколи не показує порожніх підписів. Для основної мови і мов без перекладу
- * повертається те саме питання.
- */
+// The question in `language`. Each field falls back to the main language on its own
+// when the translation is missing or empty, so a partly translated form never shows
+// empty labels. The main language and languages without translations return the same question.
 export const localizeQuestion = <Q extends LocalizableQuestion>(
   question: Q,
   language: string,
@@ -638,7 +607,7 @@ export const localizeForm = <
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 
-/** Лишає лише непорожні рядкові значення з ключами зі списку `allowedKeys`. */
+// Keeps only non-empty string values whose keys are in `allowedKeys`.
 const cleanStringMap = (value: unknown, allowedKeys?: ReadonlySet<string>): Record<string, string> => {
   const result: Record<string, string> = {};
 
@@ -651,11 +620,8 @@ const cleanStringMap = (value: unknown, allowedKeys?: ReadonlySet<string>): Reco
   return result;
 };
 
-/**
- * Приводить переклади форми до коректного стану перед збереженням: лише мови зі
- * списку `languages`, лише поля title/description, без порожніх значень.
- * Повертає null, якщо перекладів не лишилось.
- */
+// Brings form translations into a valid state before saving: only languages from
+// `languages`, only title/description, no empty values. Returns null when nothing is left.
 export const normalizeFormTranslations = (
   translations: unknown,
   languages: readonly string[],
@@ -678,12 +644,9 @@ export const normalizeFormTranslations = (
   return Object.keys(result).length > 0 ? result : null;
 };
 
-/**
- * Те саме для питання: прибирає мови, яких немає в `languages`, переклади
- * варіантів/рядків, id яких уже не існують у питанні (їх видалили чи замінили),
- * і порожні значення. Тому клієнту не обов'язково чистити переклади вручну
- * при видаленні варіанта чи мови.
- */
+// Same for a question: drops languages that are not in `languages`, translations of
+// options/rows whose ids no longer exist in the question, and empty values. The client
+// therefore does not need to clean translations by hand when an option or language is removed.
 export const normalizeQuestionTranslations = (
   translations: unknown,
   languages: readonly string[],

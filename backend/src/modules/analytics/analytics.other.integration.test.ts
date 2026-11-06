@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { Prisma } from "@prisma/client";
 
-/** Варіант «Інше» в аналітиці й розшифровці відповіді (реальний Prisma + PGlite). */
+// The "Other" option in analytics and in the response breakdown (real Prisma + PGlite).
 vi.mock("../../prisma/prisma.js", async () =>
   (await import("../../test/createTestPrisma.js")).createTestPrisma(),
 );
@@ -83,7 +83,7 @@ describe("аналітика варіанта «Інше»", () => {
       ["b", 0],
       ["o", 4],
     ]);
-    // за частотою; при рівній частоті - у порядку появи (Чай - 3-тя відповідь, Какао - 5-та)
+    // by frequency; on a tie, in order of appearance (Tea is the 3rd answer, Cocoa the 5th)
     expect(detail.otherAnswers).toEqual([
       { value: "Кава", count: 2 },
       { value: "Чай", count: 1 },
@@ -121,7 +121,7 @@ describe("аналітика варіанта «Інше»", () => {
 
     expect(single.displayValue).toBe("Інше: Какао");
     expect(multi.displayValue).toEqual(["A", "Інше: Кава"]);
-    // службовий ключ не з'являється окремою відповіддю
+    // the helper key does not show up as a separate answer
     expect(detail.answers.map((a) => a.questionId)).not.toContain(`${SINGLE}__other`);
   });
 });

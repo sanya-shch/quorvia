@@ -21,15 +21,15 @@ const props = defineProps<{
   formId: string;
   apiBaseUrl?: string;
   locale?: string;
-  // Міст автентифікації від React-хоста (токен лише в пам'яті хоста).
+  // Auth bridge from the React host (the token lives only in the host's memory).
   getAccessToken?: () => string | null;
   refreshAccessToken?: () => Promise<string | null>;
 }>();
 
 const { t, locale } = useI18n();
 
-// React-хост (VueAnalyticsHost.tsx) передає реактивний `locale` проп через reactive() root-props
-// цей watch підхоплює зміну мови користувачем "на льоту", без перемонтування Vue-застосунку.
+// The React host (VueAnalyticsHost.tsx) passes a reactive `locale` prop through the reactive()
+// root props; this watch picks up the user's language change on the fly, without remounting the Vue app.
 watch(
   () => props.locale,
   (newLocale) => {
@@ -42,7 +42,7 @@ watch(
 
 const apiBaseUrl = props.apiBaseUrl || "http://localhost:5001/api";
 
-// Має виконатись ДО створення composables нижче - вони одразу роблять запити.
+// Must run BEFORE the composables below are created: they make requests right away.
 setAuthBridge(
   props.getAccessToken
     ? { getAccessToken: props.getAccessToken, refreshAccessToken: props.refreshAccessToken }

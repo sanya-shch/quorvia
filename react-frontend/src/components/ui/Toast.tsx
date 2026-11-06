@@ -4,24 +4,23 @@ import { useTranslation } from "react-i18next";
 import { playToastAnimation } from "./toastMotion";
 
 /**
- * Невеликий центральний механізм повідомлень замість window.alert():
- * alert блокує потік, не стилізується, не локалізує кнопку й не читається
- * скрінрідерами послідовно з іншим інтерфейсом.
+ * A small central notification mechanism instead of window.alert(): alert blocks the thread,
+ * cannot be styled, does not localize its button and is not read by screen readers in sequence
+ * with the rest of the UI.
  *
- * Поява й зникнення анімуються через motion/mini (див. toastMotion.ts):
- * повідомлення виїжджає знизу, а при закритті зменшується й тане; елемент
- * прибирається з DOM після завершення анімації виходу. При
- * prefers-reduced-motion лишається лише прозорість, без руху. Анімація - це
- * поступове покращення: без її підтримки повідомлення просто з'являється й
- * зникає, ролі й тексти для скрінрідерів не змінюються.
+ * Appearance and disappearance are animated with motion/mini (see toastMotion.ts): a message
+ * slides in from below and on close shrinks and fades; the element is removed from the DOM
+ * after the exit animation. With prefers-reduced-motion only opacity is left, no movement. The
+ * animation is progressive enhancement: without its support the message just appears and
+ * disappears, and roles and screen reader texts do not change.
  *
- * Доступність: успіх - role="status" (ввічливе оголошення), помилка -
- * role="alert" (негайне). Помилки висять довше за успіх, щоб їх устигли
- * прочитати, і всі закриваються кнопкою.
+ * Accessibility: success is role="status" (polite announcement), an error is role="alert"
+ * (immediate). Errors stay longer than successes so they can be read, and all can be closed
+ * with a button.
  */
 export type ToastKind = "success" | "error";
 
-/** leaving - повідомлення закривається: програє анімацію виходу, потім видаляється. */
+// leaving: the message is closing; it plays the exit animation and is then removed.
 type ToastItem = { id: number; kind: ToastKind; message: string; leaving?: boolean };
 
 type ToastApi = {
@@ -30,7 +29,7 @@ type ToastApi = {
 };
 
 const AUTO_DISMISS_MS: Record<ToastKind, number> = { success: 4000, error: 8000 };
-/** Більше - відсуваємо найстаріші: стопка з десятка повідомлень нікому не потрібна. */
+// More than that pushes the oldest out: nobody needs a stack of ten messages.
 const MAX_VISIBLE = 4;
 
 const ToastContext = createContext<ToastApi | null>(null);
@@ -59,8 +58,8 @@ function ToastView({
     let cancelled = false;
     void playToastAnimation(element, "exit").then(() => {
       if (cancelled) return;
-      // Фінальний стан виставляємо вручну: між кінцем анімації й видаленням
-      // елемента React може відрендерити кадр, у якому він ще був би видимий.
+      // We set the final state manually: between the end of the animation and removing the element
+      // React may render a frame in which it would still be visible.
       element.style.opacity = "0";
       onRemove(toast.id);
     });
@@ -101,7 +100,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const nextId = useRef(1);
   const timers = useRef(new Map<number, ReturnType<typeof setTimeout>>());
 
-  /** Остаточне видалення з DOM (після анімації виходу). */
+  // Final removal from the DOM (after the exit animation).
   const remove = useCallback((id: number) => {
     const timer = timers.current.get(id);
     if (timer) clearTimeout(timer);
@@ -109,7 +108,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((current) => current.filter((toast) => toast.id !== id));
   }, []);
 
-  /** Починає закриття: повторні виклики (таймер + клік) нешкідливі. */
+  // Starts closing: repeated calls (timer + click) are harmless.
   const dismiss = useCallback((id: number) => {
     const timer = timers.current.get(id);
     if (timer) clearTimeout(timer);
@@ -123,8 +122,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     (kind: ToastKind, message: string) => {
       const id = nextId.current++;
 
-      // Витіснені (старші за MAX_VISIBLE) зникають одразу, без анімації; їхні
-      // таймери лишаються й просто не знайдуть елемент.
+      // Evicted toasts (older than MAX_VISIBLE) disappear at once without animation; their timers
+      // remain and simply will not find the element.
       setToasts((current) => [...current, { id, kind, message }].slice(-MAX_VISIBLE));
       timers.current.set(
         id,

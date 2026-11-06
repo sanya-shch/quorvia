@@ -37,7 +37,7 @@ export default function FormCardMenu({
     <div className="relative" ref={menuRef}>
       <button
         onClick={(e) => {
-          e.stopPropagation(); // Зупиняємо перехід у білдер при кліку на трипки
+          e.stopPropagation(); // stop the click from navigating to the builder
           setIsOpen(!isOpen);
         }}
         aria-label={t("dashboard.menu.open")}

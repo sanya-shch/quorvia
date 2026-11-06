@@ -1,11 +1,10 @@
 import { AUTH_EXPIRED_EVENT } from "@quorvia/shared-types";
 
 /**
- * Міст автентифікації з React-хостом. Access-токен живе лише в пам'яті
- * хоста (не в localStorage), тому remote отримує його через ці функції,
- * які хост передає пропами (див. AnalyticsApp.vue / VueAnalyticsHost.tsx).
- * refreshAccessToken (необов'язковий) обмінює refresh-cookie на новий
- * токен - так 401 через протухлий access-токен не розлогінює користувача.
+ * Auth bridge with the React host. The access token lives only in the host's memory (not
+ * localStorage), so the remote gets it through these functions, which the host passes as props
+ * (see AnalyticsApp.vue / VueAnalyticsHost.tsx). The optional refreshAccessToken exchanges the
+ * refresh cookie for a new token, so a 401 from an expired access token does not log the user out.
  */
 export type AuthBridge = {
   getAccessToken: () => string | null;
@@ -49,8 +48,8 @@ const request = async (
 ): Promise<Response> => {
   let res = await send(apiBaseUrl, path, options, authBridge?.getAccessToken() ?? null);
 
-  // Протухлий access-токен (15 хв): один раз просимо хост обміняти
-  // refresh-cookie на новий і повторюємо запит.
+  // Expired access token (15 min): ask the host once to exchange the refresh cookie for a new one
+  // and repeat the request.
   if (res.status === 401 && authBridge?.refreshAccessToken) {
     const freshToken = await authBridge.refreshAccessToken();
 
@@ -61,10 +60,9 @@ const request = async (
 
   if (!res.ok) {
     if (res.status === 401) {
-      // Сесію не вдалося продовжити навіть після refresh. Vue сам НЕ
-      // вирішує, куди редіректити - single source of truth для logout
-      // лишається React-хост (ProtectedRoute реагує на Zustand-стан), тож
-      // повідомляємо йому CustomEvent-ом.
+      // The session could not be extended even after a refresh. Vue does NOT decide where to redirect:
+      // the single source of truth for logout stays the React host (ProtectedRoute reacts to the Zustand
+      // state), so we notify it with a CustomEvent.
       window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
     }
     throw new ApiError(res.status, `Запит завершився помилкою ${res.status}`);

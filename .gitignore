@@ -5,10 +5,10 @@ generated/
 
 .DS_Store
 .env*
-# Шаблони змінних середовища МАЮТЬ бути в репозиторії (README: cp .env.example .env)
+# Environment templates MUST be in the repository (docs: cp .env.example .env)
 !.env.example
 
-# Локальні нотатки/плани - можуть містити тестові облікові дані
+# Local notes/plans: may contain test credentials
 plans.txt
 *.tsbuildinfo
 

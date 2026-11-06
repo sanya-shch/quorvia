@@ -9,11 +9,8 @@ export type AuthUser = {
   email: string;
 };
 
-/**
- * accessToken - єдине, що бачить JS-код фронтенду; refresh-токен передається
- * окремо, у httpOnly cookie (виставляється контролером, у тіло відповіді
- * не потрапляє).
- */
+// accessToken is the only thing frontend JS sees; the refresh token travels separately in
+// an httpOnly cookie (set by the controller, never in the response body).
 export type RegisterDto = {
   accessToken: string;
   user: AuthUser;

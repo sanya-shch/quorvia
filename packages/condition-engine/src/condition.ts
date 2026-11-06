@@ -1,12 +1,11 @@
 /**
- * Умовна логіка питань (conditional logic).
+ * Conditional logic for questions.
  *
- * Питання може мати `condition` — правило, яке визначає, чи показувати його,
- * залежно від відповідей на попередні питання. Модуль навмисно не залежить
- * від Express/Prisma/React/Vue: це чисті функції, які однаково
- * використовуються і на бекенді (валідація при збереженні форми, серверний
- * перерахунок видимості відповіді), і на будь-якому фронтенді (question-by-question
- * режим проходження).
+ * A question may have a `condition`: a rule that decides whether it is shown,
+ * based on the answers to earlier questions. The module deliberately does not
+ * depend on Express/Prisma/React/Vue. These are pure functions shared by the
+ * backend (validation on save, server-side visibility recalculation on submit)
+ * and by every frontend (step-by-step mode).
  */
 
 import type {
@@ -18,10 +17,9 @@ import type {
 
 export type { ConditionGroup, ConditionOperator, ConditionRule, ConditionValue };
 
-/** Відповіді, зібрані до поточного моменту проходження форми: questionId -> значення. */
+// Answers collected so far: questionId -> value.
 export type AnswersMap = Record<string, unknown>;
 
-/** Мінімум інформації про питання, потрібний для роботи з умовами. */
 export interface QuestionLike {
   id: string;
   condition?: ConditionGroup | null;
@@ -57,7 +55,7 @@ const evaluateRule = (rule: ConditionRule, answers: AnswersMap): boolean => {
     }
 
     case "contains": {
-      // actual - масив (CHOICE_MULTI) або рядок; rule.value - те, що шукаємо всередині
+      // actual is an array (CHOICE_MULTI) or a string; rule.value is what we look for inside it
       if (Array.isArray(actual)) {
         return actual.includes(rule.value as string);
       }
@@ -68,7 +66,7 @@ const evaluateRule = (rule: ConditionRule, answers: AnswersMap): boolean => {
     }
 
     case "in": {
-      // rule.value - масив можливих значень, actual - одне значення
+      // rule.value is a list of accepted values, actual is a single value
       const a = toComparable(actual);
       return Array.isArray(rule.value) && a !== undefined && rule.value.includes(a as string);
     }
@@ -78,10 +76,7 @@ const evaluateRule = (rule: ConditionRule, answers: AnswersMap): boolean => {
   }
 };
 
-/**
- * Обчислює, чи має питання бути показане, враховуючи вже дані відповіді.
- * Питання без `condition` завжди видиме.
- */
+// A question without a `condition` is always visible.
 export const evaluateCondition = (
   condition: ConditionGroup | null | undefined,
   answers: AnswersMap,
@@ -94,11 +89,10 @@ export const evaluateCondition = (
 };
 
 /**
- * Для повного набору питань і повного набору відповідей визначає, які
- * питання були фактично видимі (eligible to show). Використовується і
- * бекендом (перерахунок при збереженні Response, щоб не покладатись на
- * клієнта), і аналітикою (щоб відрізнити "приховане умовою" від
- * "показане, але пропущене користувачем").
+ * Returns the questions that were actually eligible to be shown for the given
+ * answers. The backend uses it to recalculate on submit instead of trusting the
+ * client, and analytics uses it to tell "hidden by a condition" from "shown but
+ * skipped".
  */
 export const resolveVisibleQuestionIds = (
   questions: QuestionLike[],
@@ -125,17 +119,15 @@ export interface ConditionGraphValidationResult {
 }
 
 /**
- * Валідує граф залежностей condition.rules[].questionId для повного набору
- * питань форми:
- *  - посилання на неіснуюче questionId,
- *  - самопосилання (Q1 залежить від Q1),
- *  - цикли (Q1 -> Q2 -> Q1) через DFS з відстеженням поточного шляху,
- *  - forward-reference: питання не може залежати від питання, яке йде після
- *    нього за `order` (в question-by-question режимі це недосяжний стан:
- *    відповіді на майбутнє питання ще нема).
+ * Validates the dependency graph of `condition.rules[].questionId` for a whole form:
+ *  - references to a nonexistent questionId,
+ *  - self-references (Q1 depends on Q1),
+ *  - cycles (Q1 -> Q2 -> Q1), found by DFS that tracks the current path,
+ *  - forward references: a question cannot depend on one that comes after it by
+ *    `order` (unreachable in step-by-step mode: that answer does not exist yet).
  *
- * Викликається на бекенді при create/update форми — це джерело правди,
- * клієнтська валідація в білдері лише дублює для миттєвого фідбеку.
+ * The backend calls it on create/update and is the source of truth; the builder
+ * validation only duplicates it for instant feedback.
  */
 export const validateConditionGraph = (
   questions: (QuestionLike & { order: number })[],
@@ -143,7 +135,7 @@ export const validateConditionGraph = (
   const errors: ConditionGraphError[] = [];
   const byId = new Map(questions.map((q) => [q.id, q]));
 
-  // forward-reference / unknown / self-reference - перевіряються незалежно від циклів
+  // forward-reference / unknown / self-reference are checked independently of cycles
   for (const q of questions) {
     if (!q.condition) continue;
 
@@ -177,8 +169,8 @@ export const validateConditionGraph = (
     }
   }
 
-  // Цикли: DFS з трьома станами (white/gray/black), шукаємо тільки серед
-  // валідних ребер (unknown questionId вже зафіксовано вище і в граф не додається)
+  // Cycles: DFS with three states (white/gray/black) over valid edges only
+  // (unknown questionIds were reported above and are not added to the graph)
   const WHITE = 0,
     GRAY = 1,
     BLACK = 2;

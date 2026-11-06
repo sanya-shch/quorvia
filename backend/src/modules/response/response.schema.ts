@@ -2,12 +2,12 @@ import { z } from "zod";
 import { answersSchema, MAX_SESSION_KEY_LENGTH } from "../../shared/schemas/answers.js";
 
 export const submitResponseSchema = z.object({
-  // Опційно: якщо респондент autosave-ився під час проходження (той самий
-  // sessionKey, що й у PUT /:shareId/attempt), сервер позначить цю спробу
-  // completedAt - funnel-аналітика бачитиме її як завершену, а не покинуту.
+  // Optional: if the respondent autosaved during the session (same sessionKey as PUT
+  // /:shareId/attempt), the server marks that attempt completedAt, so the funnel counts
+  // it as completed rather than abandoned.
   sessionKey: z.string().min(1).max(MAX_SESSION_KEY_LENGTH).optional(),
   answers: answersSchema,
-  // Мова, якою респондент бачив форму. Необов'язкова й перевіряється м'яко
-  // (див. resolveResponseLanguage): неправильна мова не блокує відповідь.
+  // Form language the respondent saw. Optional and checked softly (see
+  // resolveResponseLanguage): an invalid language never blocks the response.
   language: z.string().max(35).optional(),
 });

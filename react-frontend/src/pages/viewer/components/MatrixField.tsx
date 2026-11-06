@@ -4,7 +4,7 @@ import type { AnswerValue, MatrixAnswerValue } from "../../../types/formViewer";
 import { toMatrixAnswer } from "../matrixAnswer";
 
 interface MatrixFieldProps {
-  /** Префікс імені груп радіокнопок (qId): кожен рядок - окрема група. */
+  // Prefix of the radio group names (qId): every row is a separate group.
   name: string;
   rows: MatrixRow[];
   columns: QuestionOption[];
@@ -16,12 +16,9 @@ interface MatrixFieldProps {
   invalid?: boolean;
 }
 
-/**
- * Матриця як набір груп "рядок -> колонка" (fieldset на рядок), а не HTML-таблиця:
- * так одна й та сама розмітка однаково працює на вузьких екранах і зі
- * скрінрідерами (легенда = текст рядка, радіокнопки = колонки), без дубльованої
- * мобільної версії.
- */
+// The matrix as a set of "row -> column" groups (a fieldset per row), not an HTML table: the same
+// markup works on narrow screens and with screen readers (legend = row text, radios = columns)
+// without a duplicated mobile version.
 export default function MatrixField({
   name,
   rows,

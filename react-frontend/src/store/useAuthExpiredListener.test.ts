@@ -27,7 +27,7 @@ describe("useAuthExpiredListener", () => {
   it("при AUTH_EXPIRED_EVENT викликає clearAuth() - скидає isAuthenticated і token у Zustand", () => {
     renderHook(() => useAuthExpiredListener());
 
-    expect(useAuthStore.getState().isAuthenticated).toBe(true); // до події
+    expect(useAuthStore.getState().isAuthenticated).toBe(true); // before the event
 
     act(() => {
       window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
@@ -46,7 +46,7 @@ describe("useAuthExpiredListener", () => {
       window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
     });
 
-    // Стан лишився таким, яким був до dispatch - слухач вже знятий
+    // The state stayed as it was before the dispatch: the listener is already removed
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
   });
 

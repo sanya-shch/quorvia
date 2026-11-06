@@ -6,15 +6,13 @@ import { toMatrixAnswer } from "./matrixAnswer";
 interface ReviewLabels {
   yes: string;
   no: string;
-  /** Показується, коли на питання не відповіли. */
+  // Shown when the question was not answered.
   empty: string;
 }
 
-/**
- * Відповідь у вигляді тексту для екрана "Перевірте відповіді" (покроковий
- * режим). Раніше там був `value.toString()`: варіанти показувались як id,
- * boolean - як "true", а об'єкт відповіді матриці - як "[object Object]".
- */
+// The answer as text for the "Review your answers" screen (step-by-step mode). It used to be
+// `value.toString()`: options showed as ids, booleans as "true" and a matrix answer object as
+// "[object Object]".
 export const formatReviewAnswer = (
   question: Question,
   value: AnswerValue | undefined,

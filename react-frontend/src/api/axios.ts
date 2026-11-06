@@ -3,13 +3,13 @@ import { useAuthStore } from "../store/useAuthStore";
 
 const baseURL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
-// withCredentials: true - обов'язково для refresh-токена: він приходить і
-// надсилається як httpOnly cookie (не через JS), браузер докладає/приймає
-// її лише якщо запит явно позначено credentials-запитом.
+// withCredentials: true is required for the refresh token: it arrives and is sent as an
+// httpOnly cookie (not via JS), and the browser attaches/accepts it only if the request is
+// explicitly marked as a credentials request.
 export const api = axios.create({ baseURL, withCredentials: true });
 export const publicApi = axios.create({ baseURL, withCredentials: true });
 
-// автоматично додаємо Bearer токен до КОЖНОГО запиту
+// automatically add the Bearer token to EVERY request
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
 
@@ -21,18 +21,15 @@ api.interceptors.request.use((config) => {
 });
 
 /**
- * Access-токен живе лише 15 хв (backend/src/shared/utils/jwt.ts), тому
- * звичайний 401 більше НЕ означає "сесія скінчилась" - спершу пробуємо
- * непомітно обміняти refresh-cookie на новий access-токен і повторити
- * початковий запит РІВНО один раз (позначаємо _retriedAfterRefresh, щоб
- * не зациклитись, якщо й новий токен теж отримає 401). Лише якщо і сам
- * /auth/refresh не спрацював (cookie протухла/відкликана/відсутня) -
- * скидаємо сесію.
+ * The access token lives only 15 minutes (backend/src/shared/utils/jwt.ts), so an ordinary
+ * 401 no longer means "the session ended": we first try to quietly exchange the refresh cookie
+ * for a new access token and repeat the original request EXACTLY once (marked
+ * _retriedAfterRefresh so we cannot loop if the new token also gets 401). Only if /auth/refresh
+ * itself fails (cookie expired/revoked/missing) do we reset the session.
  *
- * Паралельні 401 від кількох одночасних запитів діляться ОДНИМ
- * refresh-запитом (inFlightRefresh), а не тригерять по одному /auth/refresh
- * на кожен - інакше кожен з них ротував би cookie і "перегравав" один
- * одного.
+ * Parallel 401s from several simultaneous requests share ONE refresh request (inFlightRefresh)
+ * instead of each triggering its own /auth/refresh; otherwise each would rotate the cookie and
+ * "overwrite" the others.
  */
 interface RefreshResult {
   accessToken: string;
@@ -55,11 +52,9 @@ const requestNewAccessToken = (): Promise<RefreshResult | null> => {
   return inFlightRefresh;
 };
 
-/**
- * Обмінює refresh-cookie на новий access-токен і кладе його в стор.
- * Спільний для axios-інтерцептора, відновлення сесії та Vue-remote
- * (див. VueAnalyticsHost.tsx) - усі діляться ОДНИМ запитом (inFlightRefresh).
- */
+// Exchanges the refresh cookie for a new access token and puts it (with the user from the same
+// response) into the store. Shared by the axios interceptor, session restore and the Vue remote
+// (see VueAnalyticsHost.tsx): all share ONE request (inFlightRefresh).
 export const refreshAccessToken = async (): Promise<string | null> => {
   const result = await requestNewAccessToken();
 
@@ -78,11 +73,8 @@ export const refreshAccessToken = async (): Promise<string | null> => {
   return result.accessToken;
 };
 
-/**
- * Викликається один раз при старті застосунку (ProtectedRoute): токен у
- * пам'яті після перезавантаження сторінки порожній, тож пробуємо відновити
- * сесію з httpOnly refresh-cookie. Невдача = користувач не залогінений.
- */
+// Called once at app start (ProtectedRoute): the in-memory token is empty after a page reload,
+// so we try to restore the session from the httpOnly refresh cookie. Failure = not logged in.
 export const restoreSession = async (): Promise<string | null> => {
   const token = await refreshAccessToken();
 
@@ -119,9 +111,9 @@ api.interceptors.response.use(
       }
     }
 
-    // Для запитів vue-analytics (Module Federation remote) той самий ефект
-    // (clearAuth -> ProtectedRoute реагує на isAuthenticated) досягається не
-    // напряму, а через AUTH_EXPIRED_EVENT - див. useAuthExpiredListener.ts.
+    // For vue-analytics requests (the Module Federation remote) the same effect (clearAuth ->
+    // ProtectedRoute reacts to isAuthenticated) is reached not directly but through
+    // AUTH_EXPIRED_EVENT; see useAuthExpiredListener.ts.
     if (error.response?.status === 401) {
       useAuthStore.getState().clearAuth();
     }

@@ -33,12 +33,10 @@ import {
 } from "./analytics.types.js";
 
 /**
- * visibleQuestionIds персистується лише для відповідей, надісланих після
- * впровадження conditional logic (Етап 2). Для старих відповідей (Json-поле
- * порожнє/null) - чесний fallback: вважаємо видимим кожне питання, на яке є
- * відповідь у answers (те, що й так робила аналітика до цієї фічі), тому
- * старі дані не "ламаються" заднім числом, а просто не мають точного
- * розрізнення "приховано" vs "показано, але пропущено".
+ * visibleQuestionIds is persisted only for responses submitted after conditional logic
+ * was introduced. For older responses (empty/null Json) we fall back to treating every
+ * question that has an answer as visible, which is what analytics did before, so old data
+ * is not broken retroactively; it just cannot tell "hidden" from "shown but skipped" exactly.
  */
 const resolveVisibleIdsForResponse = (
   response: { answers: unknown; visibleQuestionIds: unknown },
@@ -54,10 +52,10 @@ const resolveVisibleIdsForResponse = (
 type StoredOption = { id: string; text: string; isOther?: boolean };
 
 /**
- * Відповіді форми порціями (keyset-пагінація), а не одним findMany на всю
- * таблицю: агрегації нижче інкрементальні, тож пам'ять обмежена розміром
- * порції, а не кількістю відповідей. Порядок (createdAt, id) детермінований
- * і обслуговується індексом (formId, createdAt, id).
+ * Responses in batches (keyset pagination) rather than one findMany over the whole
+ * table: the aggregations below are incremental, so memory is bounded by the batch size,
+ * not by the number of responses. The (createdAt, id) order is deterministic and served
+ * by the (formId, createdAt, id) index.
  */
 const responseBatches = (formId: string) =>
   paginate(
@@ -71,7 +69,7 @@ const responseBatches = (formId: string) =>
     analyticsConfig.batchSize,
   );
 
-/** Те саме для проходжень; порядок за (sessionKey, id) іде по унікальному індексу форми. */
+// Same for attempts; the (sessionKey, id) order follows the form's unique index.
 const attemptBatches = (formId: string) =>
   paginate(
     (page) =>
@@ -89,11 +87,9 @@ const attemptBatches = (formId: string) =>
     analyticsConfig.batchSize,
   );
 
-/**
- * Шкальні відповіді: лише цілі значення в поточних межах шкали. Значення поза
- * межами (config змінили вже після збору відповідей) не потрапляють у розподіл
- * і середнє, щоб воно не виходило за шкалу; у totalAnswers вони все одно є.
- */
+// Scale answers: integers within the current scale bounds only. Values outside them
+// (config changed after collecting) stay out of the distribution and the average so it
+// cannot leave the scale; they still count in totalAnswers.
 const isInScale = (value: unknown, bounds: ScaleBounds): value is number =>
   typeof value === "number" &&
   Number.isInteger(value) &&
@@ -103,7 +99,7 @@ const isInScale = (value: unknown, bounds: ScaleBounds): value is number =>
 const scaleValues = (bounds: ScaleBounds): number[] =>
   Array.from({ length: bounds.max - bounds.min + 1 }, (_, i) => bounds.min + i);
 
-/** NPS: 9-10 promoters, 7-8 passives, 0-6 detractors; score = %promoters - %detractors. */
+// NPS: 9-10 promoters, 7-8 passives, 0-6 detractors; score = %promoters - %detractors.
 const computeNps = (counts: Map<number, number>): NpsBreakdown => {
   let promoters = 0;
   let passives = 0;
@@ -125,12 +121,9 @@ const computeNps = (counts: Map<number, number>): NpsBreakdown => {
   };
 };
 
-/**
- * RANKING: лічильники позицій по варіантах. Враховуємо лише повні ранжування
- * поточних варіантів (перестановка всіх id без дублікатів): якщо варіанти
- * змінили вже після збору відповідей, старі ранжування не спотворюють
- * середні позиції (у totalAnswers вони все одно є).
- */
+// RANKING: position counters per option. Only full rankings of the current options
+// count (a permutation of all ids without duplicates), so changing the options after
+// collecting does not skew the average positions (they still count in totalAnswers).
 type RankingAccumulator = {
   optionCount: number;
   positions: Map<string, number[]>;
@@ -148,8 +141,8 @@ const recordRanking = (acc: RankingAccumulator, value: unknown): void => {
 
   const seen = new Set<string>();
 
-  // Спершу перевіряємо всю відповідь, і лише потім рахуємо - щоб частково
-  // некоректне ранжування не лишило половину лічильників.
+  // Validate the whole answer first and count afterwards, so a partly invalid ranking
+  // does not leave half of the counters incremented.
   for (const id of value) {
     if (typeof id !== "string" || !acc.positions.has(id) || seen.has(id)) return;
     seen.add(id);
@@ -174,11 +167,9 @@ const rankingStats = (options: StoredOption[], acc: RankingAccumulator): Ranking
     };
   });
 
-/**
- * MATRIX: лічильники "рядок x колонка". Клітинки незалежні (необов'язкова матриця
- * може бути заповнена частково); рахуємо лише існуючі рядки й колонки, тож
- * зміна рядків/колонок після збору не ламає статистику.
- */
+// MATRIX: "row x column" counters. Cells are independent (an optional matrix may be
+// filled partially); only existing rows and columns are counted, so changing them after
+// collecting does not break the statistics.
 type MatrixAccumulator = {
   rows: { id: string; text: string }[];
   columns: { id: string; text: string }[];
@@ -294,19 +285,19 @@ export const getFormAnalytics = async (
 
       for (const qId of visibleIds) {
         const acc = accumulators.get(qId);
-        if (!acc) continue; // питання видалене з форми після цієї відповіді
+        if (!acc) continue; // the question was removed from the form after this response
 
         acc.shownCount++;
 
         const value = answers?.[qId];
-        if (value === undefined) continue; // показане, але пропущене (skippedCount)
+        if (value === undefined) continue; // shown but skipped (skippedCount)
 
         acc.answeredCount++;
 
         if (acc.type === "TEXT" || acc.type === "DATE") {
           const key = value as string;
-          // Вільний текст має необмежену кількість різних значень: Map не
-          // може рости безкінечно (для надвеликих форм топ-5 стає наближеним).
+          // Free text has an unbounded number of distinct values and the Map cannot grow forever
+          // (for very large forms the top 5 becomes approximate).
           if (acc.textCounts!.has(key) || acc.textCounts!.size < analyticsConfig.maxTrackedTextValues) {
             acc.textCounts!.set(key, (acc.textCounts!.get(key) || 0) + 1);
           }
@@ -457,12 +448,9 @@ export const getFormAnalytics = async (
   };
 };
 
-/**
- * Інкрементальний акумулятор переходів між видимими питаннями: відповіді
- * подаються по одній (add), результат знімається в кінці (result). Завдяки
- * цьому getFormPaths не тримає всі відповіді в пам'яті. orderedQuestions
- * мають бути відсортовані за order.
- */
+// Incremental accumulator of transitions between visible questions: responses are fed
+// one by one (add) and the result is read at the end (result), so getFormPaths does not
+// hold every response in memory. orderedQuestions must be sorted by `order`.
 const createPathsAccumulator = (orderedQuestions: { id: string; text: string; order: number }[]) => {
   const allQuestionIds = orderedQuestions.map((q) => q.id);
   const shownCount: Record<string, number> = {};
@@ -473,8 +461,8 @@ const createPathsAccumulator = (orderedQuestions: { id: string; text: string; or
     add(response: { answers: unknown; visibleQuestionIds: unknown }) {
       totalResponses++;
       const visibleIds = resolveVisibleIdsForResponse(response, allQuestionIds);
-      // Послідовність, у якій респондент фактично побачив питання - за order,
-      // з пропуском прихованих (не обов'язково сусідні за order).
+      // The sequence the respondent actually saw, by `order`, skipping hidden questions
+      // (not necessarily adjacent by `order`).
       const sequence = orderedQuestions.filter((q) => visibleIds.has(q.id));
 
       let prevId: string | null = null;
@@ -504,10 +492,8 @@ const createPathsAccumulator = (orderedQuestions: { id: string; text: string; or
   };
 };
 
-/**
- * Чиста функція агрегації переходів між видимими питаннями - винесена
- * окремо від getFormPaths, щоб тестувати без моку Prisma.
- */
+// Pure aggregation of transitions between visible questions, separate from getFormPaths
+// so it can be tested without mocking Prisma.
 export const buildFormPaths = (
   orderedQuestions: { id: string; text: string; order: number }[],
   responses: { answers: unknown; visibleQuestionIds: unknown }[],
@@ -537,17 +523,16 @@ export const getFormPaths = async (formId: string, userId: string): Promise<Form
 };
 
 /**
- * Чиста функція агрегації funnel - винесена окремо від getFormFunnel, щоб
- * тестувати без моку Prisma (той самий підхід, що й buildFormPaths).
- * attempts - рядки ResponseAttempt (і завершені, і ні).
+ * Pure funnel aggregation, separate from getFormFunnel so it can be tested without
+ * mocking Prisma (same approach as buildFormPaths). attempts are ResponseAttempt rows,
+ * completed or not.
  *
- * reachedCount рахується з reachedQuestionIds - питань, які респондент
- * реально побачив (множина лише росте). visibleQuestionIds тут НЕ годиться:
- * це "питання, які зараз логічно прохідні", і воно (а) вже містить усі
- * питання без умови з першого autosave, навіть якщо респондент ще на
- * першому кроці, та (б) втрачає питання, приховані пізнішою зміною
- * відповіді. Для рядків, створених до появи reachedQuestionIds, лишається
- * fallback на visibleQuestionIds (старе, менш точне наближення).
+ * reachedCount comes from reachedQuestionIds: questions the respondent really saw (the
+ * set only grows). visibleQuestionIds is NOT suitable: it means "questions that are
+ * logically reachable right now", so it (a) already contains every unconditional question
+ * from the first autosave even while the respondent is still on step one, and (b) loses
+ * questions hidden by a later change of an answer. Rows created before reachedQuestionIds
+ * existed fall back to visibleQuestionIds (the older, less precise approximation).
  */
 type FunnelAttempt = {
   reachedQuestionIds?: unknown;
@@ -619,11 +604,9 @@ export const getFormFunnel = async (formId: string, userId: string): Promise<For
   return acc.result();
 };
 
-/**
- * Record<QuestionType, ...>, а не масив рядків: додаючи тип питання, не
- * вийде забути вирішити, чи підтримує він детальну аналітику (TypeScript
- * вимагатиме ключ). false -> 400 ANALYTICS_UNSUPPORTED_TYPE.
- */
+// Record<QuestionType, ...> instead of a string array: when a question type is added you
+// cannot forget to decide whether it supports detailed analytics (TypeScript demands the
+// key). false -> 400 ANALYTICS_UNSUPPORTED_TYPE.
 const DETAIL_ANALYTICS_SUPPORT: Record<QuestionType, boolean> = {
   TEXT: true,
   DATE: true,
@@ -659,9 +642,8 @@ export const getQuestionAnalytics = async (
     throw new AppError(ErrorCode.ANALYTICS_UNSUPPORTED_TYPE, 400);
   }
 
-  // Map, а не plain object: користувацький текст на кшталт "constructor"
-  // чи "__proto__" збігається з вбудованими ключами Object.prototype і
-  // ламає підрахунок (counts[k] || 0 повертає функцію/прототип).
+  // A Map, not a plain object: user text such as "constructor" or "__proto__" collides with
+  // Object.prototype keys and breaks counting (counts[k] || 0 returns a function/prototype).
   const textCounts = new Map<string, number>();
   const textAnswers: string[] = [];
   let textAnswersTruncated = false;
@@ -671,7 +653,7 @@ export const getQuestionAnalytics = async (
   let numberMin = Infinity;
   let numberMax = -Infinity;
   const choiceCounts = new Map<string, number>();
-  // Власні відповіді «Інше» - так само Map і з обмеженням унікальних значень.
+  // "Other" answers: also a Map, with a cap on distinct values.
   const otherCounts = new Map<string, number>();
   const ranking =
     question.type === "RANKING"
@@ -713,7 +695,7 @@ export const getQuestionAnalytics = async (
           numberCounts.set(value, (numberCounts.get(value) ?? 0) + 1);
           numberSum += value;
           numberCount++;
-          // Не Math.min(...nums): spread мільйона аргументів падає з RangeError.
+          // Not Math.min(...nums): spreading a million arguments throws a RangeError.
           if (value < numberMin) numberMin = value;
           if (value > numberMax) numberMax = value;
           break;
@@ -770,8 +752,8 @@ export const getQuestionAnalytics = async (
     return {
       question: { ...base, type: question.type },
       totalAnswers,
-      // Топ за частотою: для вільного тексту повний розподіл - це десятки
-      // тисяч унікальних рядків, які ні відобразити, ні прочитати.
+      // Top by frequency: for free text the full distribution is tens of thousands of unique
+      // strings that nobody can display or read.
       distribution: Array.from(textCounts, ([value, count]) => ({ value, count }))
         .sort((a, b) => b.count - a.count)
         .slice(0, analyticsConfig.maxTextDistribution),
@@ -937,7 +919,7 @@ export const getResponseById = async (
     let displayValue: string | number | string[] = "";
 
     const otherText = rawAnswers[otherAnswerKey(q.id)];
-    // «Інше» показуємо разом із текстом респондента: "Інше: свій варіант".
+    // "Other" is shown together with the respondent's text: "Other: custom option".
     const withOtherText = (opt: StoredOption) =>
       opt.isOther && typeof otherText === "string" && otherText
         ? `${opt.text}: ${otherText}`
@@ -958,7 +940,7 @@ export const getResponseById = async (
       const options = q.options as StoredOption[] | null;
       const cells = userValue as Record<string, string>;
 
-      // "Рядок: Колонка" у порядку рядків питання; рядки без відповіді пропускаємо.
+      // "Row: Column" in the question's row order; unanswered rows are skipped.
       displayValue = matrixRowsOf(q.config)
         .filter((row) => cells[row.id] !== undefined)
         .map((row) => {
@@ -968,7 +950,7 @@ export const getResponseById = async (
     } else if (q.type === "RANKING") {
       const options = q.options as StoredOption[] | null;
 
-      // "1. Кава", "2. Чай" - порядок у масиві і є порядком ранжування.
+      // "1. Coffee", "2. Tea": the array order is the ranking order.
       displayValue = (userValue as string[]).map((id, index) => {
         const opt = options?.find((o) => o.id === id);
         return `${index + 1}. ${opt ? opt.text : `Невідома опція (${id})`}`;
@@ -983,7 +965,7 @@ export const getResponseById = async (
       q.type === "SCALE" ||
       q.type === "NPS"
     ) {
-      // Для цих типів відповідь - рядок/число (об'єкт буває лише в MATRIX, вище).
+      // For these types the answer is a string/number (an object only occurs in MATRIX, above).
       displayValue =
         typeof userValue === "boolean" ? String(userValue) : (userValue as string | number | string[]);
     } else {

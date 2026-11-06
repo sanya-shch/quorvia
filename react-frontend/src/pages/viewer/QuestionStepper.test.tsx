@@ -43,7 +43,7 @@ describe("QuestionStepper - покрокова навігація з умовн�
     await user.click(screen.getByRole("button", { name: "Далі →" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("обов'язков");
-    expect(screen.getByText("Обов'язкове")).toBeInTheDocument(); // все ще на першому кроці
+    expect(screen.getByText("Обов'язкове")).toBeInTheDocument(); // still on the first step
   });
 
   it("пропускає приховане умовою питання при переході Далі", async () => {
@@ -75,7 +75,7 @@ describe("QuestionStepper - покрокова навігація з умовн�
     await user.click(screen.getByLabelText("Ні"));
     await user.click(screen.getByRole("button", { name: "Далі →" }));
 
-    // Одразу перейшли на q3, минаючи приховане q2
+    // Went straight to q3, skipping the hidden q2
     expect(screen.getByText("Третє питання")).toBeInTheDocument();
     expect(screen.queryByText("Приховане питання")).not.toBeInTheDocument();
   });
@@ -120,17 +120,17 @@ describe("QuestionStepper - покрокова навігація з умовн�
     ];
     render(<QuestionStepper formTitle="Тест" questions={questions} onSubmit={vi.fn()} />);
 
-    // Спершу "Так" -> умовне питання з'являється, доходимо до review
+    // First "Yes": the conditional question appears, we go on to the review
     await user.click(screen.getByLabelText("Так"));
     await user.click(screen.getByRole("button", { name: "Далі →" }));
     expect(screen.getByText("Умовне питання")).toBeInTheDocument();
 
-    // Повертаємось і міняємо на "Ні"
+    // Go back and change to "No"
     await user.click(screen.getByRole("button", { name: "← Назад" }));
     await user.click(screen.getByLabelText("Ні"));
     await user.click(screen.getByRole("button", { name: "Далі →" }));
 
-    // Тепер має бути review-екран одразу, без "Умовне питання" в path
+    // Now the review screen must come right away, without "Conditional question" in the path
     expect(screen.getByText("Готово, перевірте відповіді")).toBeInTheDocument();
     expect(screen.queryByText("Умовне питання")).not.toBeInTheDocument();
   });
@@ -205,8 +205,8 @@ describe("QuestionStepper - autosave передає reachedQuestionIds (реал
 
   it("на review-екрані досягнуто весь пройдений шлях", async () => {
     const user = setup();
-    // Кожен крок чекаємо окремо: під час переходу екран, що виходить, inert
-    // і кліки по ньому ігноруються (див. StepTransition).
+    // Wait for each step separately: during a transition the leaving screen is inert and clicks on it
+    // are ignored (see StepTransition).
     for (const next of ["Друге", "Третє"]) {
       await user.click(await screen.findByRole("button", { name: "Далі →" }));
       await screen.findByText(next);
@@ -269,12 +269,12 @@ describe("QuestionStepper - анімований перехід між крок�
     const staleNext = await next();
 
     fireEvent.click(staleNext);
-    fireEvent.click(staleNext); // друге натискання на "старій" кнопці
+    fireEvent.click(staleNext); // a second click on the "old" button
 
     await screen.findByText("Друге");
     expect(screen.queryByText("Третє")).not.toBeInTheDocument();
     expect(screen.getByText("Питання 2")).toBeInTheDocument();
-    await user.click(await next()); // а наступний справжній клік іде далі як звичайно
+    await user.click(await next()); // and the next real click moves on as usual
     expect(await screen.findByText("Третє")).toBeInTheDocument();
   });
 

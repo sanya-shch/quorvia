@@ -44,7 +44,7 @@ export function useExportJobs(apiBaseUrl: string, formId: string) {
     isCreating.value = true;
     try {
       await apiPost<ExportJobDto>(apiBaseUrl, `/forms/${formId}/export`, { format });
-      await load(); // одразу підхоплюємо новий job у список і перезапускаємо polling
+      await load(); // pick up the new job in the list right away and restart polling
     } finally {
       isCreating.value = false;
     }

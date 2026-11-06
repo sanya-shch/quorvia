@@ -1,10 +1,8 @@
 import type { QuestionType } from "./types/formBuilder";
 
-/**
- * Значення - ключі i18next (react-frontend/src/i18n/locales/{uk,en}/builder.json,
- * секція questionTypes), а НЕ готовий текст - переклад відбувається в
- * місці показу через t(QUESTION_TYPE_LABEL_KEYS[type]).
- */
+// Values are i18next keys (react-frontend/src/i18n/locales/{uk,en}/builder.json, the questionTypes
+// section), NOT display text; the translation happens where shown, via
+// t(QUESTION_TYPE_LABEL_KEYS[type]).
 export const QUESTION_TYPE_LABEL_KEYS: Record<QuestionType, string> = {
   TEXT: "builder.questionTypes.TEXT",
   NUMBER: "builder.questionTypes.NUMBER",

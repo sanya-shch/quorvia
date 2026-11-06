@@ -18,8 +18,8 @@ export default defineConfig([
     languageOptions: { ecmaVersion: 2022, globals: globals.browser },
   },
   {
-    // Файл маршрутів оголошує lazy-компоненти поруч з експортом router:
-    // для нього Fast Refresh не потрібен.
+    // The routes file declares lazy components next to the exported router,
+    // so Fast Refresh is not needed for it.
     files: ["src/routes.tsx"],
     rules: { "react-refresh/only-export-components": "off" },
   },

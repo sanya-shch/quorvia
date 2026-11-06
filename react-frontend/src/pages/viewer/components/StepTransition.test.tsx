@@ -3,10 +3,8 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import { MotionGlobalConfig } from "motion/react";
 import StepTransition from "./StepTransition";
 
-/**
- * У більшості тестів анімації миттєві (test/setup.ts). Тут вони ввімкнені,
- * щоб побачити проміжний стан: екран, що виходить, і початкову позицію нового.
- */
+// In most tests animations are instant (test/setup.ts). Here they are enabled to see the
+// intermediate state: the leaving screen and the starting position of the new one.
 describe("StepTransition", () => {
   beforeEach(() => {
     MotionGlobalConfig.skipAnimations = false;

@@ -5,11 +5,10 @@ export class AppError<T = unknown> extends Error {
   statusCode: number;
   errors?: T;
 
-  // message - завжди ErrorCode (стабільний рядок-ідентифікатор), а НЕ
-  // готовий текст для показу користувачу - переклад на фронтенді. Тип
-  // лишається `string`, а не `ErrorCode`, щоб не блокувати рідкісні місця,
-  // де під `errors` йде довільна структура (напр. Zod-issues) з власним
-  // текстом усередині - сам код помилки все одно обирається з ErrorCode.
+  // message is always an ErrorCode (a stable identifier), NOT display text; the frontend
+  // translates it. The type stays `string` rather than `ErrorCode` so it does not block the rare
+  // places where `errors` carries an arbitrary structure (for example Zod issues) with its own
+  // text; the error code itself is still chosen from ErrorCode.
   constructor(message: string, statusCode: number, errors?: T) {
     super(message);
     this.statusCode = statusCode;
@@ -25,9 +24,8 @@ export const errorHandler = (err: unknown, req: Request, res: Response, next: Ne
     });
   }
 
-  // Помилки body-parser (битий JSON, надто велике тіло) - це помилка
-  // КЛІЄНТА (400/413), а не збій сервера: не логуємо їх як 500 і не
-  // віддаємо загальний INTERNAL_SERVER_ERROR.
+  // body-parser errors (broken JSON, body too large) are CLIENT errors (400/413), not server
+  // failures: they are not logged as 500 and do not get the generic INTERNAL_SERVER_ERROR.
   const bodyError = err as { type?: string };
 
   if (bodyError?.type === "entity.parse.failed") {

@@ -23,7 +23,7 @@ describe("answersSchema", () => {
   });
 
   it("ключ питання до 100 символів + суфікс «Інше» ще проходить", () => {
-    // id питання максимум 100 символів (FORM_LIMITS.id); ключ тексту «Інше» довший на суфікс.
+    // a question id is at most 100 characters (FORM_LIMITS.id); the "Other" text key is longer by the suffix.
     expect(answersSchema.safeParse({ [otherAnswerKey("k".repeat(100))]: "x" }).success).toBe(true);
   });
 

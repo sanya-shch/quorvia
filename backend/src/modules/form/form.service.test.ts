@@ -37,7 +37,7 @@ const mockForm = (overrides: Record<string, unknown> = {}) => ({
   userId: OWNER_ID,
   title: "Форма",
   version: 1,
-  // колонки мов контенту (у реальній БД є завжди, тут - значення за замовчуванням)
+  // content language columns (always present in a real DB, defaults here)
   defaultLanguage: "uk",
   languages: [] as string[],
   translations: null,
@@ -548,8 +548,8 @@ describe("updateForm", () => {
       ],
     } as any);
 
-    // q1 у цьому кейсі теж новий (existing questions порожні), тому обидва
-    // питання йдуть у createMany з клієнтським id "q1" збереженим як є.
+    // q1 is also new in this case (no existing questions), so both questions go to createMany
+    // with the client id "q1" kept as is.
     expect(txQuestion.createMany).toHaveBeenCalledWith({
       data: [
         expect.objectContaining({ id: "q1", text: "Q1" }),
@@ -614,7 +614,7 @@ describe("updateForm", () => {
         updateForm(FORM_ID, OWNER_ID, { title: "Форма", questions: [], version: 5 } as any),
       ).rejects.toMatchObject({ message: ErrorCode.FORM_VERSION_CONFLICT, statusCode: 409 });
 
-      // конфлікт - ПЕРШЕ, що відбувається в транзакції: питання не чіпаються
+      // the conflict is the FIRST thing in the transaction: questions are not touched
       expect(txQuestion.deleteMany).not.toHaveBeenCalled();
       expect(txQuestion.update).not.toHaveBeenCalled();
       expect(txQuestion.createMany).not.toHaveBeenCalled();

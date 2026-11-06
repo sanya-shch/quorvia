@@ -1,10 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { Prisma } from "@prisma/client";
 
-/**
- * RATING / SCALE / NPS на реальному Prisma + Postgres (PGlite з міграціями
- * проєкту): заодно перевіряє, що міграція з новими значеннями enum застосовується.
- */
+// RATING / SCALE / NPS on a real Prisma + Postgres (PGlite with the project's migrations); it
+// also checks that the migration with the new enum values applies.
 vi.mock("../../prisma/prisma.js", async () =>
   (await import("../../test/createTestPrisma.js")).createTestPrisma(),
 );
@@ -19,9 +17,9 @@ const USER = "user-scale";
 const FORM = "form-scale";
 const Q = { rating: "q-rating", scale: "q-scale", nps: "q-nps" };
 
-// NPS: 10, 9, 9 -> promoters 3; 8, 7 -> passives 2; 6, 0 -> detractors 2 (всього 7)
+// NPS: 10, 9, 9 -> promoters 3; 8, 7 -> passives 2; 6, 0 -> detractors 2 (7 in total)
 const NPS = [10, 9, 9, 8, 7, 6, 0];
-// RATING (max 5): 5,4,4,1 + 9 (поза шкалою, config колись був ширшим) + 2.5 (не ціле)
+// RATING (max 5): 5, 4, 4, 1 + 9 (out of scale, the config used to be wider) + 2.5 (not an integer)
 const RATING = [5, 4, 4, 1, 9, 2.5];
 const SCALE = [0, 4, 4];
 
@@ -78,11 +76,11 @@ describe("аналітика шкальних питань", () => {
       ["4", 2],
       ["5", 1],
     ]);
-    // 9 і 2.5 не враховані: (5 + 4 + 4 + 1) / 4
+    // 9 and 2.5 are not counted: (5 + 4 + 4 + 1) / 4
     expect(rating.stats).toEqual({ avg: 3.5, min: 1, max: 5 });
     expect(rating.nps).toBeUndefined();
     expect(rating.shownCount).toBe(7);
-    // 7 респондентів бачили питання, відповіли 6 (у масиві RATING 6 значень)
+    // 7 respondents saw the question, 6 answered (the RATING array has 6 values)
     expect(rating.skippedCount).toBe(1);
   });
 

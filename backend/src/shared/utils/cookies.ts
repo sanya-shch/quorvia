@@ -4,10 +4,10 @@ import { isProduction } from "../../config/env.js";
 export const REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
 
 /**
- * Refresh-токен живе лише в httpOnly cookie - недоступний з JS, а отже
- * недосяжний для XSS (на відміну від access-токена, який свідомо тримаємо
- * в пам'яті фронтенду, а не в localStorage). path обмежує cookie лише
- * ендпоінтами /api/auth, щоб браузер не тягав його в кожен інший запит.
+ * The refresh token lives only in an httpOnly cookie, unreachable from JS and therefore
+ * from XSS (unlike the access token, which we deliberately keep in frontend memory, not
+ * localStorage). `path` limits the cookie to the /api/auth endpoints so the browser does not
+ * send it with every other request.
  */
 export const refreshTokenCookieOptions = (expiresAt: Date): CookieOptions => ({
   httpOnly: true,

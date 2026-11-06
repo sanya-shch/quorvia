@@ -91,7 +91,7 @@ describe("OptionsConfigEditor - варіант «Інше»", () => {
       />,
     );
 
-    // єдина кнопка видалення звичайного варіанта заблокована
+    // the only delete button of a regular option is disabled
     expect(screen.getByRole("button", { name: "Видалити варіант" })).toBeDisabled();
   });
 

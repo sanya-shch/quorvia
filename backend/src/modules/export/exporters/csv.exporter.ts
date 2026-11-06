@@ -3,12 +3,11 @@ import { ExportData, Exporter, GeneratedFile } from "./exporter.types.js";
 import { AnswerValue, formatAnswer, slugifyFileName } from "./formatAnswer.js";
 
 /**
- * CSV/formula injection: відповіді вводять анонімні респонденти, а файл
- * відкриває власник форми в Excel/Sheets/LibreOffice. Клітинка, що
- * починається з = + - @ (або TAB/CR), інтерпретується як формула
- * (`=HYPERLINK(...)`, `=cmd|' /C calc'!A0`) - тому перед такою клітинкою
- * ставимо апостроф, і вона лишається текстом. Звичайні від'ємні числа
- * (`-5`, `-3.14`) не чіпаємо, інакше зіпсуємо легітимні дані.
+ * CSV/formula injection: anonymous respondents type the answers, and the form owner opens
+ * the file in Excel/Sheets/LibreOffice. A cell starting with = + - @ (or TAB/CR) is
+ * interpreted as a formula (`=HYPERLINK(...)`, `=cmd|' /C calc'!A0`), so such a cell gets a
+ * leading apostrophe and stays text. Ordinary negative numbers (`-5`, `-3.14`) are left
+ * alone, otherwise legitimate data would be damaged.
  */
 const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
 const PLAIN_NEGATIVE_NUMBER = /^-\d+(\.\d+)?$/;

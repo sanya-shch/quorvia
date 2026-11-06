@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { Prisma } from "@prisma/client";
 
-/** MATRIX в аналітиці та розшифровці відповіді (реальний Prisma + PGlite з міграціями). */
+// MATRIX in analytics and in the response breakdown (real Prisma + PGlite with migrations).
 vi.mock("../../prisma/prisma.js", async () =>
   (await import("../../test/createTestPrisma.js")).createTestPrisma(),
 );
@@ -42,8 +42,8 @@ beforeAll(async () => {
   const answers: unknown[] = [
     { speed: "agree", price: "disagree" },
     { speed: "agree", price: "neutral" },
-    { speed: "disagree" }, // часткова відповідь (необов'язкова матриця)
-    { speed: "gone", ghost: "agree", price: "agree" }, // застарілі рядок/колонка ігноруються
+    { speed: "disagree" }, // partial answer (optional matrix)
+    { speed: "gone", ghost: "agree", price: "agree" }, // a stale row/column is ignored
     "not-an-object",
   ];
 
@@ -74,7 +74,7 @@ describe("аналітика MATRIX", () => {
     const [speed, price] = detail.matrix.rows;
 
     expect(speed).toMatchObject({ rowId: "speed", text: "Швидкість", answered: 3 });
-    // agree x2, neutral x0, disagree x1 ("gone" не існує - не рахується)
+    // agree x2, neutral x0, disagree x1 ("gone" does not exist, so it is not counted)
     expect(speed.counts).toEqual([2, 0, 1]);
     expect(price).toMatchObject({ rowId: "price", answered: 3 });
     expect(price.counts).toEqual([1, 1, 1]);

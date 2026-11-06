@@ -31,7 +31,7 @@ export default function NumberConfigEditor({ config, onChange }: NumberConfigEdi
       return;
     }
 
-    // Слайдеру потрібен діапазон: підставляємо типовий, якщо межі не задані.
+    // A slider needs a range: a default one is filled in if the bounds are not set.
     updateConfig({
       numberVariant: "slider",
       min: minValue ?? 0,
@@ -47,7 +47,7 @@ export default function NumberConfigEditor({ config, onChange }: NumberConfigEdi
 
   const handleNumberChange = (value: string, key: "min" | "max") => {
     if (!value) {
-      // У режимі слайдера межі обов'язкові - порожнє значення ігноруємо.
+      // In slider mode the bounds are required: an empty value is ignored.
       if (!isSlider) updateConfig({ [key]: undefined });
       return;
     }

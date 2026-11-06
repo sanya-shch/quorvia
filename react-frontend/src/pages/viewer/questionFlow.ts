@@ -6,16 +6,14 @@ export const sortByOrder = (questions: Question[]): Question[] =>
   [...questions].sort((a, b) => a.order - b.order);
 
 /**
- * Перше (за order) питання зі списку, що йде після afterOrder і чия умова
- * (за поточними відповідями) виконується. Питання без condition завжди
- * прохідне. Використовується для покрокової навігації (QuestionStepper) -
- * кожен наступний крок обчислюється динамічно, а не за фіксованим списком,
- * бо саме щойно дана відповідь могла відкрити/закрити гілку.
+ * The first question (by order) after afterOrder whose condition (given the current answers) holds.
+ * A question without a condition is always reachable. Used for step-by-step navigation
+ * (QuestionStepper): each next step is computed dynamically, not from a fixed list, because the
+ * answer just given may have opened/closed a branch.
  *
- * Перше питання форми (order === найменший) ніколи не може мати умову -
- * це гарантує validateConditionGraph на бекенді (forward-reference), тож
- * getNextQuestion(questions, {}, -Infinity) завжди поверне його, якщо
- * питання в формі є взагалі.
+ * The first question of a form (the smallest order) can never have a condition: validateConditionGraph
+ * on the backend guarantees it (forward reference), so getNextQuestion(questions, {}, -Infinity)
+ * always returns it if the form has any questions.
  */
 export const getNextQuestion = (
   orderedQuestions: Question[],

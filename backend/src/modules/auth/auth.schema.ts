@@ -1,20 +1,15 @@
 import { z } from "zod";
 import { ErrorCode } from "@quorvia/shared-types";
 
-/**
- * bcrypt мовчки обрізає пароль до перших 72 БАЙТІВ, тож довший пароль
- * лише створює ілюзію надійності, а мегабайтний рядок у запиті - зайве
- * навантаження на CPU. Рахуємо саме байти UTF-8 (кирилиця = 2 байти).
- */
+// bcrypt silently truncates a password to its first 72 BYTES, so a longer one only creates
+// an illusion of strength, and a megabyte string in a request is needless CPU load. We
+// count UTF-8 bytes (Cyrillic = 2 bytes).
 export const MAX_PASSWORD_BYTES = 72;
 const MAX_LOGIN_PASSWORD_LENGTH = 128;
 const MAX_EMAIL_LENGTH = 254;
 
-/**
- * Email нормалізується (trim + нижній регістр) ще на вході, тож
- * "User@Mail.com" і "user@mail.com" - той самий акаунт, а не два різних
- * (і пошук при логіні не залежить від регістру).
- */
+// The email is normalized (trim + lowercase) on input, so "User@Mail.com" and
+// "user@mail.com" are the same account and login lookup is case-insensitive.
 const emailSchema = z
   .string()
   .trim()
@@ -23,14 +18,13 @@ const emailSchema = z
   .email(ErrorCode.VALIDATION_EMAIL_INVALID);
 
 /**
- * Політика складності пароля застосовується лише при РЕЄСТРАЦІЇ. Раніше
- * той самий min(6) стояв і на логіні - тобто якщо політику колись
- * посилити, існуючі користувачі зі старими паролями миттєво втратили б
- * змогу залогінитись, хоча пароль ніхто не міняв. Логін нижче лише
- * перевіряє, що пароль взагалі передано (і не є абсурдно довгим).
+ * The password strength policy applies on REGISTRATION only. Login used to have the same
+ * min(6): tightening the policy later would instantly lock out existing users with older
+ * passwords even though nobody changed theirs. Login only checks that a password was
+ * sent (and is not absurdly long).
  *
- * Повідомлення - стабільні коди (ErrorCode), а не готовий текст: переклад
- * на фронтенді через i18next (react-frontend/src/i18n/errorCodes.ts).
+ * Messages are stable codes (ErrorCode), not display text; they are translated on the
+ * frontend (react-frontend/src/i18n/errorCodes.ts).
  */
 const registerPasswordSchema = z
   .string()

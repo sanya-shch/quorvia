@@ -20,13 +20,13 @@ interface ConditionEditorProps {
 const OPERATORS_BY_TYPE: Record<Question["type"], ConditionOperator[]> = {
   TEXT: ["equals", "notEquals", "contains"],
   NUMBER: ["equals", "notEquals", "gt", "lt"],
-  // gt/lt лише для типу number, ISO-рядок дати такого порівняння не пройде.
+  // gt/lt only for the number type: an ISO date string would not pass such a comparison.
   DATE: ["equals", "notEquals"],
   BOOLEAN: ["equals"],
   RATING: ["equals", "notEquals", "gt", "lt"],
   SCALE: ["equals", "notEquals", "gt", "lt"],
   NPS: ["equals", "notEquals", "gt", "lt"],
-  // Ранжування в умовах не підтримується (див. questionTypeSupportsConditions).
+  // Ranking is not supported in conditions (see questionTypeSupportsConditions).
   RANKING: [],
   MATRIX: [],
   CHOICE_SINGLE: ["equals", "notEquals", "in"],

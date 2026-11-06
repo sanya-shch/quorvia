@@ -14,8 +14,8 @@ interface NumberSliderProps {
   labelledBy?: string;
 }
 
-// Клавіші, якими користувач може "поставити" значення, не змінюючи його
-// відносно стартового (ползунок візуально стоїть на min).
+// Keys the user can press to "set" the value without changing it from the starting one (the
+// slider visually sits at min).
 const MIN_KEYS = new Set(["Home", "ArrowLeft", "ArrowDown"]);
 
 export default function NumberSlider({
@@ -47,8 +47,8 @@ export default function NumberSlider({
           aria-describedby={describedBy}
           aria-invalid={invalid}
           onChange={(e) => onChange(Number(e.target.value))}
-          // Без цього відповідь "рівно min" неможлива: ползунок уже стоїть
-          // на min, тож change не спрацює. Доторк/клавіша вважаються відповіддю.
+          // Without this an answer of exactly min is impossible: the slider already sits at min, so
+          // change never fires. A touch/key press counts as an answer.
           onPointerDown={() => {
             if (!answered) onChange(min);
           }}

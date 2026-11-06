@@ -15,7 +15,7 @@ import { MAX_ANSWER_STRING_LENGTH } from "../../shared/schemas/answers.js";
 
 export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set<string>) => {
   const shape: Record<string, z.ZodTypeAny> = {};
-  // Питання з «Інше», яким потрібна перевірка тексту (див. superRefine нижче).
+  // Questions with "Other" that need their text checked (see superRefine below).
   const withOther: Question[] = [];
 
   for (const q of questions as Question[]) {
@@ -41,10 +41,9 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
         }
 
         if (q.config?.pattern) {
-          // RE2 (лінійний час) замість new RegExp - захист від ReDoS, див.
-          // safeRegex.ts. Якщо старий (до цієї зміни) шаблон в БД не
-          // компілюється в RE2, перевірку формату пропускаємо, а не
-          // валимо відправку 500-ю.
+          // RE2 (linear time) instead of new RegExp to prevent ReDoS, see safeRegex.ts. If an older
+          // pattern in the DB does not compile in RE2, the format check is skipped instead of
+          // failing the submit with a 500.
           const pattern = compileSafePattern(q.config.pattern);
 
           if (pattern) {
@@ -72,8 +71,8 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
         const { numberVariant, step, min } = q.config ?? {};
 
         if (numberVariant === "slider" && step !== undefined && min !== undefined) {
-          // Слайдер віддає лише значення на сітці min + k*step; допуск - для
-          // похибок двійкових дробів (0.1 * 3 !== 0.3).
+          // A slider only yields values on the min + k*step grid; the tolerance covers binary
+          // fraction errors (0.1 * 3 !== 0.3).
           schema = schema.refine((value: number) => {
             const steps = (value - min) / step;
             return Math.abs(steps - Math.round(steps)) < 1e-9;
@@ -86,8 +85,8 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
       case "RATING":
       case "SCALE":
       case "NPS": {
-        // Ціле число в межах шкали (межі - з config, див. getScaleBounds).
-        // 0 - коректна відповідь (NPS, шкала з нуля), тому не z.number().min(1).
+        // An integer within the scale (bounds come from config, see getScaleBounds). 0 is a valid
+        // answer (NPS, a scale starting at 0), hence not z.number().min(1).
         const { min, max } = getScaleBounds(q.type, q.config);
 
         schema = z.number().int().min(min).max(max);
@@ -137,8 +136,8 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
         const columnIds = (q.options as { id: string }[]).map((o) => o.id);
         const cell = z.enum(columnIds as [string, ...string[]]);
 
-        // Обов'язкова матриця - усі рядки заповнені; необов'язкова - будь-яка
-        // частина. strict(): id рядка, якого немає в питанні, відхиляється.
+        // A required matrix needs every row filled; an optional one accepts any subset. strict():
+        // a row id that is not in the question is rejected.
         schema = z
           .object(Object.fromEntries(rows.map((row) => [row.id, q.required ? cell : cell.optional()])))
           .strict();
@@ -149,7 +148,7 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
       case "RANKING": {
         const optionIds = (q.options as { id: string }[]).map((o) => o.id);
 
-        // Повна перестановка варіантів: усі id, без дублікатів і зайвих.
+        // A full permutation of the options: every id, no duplicates, no extras.
         schema = z
           .array(z.enum(optionIds as [string, ...string[]]))
           .length(optionIds.length)
@@ -177,8 +176,8 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
       getOtherOption(q.options) &&
       isVisible
     ) {
-      // Значення перевіряє superRefine (помилку треба віддати на id питання,
-      // а не на службовий ключ - саме за ним клієнт показує повідомлення).
+      // superRefine checks the value (the error must go on the question id, not on the helper
+      // key: the client shows messages by that id).
       shape[otherAnswerKey(q.id)] = z.unknown().optional();
       withOther.push(q);
     }
@@ -210,11 +209,8 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
   });
 };
 
-/**
- * Залишає в зберігаємих відповідях лише видимі питання; текст «Інше»
- * потрапляє, тільки якщо «Інше» справді обране (залишок від попереднього
- * вибору респондента не зберігаємо) - і вже обрізаним від пробілів.
- */
+// Keeps only visible questions in the stored answers; the "Other" text is kept only if
+// "Other" is really selected (leftovers of an earlier choice are dropped) and is trimmed.
 export const cleanAnswers = (
   questions: unknown,
   data: Answers,
@@ -226,8 +222,8 @@ export const cleanAnswers = (
     if (!visibleQuestionIds.has(q.id)) continue;
 
     const value = data[q.id];
-    // Порожня матриця - це "не відповіли" (як і на клієнті): без цього запит
-    // { q: {} } до необов'язкової матриці рахувався б відповіддю в аналітиці.
+    // An empty matrix means "not answered" (as on the client); otherwise { q: {} } for an
+    // optional matrix would count as an answer in analytics.
     const isEmptyMatrix =
       q.type === "MATRIX" &&
       typeof value === "object" &&

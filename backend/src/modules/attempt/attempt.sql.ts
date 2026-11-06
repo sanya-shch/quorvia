@@ -1,14 +1,13 @@
 import { Prisma } from "@prisma/client";
 
 /**
- * Атомарне об'єднання двох JSON-масивів id (множина без дублікатів).
+ * Atomic union of two JSON arrays of ids (a set without duplicates).
  *
- * `reachedQuestionIds` лише зростає, тому об'єднання комутативне: два
- * autosave-запити, що прийшли не в порядку відправлення (або паралельно з
- * двох вкладок), дають той самий результат. Робити це через
- * read-modify-write у Node не можна - між SELECT і UPDATE інший запит
- * міг дописати свої id, і вони б загубились. Тут усе виконується в одному
- * SQL-виразі під row-lock'ом ON CONFLICT DO UPDATE / UPDATE.
+ * `reachedQuestionIds` only grows, so the union is commutative: two autosave requests that
+ * arrive out of order (or in parallel from two tabs) give the same result. Doing it as
+ * read-modify-write in Node would lose ids written by another request between the SELECT
+ * and the UPDATE. Here everything runs in one SQL statement under the row lock of
+ * ON CONFLICT DO UPDATE / UPDATE.
  */
 const mergeReachedSql = (incoming: Prisma.Sql) => Prisma.sql`(
   SELECT COALESCE(jsonb_agg(DISTINCT elem), '[]'::jsonb)
@@ -27,10 +26,10 @@ export type UpsertAttemptParams = {
 };
 
 /**
- * INSERT ... ON CONFLICT (formId, sessionKey) DO UPDATE замість Prisma
- * upsert: Prisma не вміє виразити "нове значення = старе ∪ нове".
- * `id` Prisma генерує на клієнті (@default(uuid())), у БД дефолту немає -
- * тому передаємо його явно. completedAt навмисно не чіпаємо.
+ * INSERT ... ON CONFLICT (formId, sessionKey) DO UPDATE instead of a Prisma upsert: Prisma
+ * cannot express "new value = old union new". Prisma generates `id` on the client
+ * (@default(uuid())) and the DB has no default, so it is passed explicitly. completedAt is
+ * left alone on purpose.
  */
 export const buildUpsertAttemptSql = (p: UpsertAttemptParams) => {
   const reached = JSON.stringify(p.reachedQuestionIds);
@@ -54,12 +53,9 @@ export const buildUpsertAttemptSql = (p: UpsertAttemptParams) => {
   `;
 };
 
-/**
- * Позначає проходження завершеним і дописує до reached усі питання
- * фінального Response. Респондент, що надіслав форму, за визначенням
- * побачив усі питання свого шляху - навіть якщо debounce-autosave (1.2 с)
- * не встиг зберегти останній крок перед submit.
- */
+// Marks the session completed and adds every question of the final Response to reached.
+// Whoever submitted the form has by definition seen every question on their path, even if
+// the debounced autosave (1.2 s) did not save the last step.
 export const buildCompleteAttemptSql = (
   formId: string,
   sessionKey: string,

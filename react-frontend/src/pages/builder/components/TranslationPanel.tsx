@@ -12,7 +12,7 @@ import {
 
 interface TranslationPanelProps {
   form: FormState;
-  /** Додаткова мова, яку перекладаємо. */
+  // The additional language being translated.
   language: string;
   onChange: (updater: (prev: FormState) => FormState) => void;
   onRemoveLanguage: () => void;
@@ -32,11 +32,8 @@ const FIELD_LABEL_KEYS: Record<TranslationFieldKind, string> = {
 const inputClass =
   "w-full rounded-xl border px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500";
 
-/**
- * Редактор перекладу: для кожного поля - текст основною мовою (лише для
- * читання) і поле для перекладу. Структуру форми тут змінити не можна: це
- * робиться у вкладці основної мови.
- */
+// Translation editor: for each field, the main-language text (read-only) and a translation
+// field. The form structure cannot be changed here: that is done in the main-language tab.
 export default function TranslationPanel({
   form,
   language,
@@ -49,7 +46,7 @@ export default function TranslationPanel({
   const fields = listTranslationFields(form, language);
   const missing = fields.filter((field) => field.value.trim() === "").length;
 
-  // Групуємо поля за питанням, зберігаючи порядок (null - сама форма).
+  // Group fields by question, keeping the order (null is the form itself).
   const groups: { questionIndex: number | null; fields: TranslationField[] }[] = [];
   for (const field of fields) {
     const last = groups[groups.length - 1];

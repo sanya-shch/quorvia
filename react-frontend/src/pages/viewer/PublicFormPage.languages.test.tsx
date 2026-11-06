@@ -107,9 +107,9 @@ describe("PublicFormPage - мови форми", () => {
     expect(screen.getByText("Name")).toBeInTheDocument();
     expect(screen.getByText("Drink")).toBeInTheDocument();
     expect(screen.getByLabelText("Coffee")).toBeInTheDocument();
-    // варіанту "Чай" перекладу немає - показується основною мовою, а не порожнім
+    // the "Tea" option has no translation: shown in the main language, not empty
     expect(screen.getByLabelText("Чай")).toBeInTheDocument();
-    // описи перекладу немає - теж основна
+    // the description has no translation either: the main one
     expect(screen.getByText("Опис форми")).toBeInTheDocument();
   });
 
@@ -160,7 +160,7 @@ describe("PublicFormPage - мови форми", () => {
 
     expect(await screen.findByText("Survey")).toBeInTheDocument();
     expect(screen.getByTestId("search")).toHaveTextContent("?lang=en");
-    // форма не перемонтована: введене й вибране збереглось
+    // the form was not remounted: typed and selected values are kept
     expect(screen.getByLabelText("Name")).toHaveValue("Олена");
     expect(screen.getByLabelText("Чай")).toBeChecked();
   });
@@ -198,7 +198,7 @@ describe("PublicFormPage - мови форми", () => {
   });
 
   it("вибір мови респондентом не змінює мову застосунку й не пишеться в localStorage", async () => {
-    // явне початкове значення: інакше "не змінилось" було б правдою й для null
+    // an explicit initial value: otherwise "unchanged" would also be true for null
     localStorage.setItem(I18N_LOCALSTORAGE_KEY, "uk");
     const appLanguage = i18n.language;
 
@@ -252,8 +252,7 @@ describe("PublicFormPage - одномовна форма без змін у по
   });
 
   it("службові тексти одномовної форми - мовою застосунку, а не мовою форми", async () => {
-    // defaultLanguage="uk" - лише значення за замовчуванням: англомовна форма не повинна
-    // раптом отримати український інтерфейс.
+    // defaultLanguage="uk" is only a default: an English form must not suddenly get a Ukrainian interface.
     await i18n.changeLanguage("en");
 
     try {

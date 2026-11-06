@@ -1,16 +1,16 @@
 /**
- * Мінімальний планувальник фонових задач прибирання. Усі задачі
- * ідемпотентні (видаляють "все старіше за поріг"), тому кілька екземплярів
- * воркера, що запускають їх паралельно, лише дублюють роботу, а не шкодять -
- * окрема черга BullMQ заради цього була б зайвою складністю.
+ * A minimal scheduler for background cleanup tasks. All tasks are idempotent (they delete
+ * "everything older than the threshold"), so several worker instances running them in
+ * parallel only duplicate work instead of causing harm; a BullMQ queue would be needless
+ * complexity here.
  *
- * Гарантії: помилка однієї задачі не зупиняє інші й наступні запуски; запуск
- * не накладається на попередній, що ще триває.
+ * Guarantees: a failure in one task does not stop the others or later runs; a run does not
+ * overlap a previous one that is still going.
  */
 export type MaintenanceTask = {
   name: string;
   intervalMs: number;
-  /** Може повернути короткий підсумок для логу (порожній рядок/undefined - нічого не логуємо). */
+  // May return a short summary for the log (an empty string/undefined logs nothing).
   run: () => Promise<string | void>;
 };
 
@@ -40,7 +40,7 @@ export const startMaintenance = (
   };
 
   const timers = tasks.map((task) => {
-    void runTask(task); // перший запуск одразу, не чекаючи інтервалу
+    void runTask(task); // first run immediately, without waiting for the interval
     return setInterval(() => void runTask(task), task.intervalMs);
   });
 

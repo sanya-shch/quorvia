@@ -4,9 +4,9 @@ import { getJwtSecret } from "../../config/env.js";
 
 export type AccessTokenPayload = { userId: string };
 
-// Алгоритм зафіксовано явно і при підписі, і при перевірці: verify без
-// `algorithms` приймає те, що вказано в заголовку токена, - класична
-// причина атак підміною алгоритму.
+// The algorithm is pinned explicitly for both signing and verifying: verify without
+// `algorithms` accepts whatever the token header says, the classic cause of algorithm
+// confusion attacks.
 const JWT_ALGORITHM = "HS256";
 
 const ACCESS_TOKEN_TTL = "15m";
@@ -16,28 +16,24 @@ const REFRESH_TOKEN_TTL_DAYS = 30;
 const REFRESH_TOKEN_TTL_MS = REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000;
 
 /**
- * Короткоживучий (15 хв) access-токен - летить у заголовку Authorization з
- * кожним запитом. Малий TTL - свідомий компроміс: якщо він витече з
- * клієнта (XSS, лог тощо), вікно зловживання лишається малим. Довгу сесію
- * тримає окремий refresh-токен (нижче), який у httpOnly cookie взагалі
- * недоступний з JS.
+ * Short-lived (15 min) access token, sent in the Authorization header with every request.
+ * The short TTL is a deliberate trade-off: if it leaks from the client (XSS, a log, ...) the
+ * abuse window stays small. A long session is held by the separate refresh token (below),
+ * which lives in an httpOnly cookie and is not reachable from JS at all.
  */
 export const generateAccessToken = (payload: AccessTokenPayload): string =>
   jwt.sign(payload, getJwtSecret(), { expiresIn: ACCESS_TOKEN_TTL, algorithm: JWT_ALGORITHM });
 
-// Збережено для зворотної сумісності з наявними викликами/тестами -
-// generateToken і generateAccessToken - одна й та сама функція.
+// Kept for backward compatibility with existing callers/tests: generateToken and
+// generateAccessToken are the same function.
 export const generateToken = generateAccessToken;
 
 export const verifyAccessToken = (token: string): AccessTokenPayload =>
   jwt.verify(token, getJwtSecret(), { algorithms: [JWT_ALGORITHM] }) as AccessTokenPayload;
 
-/**
- * Refresh-токен НЕ є jwt - це непрозорий випадковий рядок. У БД
- * зберігається лише його SHA-256 хеш (так само, як пароль ніколи не
- * зберігається сирим), тому сам по собі витік бази даних не дає змоги
- * видавати нові access-токени від імені користувачів.
- */
+// A refresh token is NOT a JWT: it is an opaque random string. Only its SHA-256 hash is
+// stored in the DB (just as a password is never stored raw), so a database leak alone does
+// not let anyone mint new access tokens for users.
 export const generateRefreshToken = (): {
   token: string;
   tokenHash: string;

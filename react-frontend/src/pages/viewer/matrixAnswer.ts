@@ -1,5 +1,5 @@
 import type { AnswerValue, MatrixAnswerValue } from "../../types/formViewer";
 
-/** Відповідь матриці як об'єкт { rowId: columnId } (порожній об'єкт, якщо відповіді ще немає). */
+// A matrix answer as an { rowId: columnId } object (an empty object when there is no answer yet).
 export const toMatrixAnswer = (value: AnswerValue | undefined): MatrixAnswerValue =>
   value !== null && typeof value === "object" && !Array.isArray(value) ? value : {};

@@ -61,11 +61,10 @@ export default function QuestionStepper({
 
   const stepHeadingRef = useRef<HTMLElement | null>(null);
 
-  // Фокус на заголовок кроку - при МОНТУВАННІ екрана, а не при зміні індексу:
-  // з анімацією старий екран ще в DOM, коли індекс уже змінився, і фокус
-  // перейшов би на екран, що виходить. Стабільний callback-ref викликається
-  // лише коли елемент з'являється/зникає, а не на кожен рендер (інакше фокус
-  // крадено б у поля введення при кожному натисканні клавіші).
+  // Focus the step heading when the screen MOUNTS, not when the index changes: with animation the
+  // old screen is still in the DOM when the index has already changed, and focus would go to the
+  // leaving screen. A stable callback ref fires only when the element appears/disappears, not on
+  // every render (otherwise focus would be stolen from input fields on every keystroke).
   const setHeadingRef = useCallback((el: HTMLElement | null) => {
     stepHeadingRef.current = el;
     el?.focus();
@@ -81,11 +80,10 @@ export default function QuestionStepper({
   const isReview = currentIndex >= path.length;
   const current = isReview ? null : path[currentIndex];
 
-  // Питання, які респондент реально побачив на екрані: шлях до поточного
-  // кроку (на review - увесь шлях). Не плутати з "логічно видимими" - у
-  // лінійній формі вони видимі всі одразу, а побачено лише пройдене.
-  // Сервер накопичує цей список (об'єднує з попередніми збереженнями), тож
-  // повернення Назад або зміна гілки не "розвидяють" уже побачене питання.
+  // Questions the respondent actually saw on screen: the path to the current step (the whole path on
+  // review). Not to be confused with "logically visible": in a linear form all are visible at once,
+  // but only the passed ones were seen. The server accumulates this list (merges it with earlier
+  // saves), so going Back or changing a branch does not "unsee" an already seen question.
   const reachedQuestionIds = useMemo(
     () =>
       path

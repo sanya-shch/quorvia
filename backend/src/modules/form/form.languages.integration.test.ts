@@ -1,10 +1,8 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { ErrorCode } from "@quorvia/shared-types";
 
-/**
- * Мови контенту на РЕАЛЬНОМУ Prisma + Postgres (PGlite з міграціями проєкту):
- * зберігання, нормалізація перекладів, публічна форма, дублювання.
- */
+// Content languages on a REAL Prisma + Postgres (PGlite with the project's migrations):
+// storage, translation normalization, the public form, duplication.
 vi.mock("../../prisma/prisma.js", async () =>
   (await import("../../test/createTestPrisma.js")).createTestPrisma(),
 );
@@ -133,7 +131,7 @@ describe("updateForm: збереження мов і перекладів", () =
       questions: [{ ...choice, translations: { en: { text: "Drink" }, pl: { text: "Napój" } } }],
     });
 
-    // клієнт змінює лише список мов, translations не шле
+    // the client changes only the language list and sends no translations
     await updateForm(FORM, USER, {
       title: "Опитування",
       languages: ["en"],

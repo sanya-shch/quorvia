@@ -14,7 +14,7 @@ import {
 
 interface LanguageBarProps {
   form: FormState;
-  /** Мова, що зараз відкрита у вкладці (основна або одна з додаткових). */
+  // The language currently open in the tab (the main one or an additional one).
   activeLanguage: string;
   onSelect: (language: string) => void;
   onChange: (updater: (prev: FormState) => FormState) => void;
@@ -28,17 +28,15 @@ const tabClass = (active: boolean) =>
 const selectClass =
   "h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-600 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed";
 
-/**
- * Мови форми: основна (мова, якою написані питання) і додаткові (переклади).
- * Вкладка додаткової мови показує, скільки полів ще не перекладено.
- */
+// Form languages: the main one (the language the questions are written in) and the additional
+// ones (translations). An additional language's tab shows how many fields are still untranslated.
 export default function LanguageBar({ form, activeLanguage, onSelect, onChange }: LanguageBarProps) {
   const { t, i18n } = useTranslation();
   const main = getMainLanguage(form);
   const additional = getAdditionalLanguages(form);
   const name = (code: string) => getLanguageName(code, i18n.language);
 
-  // Основною можна зробити будь-яку мову, крім уже доданих як переклад.
+  // Any language can become the main one except those already added as a translation.
   const mainChoices = CONTENT_LOCALES.filter((locale) => !additional.includes(locale));
 
   return (

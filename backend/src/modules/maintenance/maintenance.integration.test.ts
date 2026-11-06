@@ -3,11 +3,8 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-/**
- * Прибирання на РЕАЛЬНОМУ Prisma + Postgres (PGlite) і справжніх файлах у
- * тимчасовому каталозі: перевіряє і те, що видаляється, і - не менш важливо -
- * що лишається (свіже, завершене, чуже).
- */
+// Cleanup on a REAL Prisma + Postgres (PGlite) and real files in a temp directory: checks what
+// gets deleted and, just as important, what stays (fresh, completed, foreign).
 vi.mock("../../prisma/prisma.js", async () =>
   (await import("../../test/createTestPrisma.js")).createTestPrisma(),
 );
@@ -24,7 +21,7 @@ const daysAgo = (days: number) => new Date(NOW.getTime() - days * DAY_MS);
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 
 let dir: string;
-let outside: string; // файл ПОЗА каталогом експортів - має пережити будь-який cleanup
+let outside: string; // a file OUTSIDE the exports directory must survive any cleanup
 
 const exists = (p: string) =>
   fs.access(p).then(
@@ -91,8 +88,8 @@ afterAll(async () => {
 describe("cleanupExpiredExports", () => {
   it("видаляє прострочені завдання разом із файлами, свіжі лишає", async () => {
     await createJob(1, 10);
-    await createJob(2, 8, { status: "FAILED", filePath: null }); // без файлу
-    await createJob(3, 2); // свіжий
+    await createJob(2, 8, { status: "FAILED", filePath: null }); // no file
+    await createJob(3, 2); // fresh
     const oldFile = await writeExportFile(`${id(1)}-report.csv`, 10);
     const freshFile = await writeExportFile(`${id(3)}-report.csv`, 2);
 
@@ -106,7 +103,7 @@ describe("cleanupExpiredExports", () => {
   });
 
   it("запис, чий файл уже зник, видаляється без помилки", async () => {
-    await createJob(1, 10); // файлу на диску немає
+    await createJob(1, 10); // there is no file on disk
 
     const result = await cleanupExpiredExports({ retentionDays: 7, now: NOW, exportsDir: dir });
 
@@ -126,7 +123,7 @@ describe("cleanupExpiredExports", () => {
 
     expect(result.files).toBe(0);
     expect(await exists(outside)).toBe(true);
-    expect(await prisma.exportJob.count()).toBe(0); // запис усе одно прибрано
+    expect(await prisma.exportJob.count()).toBe(0); // the row is removed anyway
   });
 
   it("обробляє більше завдань, ніж розмір порції (кілька ітерацій), і нічого не лишає", async () => {
@@ -199,7 +196,7 @@ describe("cleanupOrphanExportFiles", () => {
   });
 
   it("працює порціями: багато сиріт за кілька запитів до БД", async () => {
-    await createJob(1, 1); // один файл має запис
+    await createJob(1, 1); // one file has a row
     await writeExportFile(`${id(1)}-report.csv`, 30);
     for (let n = 10; n < 17; n++) await writeExportFile(`${id(n)}-report.csv`, 30);
 
@@ -247,7 +244,7 @@ describe("cleanupStaleAttempts", () => {
 
   it("autosave, що оновив updatedAt, не рятує старе проходження: поріг - за startedAt", async () => {
     const attempt = await createAttempt("long-session", 200);
-    await prisma.responseAttempt.update({ where: { id: attempt.id }, data: { answers: { q: 1 } } }); // updatedAt = зараз
+    await prisma.responseAttempt.update({ where: { id: attempt.id }, data: { answers: { q: 1 } } }); // updatedAt = now
 
     expect((await cleanupStaleAttempts({ retentionDays: 180, now: NOW })).attempts).toBe(1);
   });

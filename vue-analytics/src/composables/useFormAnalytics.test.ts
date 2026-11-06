@@ -46,7 +46,7 @@ describe("useFormAnalytics (composable - loading/success шлях)", () => {
   });
 
   it("одразу виставляє isLoading=true, поки запит не завершився", async () => {
-    mockedApiGet.mockReturnValue(new Promise(() => {})); // ніколи не резолвиться
+    mockedApiGet.mockReturnValue(new Promise(() => {})); // never resolves
     const { useFormAnalytics } = await import("./useFormAnalytics");
 
     const { isLoading, data, error } = useFormAnalytics("http://api.test", "form-1");

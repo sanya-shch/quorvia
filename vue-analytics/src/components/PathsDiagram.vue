@@ -18,8 +18,8 @@ const ROW_H = 104;
 const MARGIN_TOP = 40;
 const CENTER_X = WIDTH / 2;
 
-// Індекс -1 зарезервовано під віртуальний "старт" форми - перед першим
-// реальним питанням, щоб показати перехід зі старту до першого показаного.
+// Index -1 is reserved for the virtual form "start" before the first real question, to show the
+// transition from the start to the first shown question.
 const indexById = computed(() => new Map(props.nodes.map((n, i) => [n.questionId, i])));
 
 const rowY = (index: number) => MARGIN_TOP + (index + 1) * ROW_H;

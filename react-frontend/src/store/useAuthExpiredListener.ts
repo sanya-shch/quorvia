@@ -3,17 +3,15 @@ import { AUTH_EXPIRED_EVENT } from "@quorvia/shared-types";
 import { useAuthStore } from "./useAuthStore";
 
 /**
- * Слухає AUTH_EXPIRED_EVENT (window CustomEvent, який vue-analytics
- * диспатчить при 401 - vue-analytics/src/api/client.ts) і пропускає його
- * через ТОЙ САМИЙ logout-шлях, що вже використовує axios-інтерцептор для
- * власних 401 React-запитів (api/axios.ts) - clearAuth().
+ * Listens to AUTH_EXPIRED_EVENT (a window CustomEvent that vue-analytics dispatches on 401, see
+ * vue-analytics/src/api/client.ts) and runs it through the SAME logout path the axios interceptor
+ * already uses for React requests' own 401s (api/axios.ts): clearAuth().
  *
- * Це єдине місце, де React "довіряє" Vue-remote щодо стану автентифікації;
- * сам редірект на /login Vue не ініціює - той продовжує йти реактивно
- * через ProtectedRoute, який стежить за isAuthenticated у цьому ж сторі.
- * Викликається один раз у App.tsx (глобально, не прив'язано до сторінки
- * аналітики) - якщо колись з'являться інші federated remote, той самий
- * слухач обробить і їхній 401 без дублювання коду на кожен remote.
+ * This is the only place where React "trusts" the Vue remote about auth state; Vue itself does not
+ * trigger the redirect to /login, which keeps happening reactively through ProtectedRoute watching
+ * isAuthenticated in this same store. Called once in App.tsx (globally, not tied to the analytics
+ * page), so any future federated remote's 401 is handled by the same listener without duplicating
+ * code per remote.
  */
 export function useAuthExpiredListener() {
   useEffect(() => {

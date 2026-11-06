@@ -1,9 +1,7 @@
 import { Prisma } from '@prisma/client';
 
-/**
- * Для nullable Json-колонок Prisma не приймає JS `null`: його треба
- * замінити на `Prisma.DbNull` (SQL NULL). `undefined` означає "не чіпати".
- */
+// For nullable Json columns Prisma does not accept JS `null`: it must be replaced with
+// `Prisma.DbNull` (SQL NULL). `undefined` means "leave untouched".
 export const toNullableJson = (
   value: unknown,
 ): Prisma.InputJsonValue | typeof Prisma.DbNull | undefined => {

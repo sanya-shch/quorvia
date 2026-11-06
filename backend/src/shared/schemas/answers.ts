@@ -2,15 +2,14 @@ import { z } from "zod";
 import { MATRIX_LIMITS, OTHER_ANSWER_SUFFIX } from "@quorvia/shared-types";
 
 /**
- * Спільна схема "answers" для публічних ендпоінтів (відправка відповіді та
- * autosave). Ці ендпоінти анонімні, тому без жорстких меж один запит у
- * межах 100 КБ ліміту express.json міг би тримати тисячі ключів/великі
- * рядки, а їх потім обробляють валідація, condition-engine та аналітика.
- * Конкретні обмеження для кожного питання (maxLength, min/max, options)
- * накладає buildResponseSchema; тут - лише загальна "стеля".
+ * Shared "answers" schema for the public endpoints (submit and autosave). They are
+ * anonymous, so without hard bounds a single request within the 100 KB express.json limit
+ * could carry thousands of keys or large strings, which validation, the condition engine
+ * and analytics then process. Per-question limits (maxLength, min/max, options) come from
+ * buildResponseSchema; this is only the general ceiling.
  */
 export const MAX_ANSWER_KEYS = 500;
-// id питання (до 100 символів) + суфікс ключа тексту «Інше».
+// question id (up to 100 characters) plus the "Other" text key suffix.
 export const MAX_ANSWER_KEY_LENGTH = 100 + OTHER_ANSWER_SUFFIX.length;
 export const MAX_ANSWER_STRING_LENGTH = 10_000;
 export const MAX_ANSWER_ARRAY_ITEMS = 200;
@@ -22,8 +21,8 @@ const answerValueSchema = z.union([
   z.number(),
   z.boolean(),
   z.array(z.string().max(200)).max(MAX_ANSWER_ARRAY_ITEMS),
-  // MATRIX: { [rowId]: columnId }. Ключі й значення - id (до 100 символів), рядків
-  // не більше за MATRIX_LIMITS.maxRows.
+  // MATRIX: { [rowId]: columnId }. Keys and values are ids (up to 100 characters), at most
+  // MATRIX_LIMITS.maxRows rows.
   z
     .record(z.string().max(100), z.string().max(100))
     .refine((cells) => Object.keys(cells).length <= MATRIX_LIMITS.maxRows, {

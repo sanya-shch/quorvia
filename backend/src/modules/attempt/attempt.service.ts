@@ -7,29 +7,25 @@ import { resolveVisibleQuestionIds, type QuestionLike } from "@quorvia/condition
 import { buildUpsertAttemptSql } from "./attempt.sql.js";
 
 /**
- * Зберігає "чернетку" проходження - на відміну від submitResponse, НЕ
- * валідує required-поля чи повноту: респондент, що заповнив половину
- * форми, - це нормальний, очікуваний стан для autosave, а не помилка.
- * Єдине, що робить сервер тут (як і в submitResponse) - перераховує
- * видимість на сирих відповідях і вирізає значення для прихованих умовою
- * питань, щоб funnel-дані лишались чесними навіть при застарілому
- * клієнтському стані.
+ * Saves a session "draft". Unlike submitResponse it does NOT validate required fields or
+ * completeness: a half-filled form is the normal state for autosave. The only thing the
+ * server does here (as in submitResponse) is recompute visibility on the raw answers and
+ * cut values of questions hidden by a condition, so funnel data stays honest even with
+ * stale client state.
  *
- * upsert по (formId, sessionKey) - повторні autosave-виклики того самого
- * проходження оновлюють один рядок, а не плодять нові на кожен keystroke.
+ * One row per (formId, sessionKey): repeated autosaves update it instead of creating rows
+ * per keystroke.
  */
 /**
- * Яка підмножина питань вважається "досягнутою" цим збереженням.
+ * Which questions count as "reached" by this save.
  *
- * Клієнт у покроковому режимі шле точний список показаних питань; режим
- * "все на одній сторінці" нічого не шле, і тоді показані = зараз видимі.
- * Id, яких немає у формі, відкидаються - клієнту не можна довіряти
- * довільні значення, а чужі/вигадані id зіпсували б funnel.
+ * In step-by-step mode the client sends the exact list of shown questions; all-at-once
+ * mode sends nothing and shown = currently visible. Ids that are not in the form are
+ * dropped: arbitrary client values cannot be trusted and bogus ids would corrupt the funnel.
  *
- * Це НЕ перевіряється проти умов (питання могло стати прихованим саме
- * тому, що респондент змінив попередню відповідь - це й є кейс, заради
- * якого reached відокремлено від visible). Підробка клієнтом лише
- * спотворить funnel його ж власної форми, як і підроблені відповіді.
+ * It is NOT checked against conditions (a question may have become hidden exactly because
+ * the respondent changed an earlier answer, which is why reached is separate from
+ * visible). A forged list only skews the funnel of the sender's own form.
  */
 export const resolveReachedQuestionIds = (
   formQuestionIds: ReadonlySet<string>,
@@ -41,21 +37,9 @@ export const resolveReachedQuestionIds = (
   return Array.from(new Set(source.filter((id) => formQuestionIds.has(id))));
 };
 
-/**
- * Зберігає "чернетку" проходження - на відміну від submitResponse, НЕ
- * валідує required-поля чи повноту: респондент, що заповнив половину
- * форми, - це нормальний, очікуваний стан для autosave, а не помилка.
- * Єдине, що робить сервер тут (як і в submitResponse) - перераховує
- * видимість на сирих відповідях і вирізає значення для прихованих умовою
- * питань, щоб funnel-дані лишались чесними навіть при застарілому
- * клієнтському стані.
- *
- * Один рядок на (formId, sessionKey): повторні autosave-виклики
- * оновлюють його, а не плодять нові на кожен keystroke. reachedQuestionIds
- * при цьому не перезаписується, а об'єднується зі збереженим значенням
- * в одному SQL-виразі (attempt.sql.ts), тому порядок запитів на нього не
- * впливає.
- */
+// Saves a session "draft" (see above). reachedQuestionIds is not overwritten but merged
+// with the stored value in one SQL statement (attempt.sql.ts), so the request order does
+// not matter.
 export const saveAttempt = async (
   shareId: string,
   sessionKey: string,

@@ -16,14 +16,14 @@ import { apiLimiter } from "./shared/middleware/rateLimiters.js";
 
 const app = express();
 
-// Див. TRUST_PROXY у config/env.ts: потрібно для коректного req.ip за проксі.
+// See TRUST_PROXY in config/env.ts: needed for a correct req.ip behind a proxy.
 app.set("trust proxy", parseTrustProxy(process.env.TRUST_PROXY));
 
 app.use(helmet());
 
 app.use(
   cors({
-    // CORS_ORIGIN може містити кілька origin через кому.
+    // CORS_ORIGIN may contain several origins separated by commas.
     origin: (process.env.CORS_ORIGIN ?? "http://localhost:5173").split(",").map((o) => o.trim()),
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],

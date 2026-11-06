@@ -53,7 +53,7 @@ describe("PublicFormPage - responseMode визначає режим проход
 
     renderPage();
 
-    // FormViewer показує УСІ питання одночасно
+    // FormViewer shows ALL questions at once
     expect(await screen.findByText("Перше питання")).toBeInTheDocument();
     expect(screen.getByText("Друге питання")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Надіслати відповіді" })).toBeInTheDocument();
@@ -69,7 +69,7 @@ describe("PublicFormPage - responseMode визначає режим проход
 
     renderPage();
 
-    // QuestionStepper показує лише ПЕРШЕ питання і кнопку "Далі"
+    // QuestionStepper shows only the FIRST question and the "Next" button
     expect(await screen.findByText("Перше питання")).toBeInTheDocument();
     expect(screen.queryByText("Друге питання")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Далі →" })).toBeInTheDocument();

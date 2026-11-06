@@ -97,7 +97,7 @@ describe("questionSchema — discriminated union за type", () => {
     expect(scale({ min: 1, max: 1 })).toBe(false);
     expect(scale({ min: 1, max: 11 })).toBe(false);
     expect(scale({ minLabel: "x".repeat(101) })).toBe(false);
-    // типовий кінець 5 має бути більшим за заданий початок
+    // the default end of 5 must be greater than the given start
     expect(scale({ min: 1 })).toBe(true);
   });
 

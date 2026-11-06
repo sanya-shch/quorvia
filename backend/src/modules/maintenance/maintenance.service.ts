@@ -4,17 +4,17 @@ import { prisma } from "../../prisma/prisma.js";
 import { EXPORTS_DIR, resolveExportPath } from "../export/export.paths.js";
 
 /**
- * Періодичне прибирання даних, що інакше ростуть безкінечно: готові файли
- * експортів (диск) та покинуті чернетки проходжень (таблиця ResponseAttempt,
- * яку autosave пише найчастіше). Усе робиться порціями: ні список id, ні
- * видалення не повинні бути розміром з усю таблицю.
+ * Periodic cleanup of data that would otherwise grow forever: finished export files (disk)
+ * and abandoned session drafts (the ResponseAttempt table, which autosave writes most
+ * often). Everything is done in batches: neither the id list nor the delete should be the
+ * size of the whole table.
  */
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_BATCH_SIZE = 500;
 
 type CleanupOptions = {
   retentionDays: number;
-  /** Для тестів: "поточний" час. */
+  // For tests: the "current" time.
   now?: Date;
   batchSize?: number;
 };
@@ -22,7 +22,7 @@ type CleanupOptions = {
 const thresholdFor = (now: Date, retentionDays: number) =>
   new Date(now.getTime() - retentionDays * DAY_MS);
 
-/** Видаляє файл; true - якщо він існував. Відсутній файл - не помилка. */
+// Deletes a file; true if it existed. A missing file is not an error.
 const removeFile = async (absolutePath: string | null): Promise<boolean> => {
   if (!absolutePath) return false;
 
@@ -35,12 +35,9 @@ const removeFile = async (absolutePath: string | null): Promise<boolean> => {
   }
 };
 
-/**
- * Прострочені експорти: спершу файл, потім запис. Якщо видалення запису
- * впаде після видалення файлу, запис лишиться без файлу (завантаження дасть
- * 410) і буде прибраний наступним запуском; у зворотному порядку файл
- * осиротів би.
- */
+// Expired exports: the file first, then the row. If deleting the row fails after the file
+// was removed, the row stays without a file (the download answers 410) and the next run
+// removes it; the reverse order would orphan the file.
 export const cleanupExpiredExports = async ({
   retentionDays,
   now = new Date(),
@@ -76,14 +73,14 @@ export const cleanupExpiredExports = async ({
   return { jobs, files };
 };
 
-/** Файли експортів мають ім'я `<uuid завдання>-<назва>`; чужі файли не чіпаємо. */
+// Export files are named `<job uuid>-<name>`; files that do not match are left alone.
 const EXPORT_FILE_NAME = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})-/i;
 
 /**
- * Файли без запису в БД: видалення форми каскадно прибирає ExportJob, але не
- * файл на диску; збій між записом файлу й запису в БД теж лишає сироту.
- * Беремо лише файли старші за retention - свіжий файл може бути щойно
- * записаний воркером, а запис про нього ще не оновлений.
+ * Files without a DB row: deleting a form cascades to ExportJob but not to the file on
+ * disk, and a failure between writing the file and the row also leaves an orphan. Only files
+ * older than the retention are taken: a fresh file may have just been written by the worker
+ * while its row is not recorded yet.
  */
 export const cleanupOrphanExportFiles = async ({
   retentionDays,
@@ -131,13 +128,12 @@ export const cleanupOrphanExportFiles = async ({
 };
 
 /**
- * Покинуті проходження: незавершені, що почались раніше за retention.
- * Завершені не видаляються ніколи - без них funnel втратив би завершення.
+ * Abandoned sessions: unfinished ones that started before the retention. Completed ones
+ * are never deleted, the funnel would lose its completions without them.
  *
- * Наслідок, який варто знати: видалені покинуті проходження більше не
- * входять у totalAttempts, тож completionRate за старий період зростає.
- * retentionDays = 0 вимикає прибирання. Фільтр - за startedAt (незмінний,
- * є індекс), а не updatedAt, який змінює кожен autosave.
+ * A consequence worth knowing: deleted abandoned sessions no longer count in totalAttempts,
+ * so completionRate for the old period goes up. retentionDays = 0 disables cleanup. The
+ * filter uses startedAt (immutable, indexed), not updatedAt, which every autosave changes.
  */
 export const cleanupStaleAttempts = async ({
   retentionDays,

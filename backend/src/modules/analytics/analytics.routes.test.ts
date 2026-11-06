@@ -74,7 +74,7 @@ describe("GET /api/forms/:formId/analytics/paths", () => {
     expect(res.status).toBe(200);
     expect(res.body.nodes).toHaveLength(1);
     expect(service.getFormPaths).toHaveBeenCalledWith("form-1", "user-1");
-    // /analytics (без /paths) не мала викликатись
+    // /analytics (without /paths) must not have been called
     expect(service.getFormAnalytics).not.toHaveBeenCalled();
   });
 });

@@ -152,7 +152,7 @@ describe("buildResponseSchema — visibleQuestionIds (умовна логіка)
   it("питання поза visibleQuestionIds стає необов'язковим, навіть якщо required: true", () => {
     const schema = buildResponseSchema(
       [makeQuestion({ id: "q-1", type: "TEXT", required: true })],
-      new Set<string>(), // жодне питання не видиме
+      new Set<string>(), // no question is visible
     );
 
     expect(schema.safeParse({}).success).toBe(true);
@@ -308,7 +308,7 @@ describe("buildResponseSchema / cleanAnswers - варіант «Інше»", () 
       q: "o",
       q__other: "мій",
     });
-    // респондент передумав: залишковий текст не зберігаємо
+    // the respondent changed their mind: the leftover text is not stored
     expect(cleanAnswers([single], { q: "a", q__other: "старий" }, visible)).toEqual({ q: "a" });
     expect(cleanAnswers([multi], { q: ["a", "o"], q__other: "x" }, visible)).toEqual({
       q: ["a", "o"],

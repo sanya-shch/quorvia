@@ -2,14 +2,13 @@ import type { MatrixStats, NpsBreakdown, RankingOptionStats } from "@quorvia/sha
 import type { Answer, Answers } from "../response/response.types.js";
 
 /**
- * Скільки респондентів бачили це питання взагалі (shownCount, залежить від
- * condition), скільки з тих, хто бачив, все ж не відповіли (skippedCount -
- * можливо тільки для НЕобов'язкових питань, required+видиме завжди
- * відповідається за конструкцією submitResponse), і скільки не бачили його
- * через умову (hiddenCount = totalResponses - shownCount). Присутнє на
- * кожному варіанті QuestionOverview, щоб фронтенд міг відрізнити
- * "приховано умовою" від "показано, але пропущено" - для форм без
- * conditional logic shownCount завжди дорівнює totalResponses.
+ * How many respondents saw this question at all (shownCount, depends on the condition),
+ * how many of those still did not answer (skippedCount, possible only for optional
+ * questions: a required visible question is always answered by construction of
+ * submitResponse), and how many did not see it because of the condition
+ * (hiddenCount = totalResponses - shownCount). Present on every QuestionOverview variant
+ * so frontends can tell "hidden by a condition" from "shown but skipped"; for forms
+ * without conditional logic shownCount always equals totalResponses.
  */
 export type QuestionVisibilityStats = {
   shownCount: number;
@@ -44,24 +43,24 @@ export type QuestionOverview =
       id: string;
       type: "RATING" | "SCALE" | "NPS";
       text: string;
-      /** Середнє/мінімум/максимум серед фактичних відповідей (нулі, якщо відповідей немає). */
+      // Average/min/max over the actual answers (zeros when there are none).
       stats: {
         avg: number;
         min: number;
         max: number;
       };
-      /** Усі значення шкали від min до max (з нулями), optionId/text - саме значення. */
+      // Every scale value from min to max (zeros included); optionId/text is the value itself.
       distribution: { optionId: string; count: number; text: string }[];
-      /** Лише для NPS. */
+      // NPS only.
       nps?: NpsBreakdown;
     } & QuestionVisibilityStats)
   | ({
       id: string;
       type: "RANKING";
       text: string;
-      /** По варіанту, у порядку options. */
+      // Per option, in option order.
       ranking: RankingOptionStats[];
-      /** Скільки відповідей є повним ранжуванням поточних варіантів. */
+      // How many answers are a full ranking of the current options.
       rankedCount: number;
     } & QuestionVisibilityStats)
   | ({
@@ -83,10 +82,8 @@ export type FormAnalyticsDto = {
   questions: QuestionOverview[];
 };
 
-/**
- * Один вузол шляху проходження форми - питання з кількістю респондентів,
- * що його бачили (shownCount тут еквівалентний QuestionVisibilityStats.shownCount).
- */
+// One node of the form's path: a question with the number of respondents who saw it
+// (shownCount is equivalent to QuestionVisibilityStats.shownCount).
 export type QuestionPathNode = {
   questionId: string;
   text: string;
@@ -95,15 +92,13 @@ export type QuestionPathNode = {
 };
 
 /**
- * Перехід між двома послідовними ВИДИМИМИ питаннями (у порядку, в якому їх
- * фактично бачив респондент - не обов'язково сусідні за order, якщо
- * проміжні приховані умовою). fromQuestionId: null означає "початок форми"
- * (перехід із стартового стану до першого показаного питання).
+ * A transition between two consecutive VISIBLE questions, in the order the respondent
+ * actually saw them (not necessarily adjacent by `order` when the ones in between are
+ * hidden by a condition). fromQuestionId: null means "start of the form".
  *
- * ВАЖЛИВО: це НЕ funnel-аналітика в класичному сенсі (відсоток тих, хто
- * почав, але не завершив) - Response створюється лише при успішному
- * повному сабміті (submitResponse), проміжні/незавершені проходження зараз
- * ніде не персистяться. Це "популярність гілок" серед ЗАВЕРШЕНИХ відповідей.
+ * This is NOT funnel analytics (the share of respondents who started but did not
+ * finish): it only covers COMPLETED responses, i.e. how popular each branch is. The
+ * funnel is FormFunnelDto below, computed from ResponseAttempt.
  */
 export type QuestionPathEdge = {
   fromQuestionId: string | null;
@@ -128,7 +123,7 @@ export type QuestionAnalyticsDto =
       totalAnswers: number;
       distribution: { value: string; count: number }[];
       answers: string[];
-      /** true, якщо відповідей більше за ліміт і список `answers` обрізано (totalAnswers - повна кількість). */
+      // true when there are more answers than the limit and the `answers` list is truncated (totalAnswers is the full count).
       answersTruncated?: boolean;
     }
   | {
@@ -170,9 +165,9 @@ export type QuestionAnalyticsDto =
         min: number;
         max: number;
       };
-      /** Усі значення шкали від min до max (з нулями). */
+      // Every scale value from min to max (zeros included).
       distribution: { value: number; count: number }[];
-      /** Лише для NPS. */
+      // NPS only.
       nps?: NpsBreakdown;
     }
   | {
@@ -211,7 +206,7 @@ export type QuestionAnalyticsDto =
 export type ResponseListItem = {
   id: string;
   createdAt: Date;
-  /** Мова форми, якою відповів респондент (null - невідомо). */
+  // Form language the respondent used (null: unknown).
   language: string | null;
   answersPreview?: Record<string, unknown>;
 };
@@ -247,20 +242,16 @@ export type ResponseDetailsDto = {
 };
 
 /**
- * Справжня funnel-аналітика (на відміну від FormPathsDto/QuestionPathEdge,
- * які показують популярність гілок лише серед ЗАВЕРШЕНИХ відповідей) -
- * рахується з ResponseAttempt (autosave-чернетки), тому враховує і
- * покинуті проходження, не лише успішні сабміти.
+ * The real funnel (unlike FormPathsDto/QuestionPathEdge, which only show branch
+ * popularity among COMPLETED responses). It is computed from ResponseAttempt
+ * (autosaved drafts), so it also counts abandoned sessions, not just submits.
  *
- * reachedCount на кожному питанні = скільки attempts (завершених чи ні)
- * мали це питання у своєму visibleQuestionIds хоч раз - тобто дійсно його
- * побачили, з урахуванням conditional branching.
+ * reachedCount per question is how many attempts (completed or not) really saw the
+ * question at least once (reachedQuestionIds), with conditional branching taken into account.
  *
- * Навмисно НЕ розрізняємо "покинув" від "ще активно заповнює" за жодним
- * часовим порогом - completedAt: null означає лише "ще не завершено",
- * без додаткової інтерпретації. totalAttempts - totalCompletions і є
- * "не завершили" в широкому сенсі, саме те число, яке просив показати
- * запит на 'справжню funnel-аналітику'.
+ * We deliberately do NOT tell "abandoned" from "still filling in" with any time
+ * threshold: completedAt: null only means "not finished yet". totalAttempts -
+ * totalCompletions is the "did not finish" number in the broad sense.
  */
 export type QuestionFunnelNode = {
   questionId: string;

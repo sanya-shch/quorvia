@@ -16,7 +16,7 @@ export type FormDto = {
   userId: string;
   responseMode: ResponseMode;
   version: number;
-  /** Мова основних полів форми; languages - додаткові мови (без основної). */
+  // Language of the form's own fields; languages are the additional ones (without the main).
   defaultLanguage: string;
   languages: string[];
   translations: Prisma.JsonValue | null;
@@ -27,7 +27,7 @@ export type PublicFormDto = {
   title: string;
   description: string | null;
   responseMode: ResponseMode;
-  /** Усі переклади віддаємо одразу: перемикання мови в перегляді не робить запитів. */
+  // All translations are returned at once, so switching the language in the viewer makes no requests.
   defaultLanguage: string;
   languages: string[];
   translations: Prisma.JsonValue | null;

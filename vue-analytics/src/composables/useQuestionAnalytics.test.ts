@@ -62,7 +62,7 @@ describe("useQuestionAnalytics (composable - loading/success шлях)", () => {
         question: { id: "q1", text: "Q1", description: null, type: "TEXT" },
         totalAnswers: 1,
       })
-      .mockReturnValueOnce(new Promise(() => {})); // другий виклик "висить"
+      .mockReturnValueOnce(new Promise(() => {})); // the second call "hangs"
 
     const { useQuestionAnalytics } = await import("./useQuestionAnalytics");
     const { data, load } = useQuestionAnalytics("http://api.test", "form-1");
@@ -70,7 +70,7 @@ describe("useQuestionAnalytics (composable - loading/success шлях)", () => {
     await load("q1");
     expect(data.value?.totalAnswers).toBe(1);
 
-    load("q2"); // не чекаємо - перевіряємо синхронний reset одразу після виклику
+    load("q2"); // we do not wait: we check the synchronous reset right after the call
     expect(data.value).toBeNull();
   });
 });

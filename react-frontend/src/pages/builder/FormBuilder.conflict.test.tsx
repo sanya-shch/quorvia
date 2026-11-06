@@ -62,7 +62,7 @@ const renderBuilder = () => {
 
 type User = ReturnType<typeof userEvent.setup>;
 
-/** Кнопка "Зберегти" активна лише для "брудної" форми - тож спершу правимо назву. */
+// The "Save" button is active only for a "dirty" form, so first edit the title.
 const editTitleAndSave = async (user: User, currentTitle: string) => {
   await user.type(await screen.findByDisplayValue(currentTitle), "!");
   await user.click(await screen.findByRole("button", { name: "Зберегти форму" }));
@@ -147,7 +147,7 @@ describe("FormBuilder - optimistic locking (version)", () => {
     await user.click(await screen.findByRole("button", { name: "Зберегти форму" }));
     await waitFor(() => expect(mockedUpdate).toHaveBeenCalledTimes(1));
 
-    // Запит ще не завершено, а користувач уже друкує далі
+    // The request has not finished yet and the user already keeps typing
     await user.type(screen.getByDisplayValue("Початкова!"), "?");
     finishSave({ success: true, version: 4 });
 

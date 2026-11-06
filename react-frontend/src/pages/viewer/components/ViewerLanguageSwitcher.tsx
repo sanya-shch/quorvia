@@ -3,16 +3,14 @@ import { useTranslation } from "react-i18next";
 import { getLanguageName } from "../../../i18n/languageNames";
 
 interface ViewerLanguageSwitcherProps {
-  /** Усі мови форми (основна + додаткові). */
+  // All form languages (main + additional).
   languages: readonly string[];
   value: string;
   onChange: (language: string) => void;
 }
 
-/**
- * Вибір мови форми для респондента. Назви - мовою самої мови ("Polski",
- * "Українська"), щоб людина впізнала свою, навіть якщо інтерфейс чужий.
- */
+// Form language choice for the respondent. Names are in the language itself ("Polski",
+// "Українська") so people recognize theirs even when the interface is foreign.
 export default function ViewerLanguageSwitcher({
   languages,
   value,

@@ -58,14 +58,12 @@ export const submitResponse = async (
   });
 
   if (sessionKey) {
-    // Рядка ResponseAttempt може не бути взагалі (респондент надіслав форму
-    // блискавично, до першого debounced autosave) - тоді UPDATE просто
-    // нічого не зачепить, це не помилка: funnel не матиме проміжного сліду
-    // цього проходження, лишень фінальний Response.
+    // The ResponseAttempt row may not exist at all (the respondent submitted before the first
+    // debounced autosave); the UPDATE then touches nothing, which is not an error: the funnel
+    // just has no intermediate trace of this session, only the final Response.
     //
-    // Заодно дописуємо до reachedQuestionIds усі видимі питання фінальної
-    // відповіді: респондент, що дійшов до submit, бачив їх усі, навіть якщо
-    // останній autosave (debounce 1.2 с) не встиг спрацювати.
+    // We also add every visible question of the final response to reachedQuestionIds: someone
+    // who reached submit saw them all, even if the last autosave (1.2 s debounce) did not fire.
     await prisma.$executeRaw(
       buildCompleteAttemptSql(form.id, sessionKey, Array.from(visibleQuestionIds)),
     );

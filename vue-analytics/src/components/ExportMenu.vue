@@ -18,12 +18,9 @@ const menuRef = ref<HTMLElement | null>(null);
 const createError = ref(false);
 
 const FORMAT_LABELS: Record<ExportFormat, string> = { CSV: "CSV", EXCEL: "Excel", PDF: "PDF" };
-/**
- * Бекенд віддає в job.error лише стабільний код (EXPORT_FAILED,
- * EXPORT_TOO_LARGE), а не сирий текст помилки - тут він перекладається.
- * Невідомий/старий текст у БД показувати користувачу не можна, тому для
- * нього лишається загальний підпис статусу.
- */
+// The backend puts only a stable code into job.error (EXPORT_FAILED, EXPORT_TOO_LARGE), not the
+// raw error text; it is translated here. An unknown/old text in the DB must not be shown to the
+// user, so such a job keeps the generic status label.
 const KNOWN_EXPORT_ERRORS = ["EXPORT_FAILED", "EXPORT_TOO_LARGE"];
 
 const historyStatusLabel = (job: ExportJobDto): string => {

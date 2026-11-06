@@ -1,13 +1,13 @@
 import path from "node:path";
 
-/** Каталог готових експортів. API віддає файли звідси, воркер їх сюди пише. */
+// Directory of finished exports. The API serves files from here and the worker writes them here.
 export const EXPORTS_DIR = path.join(process.cwd(), "uploads", "exports");
 
 /**
- * Безпечно перетворює збережене в БД ім'я файлу на абсолютний шлях усередині
- * каталогу експортів. Повертає null, якщо результат виходить за його межі
- * (напр. "../../etc/passwd"): шлях береться з БД, але видалення й віддача
- * файлів не повинні покладатись на те, що значення там завжди чесне.
+ * Safely turns a file name stored in the DB into an absolute path inside the exports
+ * directory. Returns null if the result escapes it (for example "../../etc/passwd"): the
+ * name comes from the DB, but deleting and serving files must not rely on that value
+ * always being honest.
  */
 export const resolveExportPath = (filePath: string, dir: string = EXPORTS_DIR): string | null => {
   const root = path.resolve(dir);

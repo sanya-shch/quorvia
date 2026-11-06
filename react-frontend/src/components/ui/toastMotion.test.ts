@@ -7,7 +7,7 @@ const { playToastAnimation } = await import("./toastMotion");
 
 const el = () => {
   const element = document.createElement("div");
-  element.animate = vi.fn() as never; // у jsdom WAAPI немає - імітуємо підтримку
+  element.animate = vi.fn() as never; // jsdom has no WAAPI: simulate support
   return element;
 };
 

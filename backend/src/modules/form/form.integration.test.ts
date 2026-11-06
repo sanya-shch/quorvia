@@ -1,11 +1,9 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { ErrorCode } from "@quorvia/shared-types";
 
-/**
- * Optimistic locking форми на РЕАЛЬНОМУ Prisma + Postgres (PGlite): мок
- * транзакції не довів би, що умовний UPDATE справді відсікає застарілого
- * клієнта і що після конфлікту питання лишаються нетронутими.
- */
+// Optimistic locking of a form on a REAL Prisma + Postgres (PGlite): a mocked transaction
+// would not prove that the conditional UPDATE really rejects a stale client and that questions
+// stay untouched after a conflict.
 vi.mock("../../prisma/prisma.js", async () =>
   (await import("../../test/createTestPrisma.js")).createTestPrisma(),
 );
@@ -67,7 +65,7 @@ describe("updateForm - optimistic locking", () => {
   });
 
   it("застарілий редактор отримує 409 і НЕ затирає чужі зміни", async () => {
-    // Два редактори відкрили форму на version 1.
+    // Two editors opened the form at version 1.
     await save(1, "Зміна з вкладки A", [q("q1", "Перше", 0), q("q2", "Додане в A", 1)]);
 
     await expect(save(1, "Зміна з вкладки B", [q("q1", "Перше (B)", 0)])).rejects.toMatchObject({
@@ -78,7 +76,7 @@ describe("updateForm - optimistic locking", () => {
     const form = await readForm();
     expect(form.title).toBe("Зміна з вкладки A");
     expect(form.version).toBe(2);
-    // q2 з вкладки A не видалено, q1 не перейменовано змінами B
+    // q2 from tab A is not deleted and q1 is not renamed by B's changes
     expect(form.questions.map((x) => x.id).sort()).toEqual(["q1", "q2"]);
     expect(form.questions.find((x) => x.id === "q1")?.text).toBe("Перше");
   });

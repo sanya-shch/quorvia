@@ -2,13 +2,13 @@ import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * Справжній PrismaClient поверх PGlite (Postgres у WASM) з міграціями проєкту -
- * для інтеграційних тестів без docker. Використання:
+ * A real PrismaClient on top of PGlite (Postgres in WASM) with the project's migrations, for
+ * integration tests without docker. Usage:
  *
  *   vi.mock("../../prisma/prisma.js", async () =>
  *     (await import("../../test/createTestPrisma.js")).createTestPrisma());
  *
- * Усе імпортується динамічно, щоб звичайні unit-тести не платили за запуск WASM.
+ * Everything is imported dynamically so that ordinary unit tests do not pay for starting WASM.
  */
 export const createTestPrisma = async () => {
   const { PGlite } = await import("@electric-sql/pglite");

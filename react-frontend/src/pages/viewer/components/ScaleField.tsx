@@ -2,13 +2,13 @@ import { useTranslation } from "react-i18next";
 import type { AnswerValue } from "../../../types/formViewer";
 
 interface ScaleFieldProps {
-  /** Спільне ім'я групи радіокнопок (qId) - дає стрілки клавіатури "з коробки". */
+  // Shared name of the radio group (qId): gives keyboard arrows out of the box.
   name: string;
   min: number;
   max: number;
   value: AnswerValue | undefined;
   onChange: (value: AnswerValue) => void;
-  /** stars - зірки (RATING), numbers - ряд кнопок із числами (SCALE, NPS). */
+  // stars: stars (RATING), numbers: a row of buttons with numbers (SCALE, NPS).
   variant: "stars" | "numbers";
   required: boolean;
   labelledBy?: string;
@@ -50,7 +50,7 @@ export default function ScaleField({
       >
         {points.map((point) => {
           const isSelected = selected === point;
-          // Зірки підсвічуються до вибраної включно, числа - лише вибране.
+          // Stars are highlighted up to and including the selected one, numbers only the selected one.
           const isFilled =
             variant === "stars" ? selected !== undefined && point <= selected : isSelected;
 

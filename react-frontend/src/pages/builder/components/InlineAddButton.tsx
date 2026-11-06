@@ -8,8 +8,8 @@ interface InlineAddButtonProps {
   onAdd: (type: QuestionType) => void;
 }
 
-// Усі типи питань - з єдиного джерела (а не ручним списком, який легко
-// забути оновити: так нові типи кілька разів не потрапляли в це меню).
+// All question types come from the single source (not a hand-written list that is easy to forget
+// to update: new types missed this menu several times).
 const TYPES: readonly QuestionType[] = QUESTION_TYPES;
 
 export default function InlineAddButton({ onAdd }: InlineAddButtonProps) {

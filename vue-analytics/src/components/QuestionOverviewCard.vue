@@ -25,7 +25,7 @@ const topRanking = computed(() =>
     .slice(0, 3),
 );
 
-// Для кожного з перших трьох рядків - найпопулярніша колонка та її частка.
+// For each of the first three rows: the most popular column and its share.
 const matrixSummary = computed(() => {
   const matrix = props.question.matrix;
   if (!matrix) return [];

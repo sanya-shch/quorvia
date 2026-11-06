@@ -44,10 +44,9 @@ export default function Dashboard() {
   });
 
   const handleLogout = () => {
-    // Раніше /auth/logout був no-op, тому клієнт лише чистив локальний
-    // стан. Тепер сервер реально відкликає refresh-токен у БД - викликаємо
-    // його, але не чекаємо й не блокуємо вихід, якщо запит не вдався
-    // (напр. мережа відпала): локальний logout все одно має спрацювати.
+    // /auth/logout used to be a no-op, so the client only cleared local state. Now the server really
+    // revokes the refresh token in the DB; we call it but do not wait for it or block logging out if it
+    // fails (for example the network dropped): the local logout must still happen.
     authApi.logout().catch(() => {});
     clearAuth();
     navigate("/login");

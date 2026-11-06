@@ -7,11 +7,9 @@ import { QUESTION_TYPE_LABEL_KEYS } from "../../constants";
 import { getSidebarItems } from "./constants";
 import InlineAddButton from "./components/InlineAddButton";
 
-/**
- * Сторож повноти: TypeScript не бачить, що для нового типу питання забули
- * пункт у палітрі конструктора або переклад у uk/en. Цей тест пробігає
- * весь QUESTION_TYPES зі shared-types і падає, якщо щось пропущено.
- */
+// Completeness guard: TypeScript cannot see that for a new question type the builder palette entry
+// or the uk/en translation was forgotten. This test walks the whole QUESTION_TYPES from
+// shared-types and fails if anything is missing.
 describe("покриття типів питань у конструкторі", () => {
   const t = i18n.t.bind(i18n) as never;
 
@@ -45,7 +43,7 @@ describe("покриття типів питань у конструкторі",
     const items = screen.getAllByRole("menuitem");
     expect(items).toHaveLength(QUESTION_TYPES.length);
 
-    // кожен пункт додає свій тип
+    // each item adds its own type
     for (const [index, type] of QUESTION_TYPES.entries()) {
       onAdd.mockClear();
       await user.click(screen.getAllByRole("menuitem")[index]);

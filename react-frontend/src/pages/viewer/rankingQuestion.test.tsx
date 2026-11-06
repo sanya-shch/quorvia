@@ -95,7 +95,7 @@ describe("FormViewer - RANKING", () => {
     render(<FormViewer formTitle="Т" questions={[q()]} onSubmit={vi.fn()} />);
     await user.click(screen.getByRole("button", { name: "Перемістити «Чай» нижче" }));
 
-    // «Чай» став останнім - «нижче» вже недоступна, фокус переходить на «вище»
+    // "Tea" became last: "down" is no longer available, focus moves to "up"
     expect(screen.getByRole("button", { name: "Перемістити «Чай» вище" })).toHaveFocus();
 
     await user.click(screen.getByRole("button", { name: "Перемістити «Чай» вище" }));

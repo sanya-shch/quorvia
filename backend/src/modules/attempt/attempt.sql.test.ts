@@ -5,11 +5,9 @@ import { join } from "node:path";
 import type { Prisma } from "@prisma/client";
 import { buildCompleteAttemptSql, buildUpsertAttemptSql } from "./attempt.sql.js";
 
-/**
- * Інтеграційний тест SQL, який Prisma не вміє виразити (union reachedQuestionIds).
- * Використовує РЕАЛЬНІ міграції проєкту поверх PGlite (Postgres у WASM) - без
- * docker і без моків Prisma, тому перевіряє справжню поведінку jsonb-злиття.
- */
+// Integration test of SQL that Prisma cannot express (the reachedQuestionIds union). Uses the
+// project's REAL migrations on PGlite (Postgres in WASM), with no docker and no Prisma mocks,
+// so it checks the real jsonb merge behavior.
 const MIGRATIONS_DIR = join(import.meta.dirname, "../../../prisma/migrations");
 
 let db: PGlite;
@@ -78,7 +76,7 @@ describe("buildUpsertAttemptSql", () => {
   });
 
   it("сценарій з рев'ю: питання, приховане пізнішою зміною відповіді, лишається досягнутим", async () => {
-    // Q1=Yes -> показано Q2; потім Q1=No -> Q2 приховане (visible без q2).
+    // Q1=Yes -> Q2 shown; then Q1=No -> Q2 hidden (visible without q2).
     await upsert(["q1", "q2"], { visibleQuestionIds: ["q1", "q2"], answers: { q1: "yes" } });
     await upsert(["q1"], { visibleQuestionIds: ["q1"], answers: { q1: "no" } });
 
@@ -89,7 +87,7 @@ describe("buildUpsertAttemptSql", () => {
 
   it("порядок запитів не впливає на результат (out-of-order autosave)", async () => {
     await upsert(["q1", "q2", "q3"]);
-    await upsert(["q1"]); // "старий" запит, що дійшов пізніше
+    await upsert(["q1"]); // an "old" request that arrived later
 
     const [attempt] = await readAttempt();
     expect([...attempt.reachedQuestionIds!].sort()).toEqual(["q1", "q2", "q3"]);

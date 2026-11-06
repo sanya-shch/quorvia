@@ -2,9 +2,8 @@ import type { LoginInput, RegisterInput } from "./authSchemas";
 import { publicApi } from "./axios";
 
 interface AuthResponse {
-  // Короткоживучий (15 хв) access-токен. Довгостроковий refresh-токен у
-  // відповіді НЕ приходить - сервер виставляє його окремо як httpOnly
-  // cookie (JS до нього доступу не має).
+  // Short-lived (15 min) access token. The long-lived refresh token is NOT in the response: the
+  // server sets it separately as an httpOnly cookie (JS has no access to it).
   accessToken: string;
   user: {
     id: string;
@@ -31,8 +30,8 @@ export const authApi = {
     return response.data;
   },
 
-  // Обмінює refresh-cookie на новий access-токен. Використовується axios
-  // response-інтерцептором (api/axios.ts) при 401, а не напряму сторінками.
+  // Exchanges the refresh cookie for a new access token and the user. Used by the axios response
+  // interceptor (api/axios.ts) on 401, not by pages directly.
   refresh: async (): Promise<RefreshResponse> => {
     const response = await publicApi.post("/auth/refresh", undefined, { withCredentials: true });
     return response.data;

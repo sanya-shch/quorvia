@@ -376,7 +376,7 @@ describe("getFormAnalytics — visibility stats (conditional logic)", () => {
     (prisma.response.findMany as any).mockResolvedValue([
       { answers: { "q-text": "Київ" }, visibleQuestionIds: ["q-text"] },
       { answers: { "q-text": "Львів" }, visibleQuestionIds: ["q-text"] },
-      { answers: {}, visibleQuestionIds: [] }, // q-text приховане умовою для цього респондента
+      { answers: {}, visibleQuestionIds: [] }, // q-text is hidden by a condition for this respondent
     ]);
 
     const result = await getFormAnalytics(FORM_ID, OWNER_ID);
@@ -384,14 +384,14 @@ describe("getFormAnalytics — visibility stats (conditional logic)", () => {
 
     expect(q.shownCount).toBe(2);
     expect(q.hiddenCount).toBe(1);
-    expect(q.skippedCount).toBe(0); // обидва, хто бачив, відповіли
+    expect(q.skippedCount).toBe(0); // both who saw it answered
   });
 
   it("skippedCount: показане, але не обов'язкове і не заповнене питання", async () => {
     (prisma.form.findUnique as any).mockResolvedValue(mockForm({ questions: [questions[0]] }));
     (prisma.response.findMany as any).mockResolvedValue([
       { answers: { "q-text": "Київ" }, visibleQuestionIds: ["q-text"] },
-      { answers: {}, visibleQuestionIds: ["q-text"] }, // бачив, але не відповів (необов'язкове)
+      { answers: {}, visibleQuestionIds: ["q-text"] }, // saw it but did not answer (optional)
     ]);
 
     const result = await getFormAnalytics(FORM_ID, OWNER_ID);
@@ -405,7 +405,7 @@ describe("getFormAnalytics — visibility stats (conditional logic)", () => {
   it("legacy-відповіді без visibleQuestionIds: видимість виводиться з наявності ключа в answers", async () => {
     (prisma.form.findUnique as any).mockResolvedValue(mockForm({ questions: [questions[0]] }));
     (prisma.response.findMany as any).mockResolvedValue([
-      { answers: { "q-text": "Київ" } }, // visibleQuestionIds відсутній (стара відповідь)
+      { answers: { "q-text": "Київ" } }, // visibleQuestionIds is missing (an old response)
     ]);
 
     const result = await getFormAnalytics(FORM_ID, OWNER_ID);
@@ -448,7 +448,7 @@ describe("buildFormPaths", () => {
 
   it("пропускає приховане q2 у переході - ребро йде напряму q1 -> q3", () => {
     const responses = [
-      { answers: { q1: "a", q3: "c" }, visibleQuestionIds: ["q1", "q3"] }, // q2 приховане
+      { answers: { q1: "a", q3: "c" }, visibleQuestionIds: ["q1", "q3"] }, // q2 is hidden
       { answers: { q1: "a", q2: "b", q3: "c" }, visibleQuestionIds: ["q1", "q2", "q3"] },
     ];
 
@@ -510,11 +510,11 @@ describe("buildFormFunnel", () => {
 
   it("рахує reachedCount на основі visibleQuestionIds, а не answers - незавершені attempts теж рахуються", () => {
     const attempts = [
-      // завершив усе
+      // finished everything
       { visibleQuestionIds: ["q1", "q2", "q3"], completedAt: new Date() },
-      // покинув після q1 (autosave зафіксував лише q1 як видиме)
+      // abandoned after q1 (autosave recorded only q1 as visible)
       { visibleQuestionIds: ["q1"], completedAt: null },
-      // покинув після q2
+      // abandoned after q2
       { visibleQuestionIds: ["q1", "q2"], completedAt: null },
     ];
 
@@ -523,15 +523,15 @@ describe("buildFormFunnel", () => {
     expect(result.totalAttempts).toBe(3);
     expect(result.totalCompletions).toBe(1);
     expect(result.nodes).toEqual([
-      { questionId: "q1", text: "Питання 1", order: 0, reachedCount: 3 }, // усі троє дійшли
-      { questionId: "q2", text: "Питання 2", order: 1, reachedCount: 2 }, // двоє
-      { questionId: "q3", text: "Питання 3", order: 2, reachedCount: 1 }, // лише завершений
+      { questionId: "q1", text: "Питання 1", order: 0, reachedCount: 3 }, // all three reached it
+      { questionId: "q2", text: "Питання 2", order: 1, reachedCount: 2 }, // two
+      { questionId: "q3", text: "Питання 3", order: 2, reachedCount: 1 }, // only the completed one
     ]);
   });
 
   it("reachedQuestionIds має пріоритет над visibleQuestionIds", () => {
-    // Лінійна форма: усі питання "видимі" з першого autosave, але респондент
-    // дійшов лише до q1 - саме reached показує справжній відвал.
+    // Linear form: every question is "visible" from the first autosave, but the respondent only
+    // reached q1; reached is what shows the real drop-off.
     const attempts = [
       { reachedQuestionIds: ["q1"], visibleQuestionIds: ["q1", "q2", "q3"], completedAt: null },
       { reachedQuestionIds: ["q1", "q2"], visibleQuestionIds: ["q1", "q2", "q3"], completedAt: null },
@@ -544,7 +544,7 @@ describe("buildFormFunnel", () => {
 
   it("питання, приховане пізнішою зміною відповіді, лишається в funnel (visible його вже втратило)", () => {
     const attempts = [
-      // Q2 бачили, потім змінили Q1 -> Q2 більше не видиме, але reached його тримає
+      // Q2 was seen, then Q1 changed -> Q2 is no longer visible, but reached keeps it
       { reachedQuestionIds: ["q1", "q2"], visibleQuestionIds: ["q1"], completedAt: null },
     ];
 

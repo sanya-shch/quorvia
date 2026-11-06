@@ -8,34 +8,29 @@ interface User {
 interface AuthState {
   user: User | null;
   /**
-   * Access-токен живе ЛИШЕ в пам'яті цієї вкладки (не в localStorage/
-   * sessionStorage): він не переживає перезавантаження сторінки, а
-   * відновлюється "мовчки" через httpOnly refresh-cookie (restoreSession у
-   * api/axios.ts). Так токен не лежить у сховищі, яке читає будь-який
-   * скрипт на origin, і не "зависає" в чужих вкладках після logout.
+   * The access token lives ONLY in this tab's memory (not localStorage/sessionStorage): it does
+   * not survive a page reload and is restored "silently" through the httpOnly refresh cookie
+   * (restoreSession in api/axios.ts). This way the token does not sit in storage readable by any
+   * script on the origin and does not "hang" in other tabs after logout.
    */
   token: string | null;
   isAuthenticated: boolean;
-  /**
-   * false, доки не завершилась перша спроба відновити сесію після
-   * завантаження застосунку. ProtectedRoute не редіректить на /login, поки
-   * це не з'ясовано - інакше кожне оновлення сторінки викидало б на логін.
-   */
+  // false until the first attempt to restore the session after app load has finished.
+  // ProtectedRoute does not redirect to /login until this is known, otherwise every page reload
+  // would throw the user to the login.
   isInitialized: boolean;
   setAuth: (user: User, token: string) => void;
-  // Оновлює лише access-токен (після мовчазного /auth/refresh в
-  // api/axios.ts), не чіпаючи user - сам user підтягується наступним
-  // успішним запитом (напр. authApi.getMe() у ProtectedRoute).
+  // Updates only the access token, leaving user alone (used when a refresh response carries no user).
   setToken: (token: string) => void;
   clearAuth: () => void;
 }
 
-// Міграція: попередні версії зберігали токен у localStorage. Прибираємо
-// залишок, щоб старий токен не лежав у браузері після оновлення.
+// Migration: earlier versions kept the token in localStorage. Remove the leftover so an old
+// token does not stay in the browser after the update.
 try {
   localStorage.removeItem("token");
 } catch {
-  // сховище недоступне (приватний режим тощо) - нічого прибирати
+  // storage is unavailable (private mode, etc.): nothing to remove
 }
 
 export const useAuthStore = create<AuthState>((set) => ({

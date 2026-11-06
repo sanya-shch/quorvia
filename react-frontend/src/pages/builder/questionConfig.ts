@@ -1,13 +1,11 @@
 import { assertNever, MATRIX_LIMITS, RANKING_LIMITS, SCALE_LIMITS } from "@quorvia/shared-types";
 import type { QuestionConfig, QuestionOption, QuestionType } from "../../types/formBuilder";
 
-/**
- * Типовий config нового питання. switch без default: новий тип питання
- * не скомпілюється, поки для нього явно не вирішено, який config він має.
- */
+// Default config of a new question. A switch without default: a new question type does not
+// compile until it is explicitly decided which config it gets.
 export const createDefaultQuestionConfig = (
   type: QuestionType,
-  /** Підпис нового рядка матриці (потрібен лише для MATRIX). */
+  // Label of a new matrix row (needed only for MATRIX).
   rowLabel: (number: number) => string = (number) => `Row ${number}`,
 ): QuestionConfig | null => {
   switch (type) {
@@ -34,13 +32,13 @@ export const createDefaultQuestionConfig = (
   }
 };
 
-/** Чи має питання список варіантів (options); для решти типів options - порожній масив. */
+// Whether the question has an options list; for the other types options is an empty array.
 export const questionTypeUsesOptions = (type: QuestionType): boolean => {
   switch (type) {
     case "CHOICE_SINGLE":
     case "CHOICE_MULTI":
     case "RANKING":
-    case "MATRIX": // options матриці - її колонки
+    case "MATRIX": // the matrix options are its columns
       return true;
     case "TEXT":
     case "NUMBER":
@@ -55,10 +53,8 @@ export const questionTypeUsesOptions = (type: QuestionType): boolean => {
   }
 };
 
-/**
- * Варіанти нового питання. Для вибору - один, для ранжування - мінімально
- * допустима кількість (інакше форма не збережеться).
- */
+// Options of a new question. One for choice, the minimum allowed count for ranking (otherwise
+// the form would not save).
 export const createDefaultOptions = (
   type: QuestionType,
   label: (number: number) => string,
@@ -80,11 +76,9 @@ export const createDefaultOptions = (
   }));
 };
 
-/**
- * Чи можна використовувати відповідь на питання в умовах показу інших питань.
- * Ранжування й матриця в умовах не підтримуються: масив порядку / об'єкт
- * рядок->колонка не зводяться до простих операторів (equals/gt/...).
- */
+// Whether the answer can be used in conditions that show other questions. Ranking and matrix
+// are not supported: an order array / a row -> column object does not reduce to simple
+// operators (equals/gt/...).
 export const questionTypeSupportsConditions = (type: QuestionType): boolean => {
   switch (type) {
     case "TEXT":
@@ -105,10 +99,8 @@ export const questionTypeSupportsConditions = (type: QuestionType): boolean => {
   }
 };
 
-/**
- * Чи зберігає тип питання config на сервері. Для решти типів при збереженні
- * шлемо null, щоб у БД не залишався config від попереднього типу.
- */
+// Whether the question type stores config on the server. For the other types null is sent on
+// save so no config of a previous type stays in the DB.
 export const questionTypeUsesConfig = (type: QuestionType): boolean => {
   switch (type) {
     case "TEXT":

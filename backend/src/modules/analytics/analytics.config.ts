@@ -1,15 +1,12 @@
-/**
- * Налаштування обходу відповідей. Об'єкт (а не константа) - щоб інтеграційні
- * тести могли зменшити розмір порції й перевірити багатосторінковий обхід
- * на невеликих даних.
- */
+// Settings of the response walk. An object (not a constant) so integration tests can
+// shrink the batch size and exercise multi-page walking on small data.
 export const analyticsConfig = {
-  /** Скільки відповідей читаємо з БД за один запит. */
+  // How many responses are read from the DB per query.
   batchSize: 2000,
-  /** Скільки різних текстових значень на питання тримаємо в пам'яті для топ-N. */
+  // How many distinct text values per question are kept in memory for the top N.
   maxTrackedTextValues: 10_000,
-  /** Скільки сирих текстових відповідей повертає детальна аналітика питання. */
+  // How many raw text answers the detailed question analytics returns.
   maxTextAnswers: 1000,
-  /** Скільки пунктів розподілу повертає детальна аналітика текстового питання. */
+  // How many distribution items the detailed analytics of a text question returns.
   maxTextDistribution: 100,
 };

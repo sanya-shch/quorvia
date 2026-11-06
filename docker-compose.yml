@@ -9,8 +9,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quorvia}
       POSTGRES_DB: ${POSTGRES_DB:-quorvia}
     ports:
-      # Лише loopback: без 127.0.0.1 Docker публікує порт на ВСІХ інтерфейсах
-      # (разом із дефолтним паролем це відкрита БД у спільній Wi-Fi мережі).
+      # Loopback only: without 127.0.0.1 Docker publishes the port on ALL interfaces
+      # (with the default password that is an open DB on a shared Wi-Fi network).
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data

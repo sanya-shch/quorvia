@@ -2,12 +2,10 @@ import { z } from "zod";
 import { ErrorCode } from "@quorvia/shared-types";
 
 /**
- * Повідомлення тут - ErrorCode (ті самі коди, що й на бекенді:
- * backend/src/modules/auth/auth.schema.ts), а не готовий текст. Zod-схема
- * створюється один раз при завантаженні модуля, до того як стане відомо
- * обрану мову, тому вона фізично не може містити перекладений текст -
- * переклад коду в текст відбувається в момент показу (Login.tsx/
- * Register.tsx через translateErrorCode), не тут.
+ * Messages here are ErrorCode values (the same codes as on the backend:
+ * backend/src/modules/auth/auth.schema.ts), not display text. The Zod schema is created once at
+ * module load, before the selected language is known, so it physically cannot contain translated
+ * text; the code is translated at display time (Login.tsx/Register.tsx via translateErrorCode).
  */
 export const loginSchema = z.object({
   email: z
@@ -17,19 +15,16 @@ export const loginSchema = z.object({
   password: z.string().min(1, ErrorCode.VALIDATION_PASSWORD_REQUIRED),
 });
 
-/**
- * Складність пароля дзеркалить backend/src/modules/auth/auth.schema.ts -
- * застосовується лише при РЕЄСТРАЦІЇ (як і на бекенді), щоб користувач
- * дізнавався про слабкий пароль одразу у формі, а не лише після 400 від
- * сервера.
- */
+// Password strength mirrors backend/src/modules/auth/auth.schema.ts and applies on REGISTRATION
+// only (as on the backend), so the user learns about a weak password in the form right away, not
+// only after a 400 from the server.
 const registerPasswordSchema = z
   .string()
   .min(8, ErrorCode.VALIDATION_PASSWORD_TOO_SHORT)
   .regex(/[a-z]/, ErrorCode.VALIDATION_PASSWORD_NO_LOWERCASE)
   .regex(/[A-Z]/, ErrorCode.VALIDATION_PASSWORD_NO_UPPERCASE)
   .regex(/[0-9]/, ErrorCode.VALIDATION_PASSWORD_NO_DIGIT)
-  // bcrypt враховує лише перші 72 БАЙТИ (не символи) - див. бекенд.
+  // bcrypt counts only the first 72 BYTES (not characters); see the backend.
   .refine((value) => new TextEncoder().encode(value).length <= 72, {
     message: ErrorCode.VALIDATION_PASSWORD_TOO_LONG,
   });

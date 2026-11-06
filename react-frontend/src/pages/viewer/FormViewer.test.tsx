@@ -42,14 +42,14 @@ describe("FormViewer - умовна видимість (інтеграційни
 
     render(<FormViewer formTitle="Тест" questions={questions} onSubmit={vi.fn()} />);
 
-    // Умовне питання спочатку не в DOM взагалі (не просто visually hidden)
+    // The conditional question is not in the DOM at first (not just visually hidden)
     expect(screen.queryByText("Яку піцу?")).not.toBeInTheDocument();
 
     await user.click(screen.getByLabelText("Так"));
 
     expect(screen.getByText("Яку піцу?")).toBeInTheDocument();
 
-    // Повертаємось назад до "Ні" - умовне питання знову ховається
+    // Back to "No": the conditional question is hidden again
     await user.click(screen.getByLabelText("Ні"));
     expect(screen.queryByText("Яку піцу?")).not.toBeInTheDocument();
   });
@@ -82,11 +82,11 @@ describe("FormViewer - умовна видимість (інтеграційни
 
     render(<FormViewer formTitle="Тест" questions={questions} onSubmit={onSubmit} />);
 
-    await user.click(screen.getByLabelText("Ні")); // q2 лишається прихованим
+    await user.click(screen.getByLabelText("Ні")); // q2 stays hidden
     await user.click(screen.getByRole("button", { name: "Надіслати відповіді" }));
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
-    // q2 не потрапляє у відповідь взагалі - воно приховане
+    // q2 does not get into the answer at all: it is hidden
     expect(onSubmit.mock.calls[0][0]).not.toHaveProperty("q2");
   });
 

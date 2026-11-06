@@ -5,33 +5,27 @@ import type { FormAnswers } from "../../../types/formViewer";
 const AUTOSAVE_DEBOUNCE_MS = 1200;
 
 /**
- * Debounced autosave "чернетки" проходження форми - записує прогрес
- * респондента, навіть якщо він так і не надішле форму, щоб funnel-
- * аналітика (backend: buildFormFunnel) бачила реальні покинуті
- * проходження, а не лише завершені сабміти.
+ * Debounced autosave of a session "draft": records the respondent's progress even if they never
+ * submit, so funnel analytics (backend: buildFormFunnel) sees real abandoned sessions, not just
+ * completed submits.
  *
- * reachedQuestionIds - id питань, які респондент реально побачив (шле лише
- * покроковий режим, де "видиме за умовами" і "показане на екрані" - різні
- * речі). Без нього сервер вважає досягнутими всі зараз видимі питання, що
- * правильно для режиму "все на одній сторінці". Список входить у ключ
- * debounce, тому перехід на наступний крок без зміни відповіді (пропуск
- * необов'язкового питання) теж зберігається.
+ * reachedQuestionIds are the ids of questions the respondent really saw (sent only by the
+ * step-by-step mode, where "visible by conditions" and "shown on screen" differ). Without it the
+ * server treats every currently visible question as reached, which is right for the all-at-once
+ * mode. The list is part of the debounce key, so moving to the next step without changing an
+ * answer (skipping an optional question) is saved too.
  *
- * Викликається і з FormViewer, і з QuestionStepper (кожен володіє власним
- * `answers`-станом) - тому це самостійний хук, а не піднятий у
- * PublicFormPage стан.
+ * Called from both FormViewer and QuestionStepper (each owns its own `answers` state), so it is a
+ * standalone hook rather than state lifted into PublicFormPage.
  *
- * Autosave - best-effort: неуспіх мовчазно ігнорується (не переривати
- * респондента заради втраченого funnel-знімку), і початковий (навіть
- * порожній) стан теж зберігається після debounce-паузи - саме це фіксує
- * "дійшов хоча б до першого питання" для респондента, який побачив форму
- * й одразу пішов, нічого не ввівши.
+ * Autosave is best-effort: a failure is ignored silently (the respondent must not be interrupted
+ * for a lost funnel snapshot), and the initial (even empty) state is saved after the debounce
+ * pause too, which records "reached at least the first question" for someone who saw the form and
+ * left without typing anything.
  *
- * Свідоме обмеження цієї реалізації: немає sendBeacon-скидання на
- * beforeunload/pagehide, тож останні кілька секунд перед закриттям вкладки
- * можуть не встигнути потрапити в чернетку, якщо респондент пішов
- * швидше за debounce-паузу. Періодичний autosave все одно дає реальні,
- * значущі funnel-дані - це свідомий, а не випадковий компроміс обсягу.
+ * Known limitation: there is no sendBeacon flush on beforeunload/pagehide, so the last few seconds
+ * before closing the tab may miss the draft if the respondent left faster than the debounce pause.
+ * Periodic autosave still gives meaningful funnel data; this is a deliberate trade-off.
  */
 export function useAttemptAutosave(
   shareId: string | undefined,
@@ -53,7 +47,6 @@ export function useAttemptAutosave(
     timeoutRef.current = setTimeout(() => {
       lastSavedRef.current = serialized;
       saveFormAttempt(shareId, sessionKey, answers, reachedQuestionIds).catch(() => {
-        // мовчазний невдача(коментар вище)
       });
     }, AUTOSAVE_DEBOUNCE_MS);
 

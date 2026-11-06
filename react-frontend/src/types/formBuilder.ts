@@ -30,7 +30,7 @@ export interface Question {
   options: QuestionOption[];
   config: QuestionConfig | null;
   condition?: ConditionGroup | null;
-  /** Переклади питання за мовами (див. QuestionTranslations); основна мова - самі поля. */
+  // Question translations by language (see QuestionTranslations); the main language is the fields themselves.
   translations?: QuestionTranslations | null;
 }
 
@@ -39,26 +39,24 @@ export interface FormState {
   description: string;
   responseMode: ResponseMode;
   questions: Question[];
-  /**
-   * Мови контенту. Необов'язкові: стан без них (старі виклики, тести) просто
-   * не надсилає їх на збереження, а сервер у такому разі нічого не змінює.
-   */
+  // Content languages. Optional: a state without them (old calls, tests) simply does not send
+  // them on save, and the server then changes nothing.
   defaultLanguage?: string;
-  /** Додаткові мови (без основної). */
+  // Additional languages (without the main one).
   languages?: string[];
   translations?: FormTranslations | null;
 }
 
-/** Форма з адмін-ендпоінта: до FormState додається версія для optimistic locking. */
+// A form from the admin endpoint: FormState plus the version for optimistic locking.
 export interface AdminForm extends FormState {
   version: number;
 }
 
-/** Тіло збереження: version - та, що клієнт завантажив (сервер відповість 409, якщо вона застаріла). */
+// Save body: version is the one the client loaded (the server answers 409 if it is stale).
 export type UpdateFormPayload = FormState & { version?: number };
 
 export interface UpdateFormResult {
   success: boolean;
-  /** Нова версія форми після збереження - наступне збереження має слати її. */
+  // The form's new version after saving; the next save must send it.
   version: number;
 }

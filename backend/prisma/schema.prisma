@@ -62,10 +62,9 @@ model Form {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @default(now())
 
-  // Лічильник для optimistic locking: updateForm збільшує його на 1 і
-  // приймає зміни лише від клієнта, що редагував актуальну версію. Без
-  // цього два відкриті редактори тихо затирали б зміни один одного
-  // (last write wins).
+  // Counter for optimistic locking: updateForm increments it by 1 and accepts changes
+  // only from a client that edited the current version. Without it two open editors would
+  // silently overwrite each other (last write wins).
   version     Int         @default(1)
 
   isPublished Boolean     @default(false)
@@ -73,12 +72,12 @@ model Form {
 
   responseMode ResponseMode @default(ALL_AT_ONCE)
 
-  // Мова, якою написані title/description/питання (поля самої форми). Це
-  // "основна" мова: її переклад не зберігається, а береться з цих полів.
+  // Language of title/description/questions (the form's own fields). This is the "main"
+  // language: its text is not stored as a translation, it is read from these fields.
   defaultLanguage String   @default("uk")
-  // Додаткові мови (без основної); для кожної в translations лежить переклад.
+  // Additional languages (without the main one); translations holds one entry per language.
   languages       String[] @default([])
-  // { [language]: { title?, description? } }, див. FormTranslations у shared-types.
+  // { [language]: { title?, description? } }, see FormTranslations in shared-types.
   translations    Json?
 
   @@index([userId])
@@ -96,7 +95,7 @@ model Question {
   condition   Json?
 
   // { [language]: { text?, description?, options?, rows?, minLabel?, maxLabel? } },
-  // див. QuestionTranslations у shared-types.
+  // see QuestionTranslations in shared-types.
   translations Json?
 
   formId      String
@@ -114,41 +113,35 @@ model Response {
   formId    String
 
   answers   Json
-  // Питання, які фактично були показані користувачу під час проходження
-  // (обчислюється сервером на основі condition кожного питання й наданих
-  // відповідей — не покладаємось на клієнта, щоб не можна було підробити
-  // приховані відповіді). Використовується аналітикою для розрізнення
-  // "приховано умовою" vs "показано, але пропущено".
+  // Questions that were actually shown to the respondent (computed by the server from each
+  // question's condition and the submitted answers; the client is not trusted, so hidden
+  // answers cannot be forged). Analytics uses it to tell "hidden by a condition" from
+  // "shown but skipped".
   visibleQuestionIds Json?
 
-  // Мова форми (з form.defaultLanguage/languages), якою респондент її заповнював;
-  // null - невідомо (відповіді до появи мов або нерозпізнана мова).
+  // Form language (from form.defaultLanguage/languages) the respondent filled it in;
+  // null means unknown (responses from before languages existed, or an unrecognized language).
   language  String?
 
   createdAt DateTime @default(now())
 
-  // Покриває і сторінковий список (ORDER BY createdAt DESC), і keyset-обхід
-  // аналітики (ORDER BY createdAt, id) в межах форми; префікс formId замінює
-  // окремий індекс по formId.
+  // Covers both the paged list (ORDER BY createdAt DESC) and the analytics keyset walk
+  // (ORDER BY createdAt, id) within a form; the formId prefix replaces a separate formId index.
   @@index([formId, createdAt, id])
 }
 
 /**
- * "Чернетка" проходження форми - autosave-знімок прогресу респондента ДО
- * фінального сабміту. На відміну від Response (створюється лише при
- * успішному повному сабміті), цей запис існує і для покинутих проходжень -
- * саме це і дає змогу порахувати СПРАВЖНІЙ funnel (скільки респондентів
- * реально дійшли до кожного питання, включно з тими, хто так і не
- * завершив), а не лише "популярність гілок серед завершених" (те, що вже
- * робить /analytics/paths на основі Response).
+ * A "draft" of a form session: an autosaved snapshot of the respondent's progress BEFORE
+ * the final submit. Unlike Response (created only on a successful full submit), it also
+ * exists for abandoned sessions, which is what makes the REAL funnel possible (how many
+ * respondents reached each question, including those who never finished) instead of only
+ * "branch popularity among completed responses" (what /analytics/paths does from Response).
  *
- * sessionKey - клієнтський UUID, згенерований у браузері респондента при
- * першому дотику до форми (react-frontend, sessionStorage, переживає
- * оновлення сторінки в межах тієї самої вкладки, але не нову вкладку -
- * свідомо: нова вкладка = новий "заход" для funnel-цілей). Той самий ключ
- * передається у фінальний сабміт (submitResponse), щоб позначити attempt
- * як completedAt - server-side upsert по (formId, sessionKey), не
- * плодить рядки на кожен keystroke.
+ * sessionKey is a client UUID generated in the respondent's browser on the first touch
+ * (sessionStorage: survives a page reload in the same tab but not a new tab, on purpose:
+ * a new tab is a new "visit" for the funnel). The same key is sent with the final submit
+ * (submitResponse) to mark the attempt as completedAt; the server upserts by
+ * (formId, sessionKey), so it does not create a row per keystroke.
  */
 model ResponseAttempt {
   id     String @id @default(uuid())
@@ -158,35 +151,31 @@ model ResponseAttempt {
   sessionKey String
 
   answers Json
-  // Той самий сенс і те саме обчислення, що й Response.visibleQuestionIds
-  // (resolveVisibleQuestionIds з @quorvia/condition-engine) - на
-  // основі цього поля funnel рахує "найдальше досягнуте питання" навіть
-  // для покинутих проходжень, з урахуванням conditional branching.
+  // Same meaning and computation as Response.visibleQuestionIds (resolveVisibleQuestionIds
+  // from @quorvia/condition-engine).
   visibleQuestionIds Json?
-  // "Reached" - питання, які респондент реально побачив хоча б раз за це
-  // проходження. На відміну від visibleQuestionIds ("зараз логічно
-  // видиме") це множина, що лише росте: якщо респондент повернувся і
-  // змінив відповідь, через що питання сховалось, воно лишається
-  // досягнутим. Саме з цього поля funnel рахує reachedCount. Оновлюється
-  // атомарно як об'єднання в SQL (див. attempt.sql.ts). null - рядки,
-  // створені до появи колонки (funnel тоді падає на visibleQuestionIds).
+  // "Reached": questions the respondent really saw at least once in this session. Unlike
+  // visibleQuestionIds ("logically visible right now") it only grows: if the respondent goes
+  // back and changes an answer so that a question gets hidden, it stays reached. The funnel
+  // computes reachedCount from it. Updated atomically as a SQL union (see attempt.sql.ts).
+  // null for rows created before the column existed (the funnel then falls back to
+  // visibleQuestionIds).
   reachedQuestionIds Json?
 
   startedAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  // null = ще не завершено (або досі заповнює, або покинув - funnel не
-  // намагається розрізнити ці два стани за жодним часовим порогом, це
-  // було б довільним припущенням; звітність показує сирі цифри й дає
-  // читачеві самому інтерпретувати).
+  // null = not finished yet (still filling in or abandoned). The funnel does not try to tell
+  // these apart with a time threshold, which would be an arbitrary assumption; reports show
+  // raw numbers.
   completedAt DateTime?
 
   @@unique([formId, sessionKey])
-  // Для cleanup (maintenance.service): видалення покинутих проходжень за startedAt.
-  // Навмисно НЕ updatedAt - він змінюється при кожному autosave, і індекс по ньому
-  // гасив би HOT-оновлення на найгарячішій таблиці.
+  // For cleanup (maintenance.service): abandoned attempts are deleted by startedAt. NOT
+  // updatedAt on purpose: it changes on every autosave, and an index on it would defeat
+  // HOT updates on the hottest table.
   @@index([startedAt])
-  // @@index([formId]) прибрано: його повністю покриває унікальний індекс
-  // (formId, sessionKey), який також обслуговує keyset-обхід funnel.
+  // @@index([formId]) was dropped: the unique (formId, sessionKey) index fully covers it
+  // and also serves the funnel keyset walk.
 }
 
 enum ExportFormat {

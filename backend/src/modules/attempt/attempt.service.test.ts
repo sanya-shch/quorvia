@@ -41,7 +41,7 @@ const conditionalForm = {
   ],
 };
 
-/** Параметри SQL, з якими викликано $queryRaw (порядок задає buildUpsertAttemptSql). */
+// SQL parameters $queryRaw was called with (the order is defined by buildUpsertAttemptSql).
 const upsertParams = () => {
   const sql = (prisma.$queryRaw as any).mock.calls[0][0] as Prisma.Sql;
   const [id, formId, sessionKey, answers, visible, reached] = sql.values as string[];
@@ -83,7 +83,7 @@ describe("saveAttempt", () => {
   it("НЕ вимагає required-поля - часткові/порожні answers приймаються (це чернетка, не фінальний сабміт)", async () => {
     (prisma.form.findUnique as any).mockResolvedValue(publishedForm);
 
-    // required-поле q-1 не заповнене - не мало б кинути помилку
+    // the required field q-1 is empty: this must not throw
     const result = await saveAttempt(SHARE_ID, "session-1", {});
 
     expect(result.id).toBe("attempt-1");
@@ -106,7 +106,7 @@ describe("saveAttempt", () => {
   it("вирізає answer для питання, прихованого умовою (той самий принцип, що й submitResponse)", async () => {
     (prisma.form.findUnique as any).mockResolvedValue(conditionalForm);
 
-    // q-1 != "тригер" => q-2 приховане, значення для нього має бути вирізане
+    // q-1 != "trigger" => q-2 is hidden, its value must be cut out
     await saveAttempt(SHARE_ID, "session-1", { "q-1": "не тригер", "q-2": "непрохане значення" });
 
     const params = upsertParams();
@@ -132,8 +132,8 @@ describe("saveAttempt", () => {
     });
 
     it("зі списком від клієнта (покроковий режим) - береться саме він, а не всі видимі", async () => {
-      // Лінійна форма: q-1 і q-2 обидва видимі з самого початку, але респондент
-      // ще на першому кроці - q-2 досягнутим бути не повинно.
+      // Linear form: q-1 and q-2 are both visible from the start, but the respondent is still on
+      // the first step, so q-2 must not count as reached.
       const linear = { ...publishedForm, questions: [textQuestion("q-1", 0), textQuestion("q-2", 1)] };
       (prisma.form.findUnique as any).mockResolvedValue(linear);
 
@@ -147,7 +147,7 @@ describe("saveAttempt", () => {
     it("питання, що стало прихованим, лишається в переданому клієнтом reached (кейс з рев'ю)", async () => {
       (prisma.form.findUnique as any).mockResolvedValue(conditionalForm);
 
-      // Респондент бачив q-2, потім змінив q-1 -> q-2 тепер приховане.
+      // The respondent saw q-2, then changed q-1 -> q-2 is now hidden.
       await saveAttempt(SHARE_ID, "session-1", { "q-1": "інакше" }, ["q-1", "q-2"]);
 
       const params = upsertParams();

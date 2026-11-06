@@ -3,18 +3,17 @@ import { AnimatePresence, LazyMotion, MotionConfig, domAnimation, useIsPresent }
 import * as m from "motion/react-m";
 import type { Variants } from "motion/react";
 
-/** Напрямок переходу: 1 - вперед (Далі), -1 - назад (Назад, "Змінити відповідь"). */
+// Direction of the transition: 1 is forward (Next), -1 is back (Back, "Change answer").
 export type StepDirection = 1 | -1;
 
 const OFFSET_PX = 32;
 
 /**
- * Екран, що йде, виїжджає у бік, протилежний до напрямку, а новий приїжджає
- * зі сторони напрямку - як гортання сторінок. `custom` передає напрямок і
- * екрану, що вже виходить (його власні пропси застарілі, тому AnimatePresence
- * підставляє свіже значення). Виїзд коротший за в'їзд: користувач не чекає.
- * При prefers-reduced-motion (MotionConfig below) зміщення вимикається,
- * лишається лише прозорість.
+ * The leaving screen slides out opposite to the direction and the new one arrives from the
+ * direction's side, like turning pages. `custom` also passes the direction to the screen that is
+ * already leaving (its own props are stale, so AnimatePresence injects the fresh value). The exit
+ * is shorter than the entrance: the user does not wait. With prefers-reduced-motion (MotionConfig
+ * below) the offset is disabled and only opacity remains.
  */
 const variants: Variants = {
   enter: (direction: StepDirection) => ({ opacity: 0, x: direction * OFFSET_PX }),
@@ -27,10 +26,9 @@ const variants: Variants = {
 };
 
 function StepCard({ direction, children }: { direction: StepDirection; children: ReactNode }) {
-  // Екран, що виходить, ще в DOM, але вже не "живий": його кнопки тримають
-  // ЗАСТАРІЛІ замикання (старий currentIndex), тож повторний клік по "Далі"
-  // під час виходу переставляв би крок двічі. inert прибирає його з фокусу,
-  // кліків і дерева доступності.
+  // The leaving screen is still in the DOM but no longer "live": its buttons hold STALE closures
+  // (the old currentIndex), so a repeated click on "Next" during the exit would advance the step
+  // twice. inert takes it out of focus, clicks and the accessibility tree.
   const isPresent = useIsPresent();
 
   return (
@@ -48,10 +46,10 @@ function StepCard({ direction, children }: { direction: StepDirection; children:
 }
 
 /**
- * Анімована зміна кроку покрокової форми. `stepKey` має змінюватись разом із
- * кроком (id питання / "review"): нова відмінна key і є сигналом до переходу.
- * mode="wait": старий екран повністю виходить, потім з'являється новий, тож
- * два екрани ніколи не стоять разом і розмітка не стрибає по висоті.
+ * Animated change of a step of the step-by-step form. `stepKey` must change with the step
+ * (question id / "review"): a new distinct key is the signal for the transition.
+ * mode="wait": the old screen fully leaves, then the new one appears, so two screens are never
+ * shown together and the layout does not jump in height.
  */
 export default function StepTransition({
   stepKey,
@@ -67,7 +65,7 @@ export default function StepTransition({
     // viewer, and importing it at the root put ~80 KB on every page.
     <MotionConfig reducedMotion="user">
       <LazyMotion features={domAnimation} strict>
-        {/* initial={false}: перший екран з'являється без анімації */}
+        {/* initial={false}: the first screen appears without animation */}
         <AnimatePresence mode="wait" initial={false} custom={direction}>
           <StepCard key={stepKey} direction={direction}>
             {children}

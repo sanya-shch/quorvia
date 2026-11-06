@@ -18,7 +18,7 @@ describe("sortByOrder", () => {
     const input = [q({ id: "b", order: 2 }), q({ id: "a", order: 0 }), q({ id: "c", order: 1 })];
     const sorted = sortByOrder(input);
     expect(sorted.map((x) => x.id)).toEqual(["a", "c", "b"]);
-    expect(input.map((x) => x.id)).toEqual(["b", "a", "c"]); // оригінал незмінний
+    expect(input.map((x) => x.id)).toEqual(["b", "a", "c"]); // the original is unchanged
   });
 });
 
@@ -48,7 +48,7 @@ describe("getNextQuestion — інтеграція з @quorvia/condition-engine"
       q({ id: "q3", order: 2 }),
     ];
 
-    // q1 != "yes" -> q2-conditional прихований, наступне після q1 - одразу q3
+    // q1 != "yes" -> q2-conditional is hidden, the next one after q1 is q3 right away
     const next = getNextQuestion(questions, { q1: "no" }, 0);
     expect(next?.id).toBe("q3");
   });
@@ -83,7 +83,7 @@ describe("getNextQuestion — інтеграція з @quorvia/condition-engine"
       q({ id: "q4", order: 3 }),
     ];
 
-    // q1 != "trigger" -> і q2, і q3 приховані, одразу переходимо до q4
+    // q1 != "trigger" -> both q2 and q3 are hidden, we go straight to q4
     const next = getNextQuestion(questions, { q1: "no" }, 0);
     expect(next?.id).toBe("q4");
   });

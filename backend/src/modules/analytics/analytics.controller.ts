@@ -19,8 +19,8 @@ import type {
 } from "./analytics.types.js";
 import type { AuthLocals } from "../../shared/middleware/auth.js";
 
-// Express 5 сам передає відхилені проміси async-обробників в errorHandler,
-// тому try/catch і обгортки типу asyncHandler тут не потрібні.
+// Express 5 forwards rejected promises of async handlers to errorHandler itself, so no
+// try/catch or asyncHandler wrappers are needed here.
 
 export const getAnalyticsHandler = async (
   req: Request<{ formId: string }>,

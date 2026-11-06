@@ -1,7 +1,7 @@
 import { Question } from "@prisma/client";
 import { assertNever, type QuestionConfig } from "@quorvia/shared-types";
 
-// Відповідь на «Інше» - окремий ключ в answers; експортер передає його третім аргументом.
+// The answer to "Other" is a separate key in answers; the exporter receives it as the third argument.
 
 export type AnswerValue =
   | string
@@ -20,7 +20,7 @@ const optionLabelsById = (question: Question, otherText?: AnswerValue): Record<s
   return Object.fromEntries(
     options.map((o) => [
       o.id,
-      // "Інше: свій варіант" - у колонці експорту видно і вибір, і текст.
+      // "Other: custom option": the export column shows both the choice and the text.
       o.isOther && typeof otherText === "string" && otherText ? `${o.text}: ${otherText}` : o.text,
     ]),
   );
@@ -45,8 +45,8 @@ export const formatAnswer = (
       return ids.map((id) => labels[id] ?? String(id)).join("; ");
     }
     case "MATRIX": {
-      // "Рядок: Колонка; Рядок: Колонка" - рядки в порядку питання, без
-      // відповіді пропускаються (необов'язкова матриця може бути заповнена частково).
+      // "Row: Column; Row: Column": rows in question order, unanswered ones skipped (an optional
+      // matrix may be filled partially).
       const rows = (question.config as QuestionConfig | null)?.rows ?? [];
       const labels = optionLabelsById(question);
       const cells =
@@ -60,7 +60,7 @@ export const formatAnswer = (
         .join("; ");
     }
     case "RANKING": {
-      // "1. Кава; 2. Чай" - позиція видна в одній клітинці експорту.
+      // "1. Coffee; 2. Tea": the position is visible within a single export cell.
       const labels = optionLabelsById(question);
       const ids = Array.isArray(value) ? value : [value as string];
       return ids.map((id, i) => `${i + 1}. ${labels[id] ?? String(id)}`).join("; ");
@@ -71,8 +71,8 @@ export const formatAnswer = (
     case "RATING":
     case "SCALE":
     case "NPS":
-      // Загальне форматування нижче (шкали експортуються сирим числом -
-      // так їх можна сумувати й будувати графіки в таблиці).
+      // General formatting below (scales are exported as the raw number so they can be summed
+      // and charted in a spreadsheet).
       break;
     default:
       return assertNever(question.type, "question type");
