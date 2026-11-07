@@ -94,6 +94,57 @@ describe("PublicFormPage - responseMode визначає режим проход
     expect(logo).toHaveAttribute("alt", "");
   });
 
+  it("applies the form theme to the public page only", async () => {
+    mockedFetchPublicForm.mockResolvedValue({
+      id: "form-1",
+      title: "Тестова форма",
+      responseMode: "ALL_AT_ONCE",
+      theme: { mode: "dark", primaryColor: "#FF0000", radius: "none" },
+      questions: [baseQuestion],
+    });
+
+    const { container } = renderPage();
+
+    await screen.findByText("Перше питання");
+
+    const scope = container.querySelector<HTMLElement>(".q-theme")!;
+    expect(scope).toContainElement(screen.getByText("Перше питання"));
+    expect(scope.style.getPropertyValue("--q-primary")).toBe("#ff0000");
+    expect(scope.dataset.qRadius).toBe("none");
+  });
+
+  it("renders a form without a theme exactly as before", async () => {
+    mockedFetchPublicForm.mockResolvedValue({
+      id: "form-1",
+      title: "Тестова форма",
+      responseMode: "ALL_AT_ONCE",
+      theme: null,
+      questions: [baseQuestion],
+    });
+
+    const { container } = renderPage();
+
+    await screen.findByText("Перше питання");
+
+    expect(container.querySelector(".q-theme")).toBeNull();
+  });
+
+  it("ignores hostile values in a stored theme", async () => {
+    mockedFetchPublicForm.mockResolvedValue({
+      id: "form-1",
+      title: "Тестова форма",
+      responseMode: "ALL_AT_ONCE",
+      theme: { primaryColor: "#fff; background:url(//evil.test)", textColor: "#000000" },
+      questions: [baseQuestion],
+    });
+
+    const { container } = renderPage();
+
+    await screen.findByText("Перше питання");
+
+    expect(container.querySelector(".q-theme")!.getAttribute("style")).not.toContain("evil");
+  });
+
   it("renders no image for a form without a logo", async () => {
     mockedFetchPublicForm.mockResolvedValue({
       id: "form-1",

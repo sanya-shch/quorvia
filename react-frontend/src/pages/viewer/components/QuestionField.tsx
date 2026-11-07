@@ -173,7 +173,7 @@ function QuestionControl({
         >
           <span
             aria-hidden="true"
-            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-on-primary shadow ring-0 transition duration-200 ease-in-out ${
               value ? "translate-x-5" : "translate-x-0"
             }`}
           />
@@ -205,8 +205,8 @@ function QuestionControl({
                 onClick={() => onChange(option.id)}
                 className={`px-4 py-2 text-sm font-semibold rounded-xl border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
                   isSelected
-                    ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
-                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
+                    ? "bg-indigo-600 border-indigo-600 text-on-primary shadow-sm"
+                    : "bg-surface border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
                 }`}
               >
                 {option.text}
@@ -226,7 +226,7 @@ function QuestionControl({
             aria-invalid={invalid}
             aria-describedby={describedBy}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm font-medium text-slate-700 focus:border-indigo-500 focus:outline-none appearance-none cursor-pointer"
+            className="w-full h-11 rounded-xl border border-slate-200 bg-surface px-3 pr-10 text-sm font-medium text-slate-700 focus:border-indigo-500 focus:outline-none appearance-none cursor-pointer"
           >
             <option value="">{t("builder.editors.condition.chooseOption")}</option>
             {question.options.map((option) => (
@@ -309,8 +309,8 @@ function QuestionControl({
                 onClick={() => toggle(option.id)}
                 className={`px-4 py-2 text-sm font-semibold rounded-xl border transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
                   isSelected
-                    ? "bg-indigo-600 border-indigo-600 text-white shadow-sm"
-                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                    ? "bg-indigo-600 border-indigo-600 text-on-primary shadow-sm"
+                    : "bg-surface border-slate-200 text-slate-600 hover:bg-slate-50"
                 }`}
               >
                 {option.text}

@@ -79,8 +79,8 @@ export default function ScaleField({
                   aria-hidden="true"
                   className={`flex h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-sm font-semibold transition-colors peer-focus-visible:outline-none ${focusRing} ${
                     isFilled
-                      ? "border-indigo-600 bg-indigo-600 text-white shadow-sm"
-                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                      ? "border-indigo-600 bg-indigo-600 text-on-primary shadow-sm"
+                      : "border-slate-200 bg-surface text-slate-600 hover:bg-slate-50"
                   }`}
                 >
                   {point}

@@ -21,6 +21,7 @@ export type FormDto = {
   languages: string[];
   translations: Prisma.JsonValue | null;
   logoAssetId: string | null;
+  theme: Prisma.JsonValue | null;
 };
 
 export type PublicFormDto = {
@@ -34,6 +35,7 @@ export type PublicFormDto = {
   translations: Prisma.JsonValue | null;
   // Served by GET /api/assets/:id.
   logoAssetId: string | null;
+  theme: Prisma.JsonValue | null;
   questions: Question[];
 };
 

@@ -89,6 +89,9 @@ model Form {
   logoAsset   Asset?      @relation("FormLogo", fields: [logoAssetId], references: [id], onDelete: SetNull)
   logoAssetId String?
 
+  // Appearance of the public page, see FormTheme in shared-types (validated on save).
+  theme       Json?
+
   @@index([userId])
   @@index([logoAssetId])
 }

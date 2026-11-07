@@ -24,6 +24,8 @@ import { calendarIcon } from "../../components/ui/icons";
 import { questionTypeUsesConfig, questionTypeUsesOptions } from "./questionConfig";
 import LanguageBar from "./components/LanguageBar";
 import LogoUploader from "./components/LogoUploader";
+import ThemeEditor from "./components/ThemeEditor";
+import type { FormTheme } from "@quorvia/shared-types";
 import TranslationPanel from "./components/TranslationPanel";
 import {
   getAdditionalLanguages,
@@ -119,6 +121,7 @@ export default function FormBuilder() {
         languages: server.languages ?? [],
         translations: server.translations ?? null,
         logoAssetId: server.logoAssetId ?? null,
+        theme: (server.theme as FormTheme | null | undefined) ?? null,
       });
       versionRef.current = server.version;
       resetDirty();
@@ -151,6 +154,7 @@ export default function FormBuilder() {
         languages: form.languages,
         translations: form.translations,
         logoAssetId: form.logoAssetId,
+        theme: form.theme,
         questions: normalizedQuestions,
         version: versionRef.current,
       });
@@ -319,6 +323,15 @@ export default function FormBuilder() {
                     onChange={(logoAssetId) => updateFormMeta({ logoAssetId })}
                   />
                 </div>
+
+                <details className="mt-4 pt-4 border-t border-slate-100 group/theme">
+                  <summary className="cursor-pointer text-xs font-semibold text-slate-600 select-none">
+                    {t("builder.theme.title")}
+                  </summary>
+                  <div className="mt-4">
+                    <ThemeEditor theme={form.theme} onChange={(theme) => updateFormMeta({ theme })} />
+                  </div>
+                </details>
 
                 <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
                   <div>

@@ -4,6 +4,7 @@ import { AppError } from "../../shared/middleware/errorHandler.js";
 import {
   ErrorCode,
   normalizeFormTranslations,
+  normalizeTheme,
   normalizeQuestionTranslations,
 } from "@quorvia/shared-types";
 import type { UpdateFormInput, UserFormsDto } from "./form.types.js";
@@ -125,6 +126,8 @@ export const getFormByShareId = async (shareId: string) => {
     languages: form.languages,
     translations: form.translations,
     logoAssetId: form.logoAssetId,
+    // Normalized again on read: only known keys and valid values leave the server.
+    theme: normalizeTheme(form.theme),
     questions: form.questions,
   };
 };
@@ -235,6 +238,8 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
         translations: toNullableJson(formTranslations),
         // undefined leaves the logo as is; null removes it.
         logoAssetId: data.logoAssetId,
+        // undefined leaves the theme as is; null removes it.
+        theme: toNullableJson(data.theme === undefined ? undefined : normalizeTheme(data.theme)),
         updatedAt: new Date(),
         version: { increment: 1 },
       },
@@ -338,6 +343,7 @@ export const duplicateForm = async (formId: string, userId: string) => {
         defaultLanguage: form.defaultLanguage,
         languages: form.languages,
         translations: form.translations == null ? undefined : toJson(form.translations),
+        theme: form.theme == null ? undefined : toJson(form.theme),
         userId,
         isPublished: false,
       },

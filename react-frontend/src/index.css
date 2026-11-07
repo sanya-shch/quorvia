@@ -3,6 +3,10 @@
 @theme {
   --color-brand-primary: #4f46e5; /* indigo-600 */
   --color-brand-dark: #0f172a;    /* slate-900 */
+
+  /* Themed on the public form (see pages/viewer/theme/viewerTheme.css); plain defaults elsewhere. */
+  --color-surface: #ffffff;
+  --color-on-primary: #ffffff;
   
   --animate-slide-up: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }

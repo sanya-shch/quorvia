@@ -83,7 +83,7 @@ export default function RankingField({
   };
 
   const buttonClass =
-    "flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer";
+    "flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-surface text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer";
 
   return (
     <div className="space-y-3">
@@ -99,7 +99,7 @@ export default function RankingField({
               aria-hidden="true"
               className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                 answered
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-indigo-600 text-on-primary"
                   : "border border-dashed border-slate-300 text-slate-500"
               }`}
             >

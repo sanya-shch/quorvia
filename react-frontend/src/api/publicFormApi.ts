@@ -1,6 +1,6 @@
 import { type Question } from "../types/formBuilder";
 import type { FormAnswers } from "../types/formViewer";
-import type { FormTranslations, ResponseMode } from "@quorvia/shared-types";
+import type { FormTheme, FormTranslations, ResponseMode } from "@quorvia/shared-types";
 import { publicApi } from "./axios";
 
 export interface PublicFormFields {
@@ -15,6 +15,7 @@ export interface PublicFormFields {
   languages?: string[];
   translations?: FormTranslations | null;
   logoAssetId?: string | null;
+  theme?: FormTheme | null;
 }
 
 export const fetchPublicForm = async (shareId: string): Promise<PublicFormFields> => {

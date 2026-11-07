@@ -172,6 +172,8 @@ describe("getFormByShareId", () => {
       defaultLanguage: "uk",
       languages: [],
       translations: null,
+      logoAssetId: undefined,
+      theme: null,
       questions: [{ id: "q-1" }],
     });
     expect(result).not.toHaveProperty("userId");

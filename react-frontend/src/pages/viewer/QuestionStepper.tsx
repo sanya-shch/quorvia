@@ -204,7 +204,7 @@ export default function QuestionStepper({
           direction={direction}
         >
           {isReview ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5">
+            <div className="bg-surface rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5">
               <div>
                 <h2
                   ref={setHeadingRef}
@@ -259,7 +259,7 @@ export default function QuestionStepper({
                 <button
                   type="button"
                   onClick={handleFinalSubmit}
-                  className="inline-flex h-11 items-center rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-white hover:bg-indigo-500 shadow-sm transition-colors cursor-pointer"
+                  className="inline-flex h-11 items-center rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-on-primary hover:bg-indigo-500 shadow-sm transition-colors cursor-pointer"
                 >
                   {t("viewer.submit")}
                 </button>
@@ -268,7 +268,7 @@ export default function QuestionStepper({
           ) : (
             current && (
               <div
-                className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5"
+                className="bg-surface rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5"
               >
                 <div
                   ref={setHeadingRef}
@@ -336,7 +336,7 @@ export default function QuestionStepper({
                   <button
                     type="button"
                     onClick={handleNext}
-                    className="inline-flex h-11 items-center rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-white hover:bg-indigo-500 shadow-sm transition-colors cursor-pointer"
+                    className="inline-flex h-11 items-center rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-on-primary hover:bg-indigo-500 shadow-sm transition-colors cursor-pointer"
                   >
                     {t("viewer.stepper.next")}
                   </button>

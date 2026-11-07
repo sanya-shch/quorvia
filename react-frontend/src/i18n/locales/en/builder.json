@@ -17,6 +17,49 @@
     "uploading": "Uploading...",
     "remove": "Remove"
   },
+  "theme": {
+    "title": "Appearance",
+    "label": "Form appearance",
+    "hint": "Colors, font and corners of the published form. The application itself is not affected.",
+    "picker": "{{color}}: color picker",
+    "useDefault": "Default",
+    "colorInvalid": "Use a six-digit hex color, for example #4f46e5.",
+    "reset": "Reset to default appearance",
+    "mode": { "label": "Base palette", "light": "Light", "dark": "Dark" },
+    "colors": {
+      "primaryColor": "Primary color",
+      "backgroundColor": "Background",
+      "textColor": "Text"
+    },
+    "font": {
+      "label": "Font",
+      "system": "System",
+      "inter": "Inter",
+      "lora": "Lora (serif)",
+      "jetbrains-mono": "JetBrains Mono"
+    },
+    "radius": {
+      "label": "Corners",
+      "none": "Square",
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large"
+    },
+    "preview": {
+      "label": "Preview of the published form",
+      "title": "How was your day?",
+      "description": "This is how your form will look to respondents.",
+      "selected": "Selected answer",
+      "option": "Another answer",
+      "button": "Next"
+    },
+    "warnings": {
+      "title": "Readability warnings",
+      "textContrast": "The text color is hard to read on this background. Aim for a contrast ratio of at least 4.5:1.",
+      "primaryContrast": "Text on buttons in the primary color is hard to read. Choose a lighter or darker primary color.",
+      "primaryVisibility": "The primary color barely stands out from the background, so buttons and selected answers may be hard to see."
+    }
+  },
   "responseMode": {
     "label": "Response mode",
     "hint": "How respondents will answer the questions",

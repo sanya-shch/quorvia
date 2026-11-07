@@ -1,5 +1,6 @@
 import type {
   ConditionGroup,
+  FormTheme,
   FormTranslations,
   QuestionConfig,
   QuestionOption,
@@ -47,6 +48,8 @@ export interface FormState {
   translations?: FormTranslations | null;
   // Id of the uploaded logo image (see api/assets.ts); null removes it, undefined leaves it as is.
   logoAssetId?: string | null;
+  // Appearance of the public page (see FormTheme in shared-types); null removes it.
+  theme?: FormTheme | null;
 }
 
 // A form from the admin endpoint: FormState plus the version for optimistic locking.

@@ -28,7 +28,7 @@ export default function ViewerLanguageSwitcher({
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+        className="h-8 rounded-lg border border-slate-200 bg-surface px-2 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
       >
         {languages.map((language) => (
           <option key={language} value={language} lang={language}>

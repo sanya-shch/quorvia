@@ -68,8 +68,8 @@ export default function MatrixField({
                   <span
                     className={`flex min-h-10 items-center rounded-xl border px-3 text-sm font-medium transition-colors peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500 peer-focus-visible:ring-offset-2 ${
                       selected
-                        ? "border-indigo-600 bg-indigo-600 text-white shadow-sm"
-                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                        ? "border-indigo-600 bg-indigo-600 text-on-primary shadow-sm"
+                        : "border-slate-200 bg-surface text-slate-600 hover:bg-slate-50"
                     }`}
                   >
                     {column.text}

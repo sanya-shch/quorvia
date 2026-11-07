@@ -143,7 +143,7 @@ export default function FormViewer({
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6">
       <form onSubmit={handleSubmit} noValidate className="max-w-2xl mx-auto space-y-6">
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm border-t-8 border-t-indigo-600">
+        <div className="bg-surface rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm border-t-8 border-t-indigo-600">
           {logoUrl && <FormLogo url={logoUrl} />}
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">{formTitle}</h1>
           {formDescription && <p className="text-sm text-slate-500 mt-2">{formDescription}</p>}
@@ -159,7 +159,7 @@ export default function FormViewer({
             <div
               key={qId}
               id={`card-${qId}`}
-              className={`bg-white rounded-2xl border p-6 shadow-sm space-y-4 transition-all duration-200 ${
+              className={`bg-surface rounded-2xl border p-6 shadow-sm space-y-4 transition-all duration-200 ${
                 hasError
                   ? "border-rose-500 ring-2 ring-rose-100 shadow-rose-100/50"
                   : "border-slate-200 hover:border-slate-300"
@@ -210,7 +210,7 @@ export default function FormViewer({
         <div className="flex justify-end pt-4">
           <button
             type="submit"
-            className="w-full sm:w-auto inline-flex h-11 items-center justify-center rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-white hover:bg-indigo-500 shadow-sm transition-colors focus:outline-none cursor-pointer"
+            className="w-full sm:w-auto inline-flex h-11 items-center justify-center rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-on-primary hover:bg-indigo-500 shadow-sm transition-colors focus:outline-none cursor-pointer"
           >
             {t("viewer.submit")}
           </button>

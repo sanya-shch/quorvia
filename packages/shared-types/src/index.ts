@@ -717,3 +717,63 @@ export type AssetDto = {
   width: number;
   height: number;
 };
+
+// Form appearance (the public page only; the application itself is not themed).
+export const FORM_THEME_MODES = ["light", "dark"] as const;
+export type FormThemeMode = (typeof FORM_THEME_MODES)[number];
+
+// Self-hosted fonts only (no requests to Google Fonts). The font files ship with the frontend.
+export const FORM_FONTS = ["system", "inter", "lora", "jetbrains-mono"] as const;
+export type FormFont = (typeof FORM_FONTS)[number];
+
+export const FORM_RADII = ["none", "small", "medium", "large"] as const;
+export type FormRadius = (typeof FORM_RADII)[number];
+
+// Colors are strict six-digit hex values. Names, rgb(), var() and anything else that could
+// smuggle extra CSS into a style value (`red; background:url(...)`) are not accepted.
+export const THEME_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
+
+export type FormTheme = {
+  // Chooses the default palette; custom colors override it.
+  mode?: FormThemeMode;
+  primaryColor?: string;
+  backgroundColor?: string;
+  textColor?: string;
+  font?: FormFont;
+  radius?: FormRadius;
+};
+
+const oneOf = <T extends string>(allowed: readonly T[], value: unknown): T | undefined =>
+  typeof value === "string" && (allowed as readonly string[]).includes(value) ? (value as T) : undefined;
+
+const colorOrUndefined = (value: unknown): string | undefined =>
+  typeof value === "string" && THEME_COLOR_PATTERN.test(value) ? value.toLowerCase() : undefined;
+
+/**
+ * Reduces whatever is stored or received to a safe theme: known keys only, valid values only,
+ * colors lowercased. Used on save and again right before the theme is applied in the browser,
+ * so even a tampered database row cannot put arbitrary text into a style attribute.
+ * Returns null when nothing is left (no theme).
+ */
+export const normalizeTheme = (raw: unknown): FormTheme | null => {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+
+  const source = raw as Record<string, unknown>;
+  const theme: FormTheme = {};
+
+  const mode = oneOf(FORM_THEME_MODES, source.mode);
+  const font = oneOf(FORM_FONTS, source.font);
+  const radius = oneOf(FORM_RADII, source.radius);
+  const primaryColor = colorOrUndefined(source.primaryColor);
+  const backgroundColor = colorOrUndefined(source.backgroundColor);
+  const textColor = colorOrUndefined(source.textColor);
+
+  if (mode) theme.mode = mode;
+  if (primaryColor) theme.primaryColor = primaryColor;
+  if (backgroundColor) theme.backgroundColor = backgroundColor;
+  if (textColor) theme.textColor = textColor;
+  if (font) theme.font = font;
+  if (radius) theme.radius = radius;
+
+  return Object.keys(theme).length > 0 ? theme : null;
+};

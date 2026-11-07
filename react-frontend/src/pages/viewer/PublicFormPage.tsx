@@ -3,6 +3,7 @@ import { I18nextProvider, useTranslation } from "react-i18next";
 import { localizeForm, localizeQuestion, pickContentLanguage } from "@quorvia/shared-types";
 import i18n, { createIsolatedI18n, isLocaleLoaded, loadLocale } from "../../i18n";
 import { assetUrl } from "../../api/assets";
+import ThemeScope from "./theme/ThemeScope";
 import { type FormAnswers } from "../../types/formViewer";
 import { usePublicFormQuery, useSubmitResponsesMutation } from "./hooks/usePublicForm";
 import FormViewer from "./FormViewer";
@@ -33,7 +34,7 @@ function ThankYou() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm animate-in fade-in zoom-in-95 duration-200">
+      <div className="max-w-md w-full bg-surface rounded-2xl border border-slate-200 p-8 text-center shadow-sm animate-in fade-in zoom-in-95 duration-200">
         <div className="h-12 w-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg
             className="h-6 w-6"
@@ -216,7 +217,7 @@ export default function PublicFormPage() {
   if (error || !formData || !localized) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-white rounded-2xl border border-slate-200 p-6 text-center shadow-sm">
+        <div className="max-w-md w-full bg-surface rounded-2xl border border-slate-200 p-6 text-center shadow-sm">
           <div className="h-12 w-12 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
               className="h-6 w-6"
@@ -285,9 +286,12 @@ export default function PublicFormPage() {
     </>
   );
 
+  // The theme applies to the public page only (a form without one renders unchanged).
+  const themed = <ThemeScope theme={localized.theme}>{content}</ThemeScope>;
+
   return (
     <I18nextProvider i18n={viewerI18n}>
-      {isMultilingual ? <div lang={language}>{content}</div> : content}
+      {isMultilingual ? <div lang={language}>{themed}</div> : themed}
     </I18nextProvider>
   );
 }

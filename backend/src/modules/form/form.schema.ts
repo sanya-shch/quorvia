@@ -2,11 +2,15 @@ import { z } from "zod";
 import {
   CONTENT_LOCALES,
   ErrorCode,
+  FORM_FONTS,
+  FORM_RADII,
+  FORM_THEME_MODES,
   MATRIX_LIMITS,
   MAX_ADDITIONAL_LANGUAGES,
   OTHER_ANSWER_SUFFIX,
   RANKING_LIMITS,
   SCALE_LIMITS,
+  THEME_COLOR_PATTERN,
 } from "@quorvia/shared-types";
 import { compileSafePattern, MAX_PATTERN_LENGTH } from "../../shared/utils/safeRegex.js";
 
@@ -301,6 +305,18 @@ export const questionSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
+// Strict: unknown keys are rejected, not silently stored. Colors must be plain hex values.
+const themeColorSchema = z.string().regex(THEME_COLOR_PATTERN, ErrorCode.VALIDATION_FORMAT_INVALID);
+
+const themeSchema = z.strictObject({
+  mode: z.enum(FORM_THEME_MODES).optional(),
+  primaryColor: themeColorSchema.optional(),
+  backgroundColor: themeColorSchema.optional(),
+  textColor: themeColorSchema.optional(),
+  font: z.enum(FORM_FONTS).optional(),
+  radius: z.enum(FORM_RADII).optional(),
+});
+
 export const updateFormSchema = z.object({
   title: z.string().max(FORM_LIMITS.title),
   description: z.string().max(FORM_LIMITS.description).optional(),
@@ -317,6 +333,8 @@ export const updateFormSchema = z.object({
   // The logo: an asset uploaded to this form (POST /forms/:formId/assets). null removes it,
   // omitted leaves it as is.
   logoAssetId: z.uuid().nullable().optional(),
+  // Appearance of the public page. null removes the theme, omitted leaves it as is.
+  theme: themeSchema.nullable().optional(),
   questions: z.array(questionSchema).max(FORM_LIMITS.questions),
   // Form version the client edited (optimistic lock). If sent and no longer equal to the
   // current one: 409 FORM_VERSION_CONFLICT. Without it the version read at the start of the
