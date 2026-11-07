@@ -23,6 +23,7 @@ import ConditionEditor from "./components/editors/ConditionEditor";
 import { calendarIcon } from "../../components/ui/icons";
 import { questionTypeUsesConfig, questionTypeUsesOptions } from "./questionConfig";
 import LanguageBar from "./components/LanguageBar";
+import LogoUploader from "./components/LogoUploader";
 import TranslationPanel from "./components/TranslationPanel";
 import {
   getAdditionalLanguages,
@@ -117,6 +118,7 @@ export default function FormBuilder() {
         defaultLanguage: server.defaultLanguage,
         languages: server.languages ?? [],
         translations: server.translations ?? null,
+        logoAssetId: server.logoAssetId ?? null,
       });
       versionRef.current = server.version;
       resetDirty();
@@ -148,6 +150,7 @@ export default function FormBuilder() {
         defaultLanguage: form.defaultLanguage,
         languages: form.languages,
         translations: form.translations,
+        logoAssetId: form.logoAssetId,
         questions: normalizedQuestions,
         version: versionRef.current,
       });
@@ -308,6 +311,14 @@ export default function FormBuilder() {
                   className="w-full mt-3 text-sm text-slate-600 border-b border-transparent hover:border-slate-200 focus:border-indigo-500 focus:outline-none pb-1 transition-colors resize-none h-10"
                   placeholder={t("builder.descriptionPlaceholder")}
                 />
+
+                <div className="mt-4 pt-4 border-t border-slate-100">
+                  <LogoUploader
+                    formId={formId!}
+                    assetId={form.logoAssetId}
+                    onChange={(logoAssetId) => updateFormMeta({ logoAssetId })}
+                  />
+                </div>
 
                 <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
                   <div>

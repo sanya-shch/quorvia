@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { prisma } from "../../prisma/prisma.js";
 import { EXPORTS_DIR, resolveExportPath } from "../export/export.paths.js";
+import { defaultStorage, type Storage } from "../asset/asset.storage.js";
 
 /**
  * Periodic cleanup of data that would otherwise grow forever: finished export files (disk)
@@ -161,4 +162,75 @@ export const cleanupStaleAttempts = async ({
   }
 
   return { attempts };
+};
+
+/**
+ * Uploaded images nobody uses, in two directions:
+ * - rows that are not the logo of any form (replaced or removed logos, uploads the author
+ *   never saved), together with their files;
+ * - files without a row (the form was deleted and the best-effort removal failed, or the
+ *   process died between writing the file and the row).
+ *
+ * Only things older than the grace period are touched: a fresh upload may simply not be
+ * attached yet because the author has not saved the form. When another kind of asset starts
+ * to reference images (option images), its relation must be added to the "unused" filter
+ * below.
+ */
+export const cleanupOrphanAssets = async ({
+  graceMs = DAY_MS,
+  now = new Date(),
+  batchSize = DEFAULT_BATCH_SIZE,
+  storage = defaultStorage,
+}: {
+  graceMs?: number;
+  now?: Date;
+  batchSize?: number;
+  storage?: Storage;
+} = {}) => {
+  const threshold = new Date(now.getTime() - graceMs);
+  let rows = 0;
+  let files = 0;
+
+  for (;;) {
+    const batch = await prisma.asset.findMany({
+      where: { createdAt: { lt: threshold }, logoOf: { none: {} } },
+      select: { id: true, storageKey: true },
+      orderBy: { createdAt: "asc" },
+      take: batchSize,
+    });
+
+    if (batch.length === 0) break;
+
+    // The file first, then the row: if deleting the row fails, the next run retries it,
+    // the reverse order would leave the file orphaned.
+    for (const asset of batch) {
+      if (await storage.remove(asset.storageKey)) files++;
+    }
+
+    await prisma.asset.deleteMany({ where: { id: { in: batch.map((a) => a.id) } } });
+    rows += batch.length;
+
+    if (batch.length < batchSize) break;
+  }
+
+  const candidates: string[] = [];
+
+  for await (const object of storage.list()) {
+    if (object.modifiedAt < threshold) candidates.push(object.key);
+  }
+
+  for (let i = 0; i < candidates.length; i += batchSize) {
+    const chunk = candidates.slice(i, i + batchSize);
+    const known = await prisma.asset.findMany({
+      where: { storageKey: { in: chunk } },
+      select: { storageKey: true },
+    });
+    const knownKeys = new Set(known.map((a) => a.storageKey));
+
+    for (const key of chunk) {
+      if (!knownKeys.has(key) && (await storage.remove(key))) files++;
+    }
+  }
+
+  return { rows, files };
 };

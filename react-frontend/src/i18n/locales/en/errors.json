@@ -15,6 +15,13 @@
   "FORM_VERSION_CONFLICT": "The form was changed elsewhere. Load the latest version and reapply your changes",
   "FORM_INVALID_CONDITIONS": "Invalid question display conditions",
 
+  "ASSET_NOT_FOUND": "Image not found",
+  "ASSET_UPLOAD_INVALID": "The upload is invalid. Send one image file",
+  "ASSET_INVALID_TYPE": "Unsupported file type. Use PNG, JPEG or WebP",
+  "ASSET_INVALID_IMAGE": "The file is not a valid image",
+  "ASSET_TOO_LARGE": "The image is too large (512 KB at most)",
+  "ASSET_LIMIT_REACHED": "This form has too many uploaded images",
+
   "EXPORT_JOB_NOT_FOUND": "Export job not found",
   "EXPORT_NOT_READY": "Export isn't ready yet",
   "EXPORT_FILE_MISSING": "Export file is missing on the server",

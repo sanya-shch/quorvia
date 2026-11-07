@@ -5,7 +5,12 @@ const env = validateEnv();
 
 const { createExportWorker } = await import("./modules/export/export.worker.js");
 const { cleanupRefreshTokens } = await import("./modules/auth/auth.service.js");
-const { cleanupExpiredExports, cleanupOrphanExportFiles, cleanupStaleAttempts } = await import(
+const {
+  cleanupExpiredExports,
+  cleanupOrphanAssets,
+  cleanupOrphanExportFiles,
+  cleanupStaleAttempts,
+} = await import(
   "./modules/maintenance/maintenance.service.js"
 );
 const { startMaintenance } = await import("./modules/maintenance/maintenance.scheduler.js");
@@ -37,6 +42,15 @@ const maintenance = startMaintenance([
       return expired.jobs + files > 0
         ? `видалено експортів: ${expired.jobs}, файлів: ${files}`
         : undefined;
+    },
+  },
+  {
+    // Uploaded images that are not a logo of any form, and files without a DB row.
+    name: "asset-cleanup",
+    intervalMs: DAY_MS,
+    run: async () => {
+      const { rows, files } = await cleanupOrphanAssets();
+      return rows + files > 0 ? `removed unused images: ${rows}, files: ${files}` : undefined;
     },
   },
   {

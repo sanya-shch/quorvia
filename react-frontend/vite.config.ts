@@ -40,7 +40,8 @@ const cspPlugin = (env: Record<string, string>): Plugin => ({
       // 'unsafe-inline' for styles: Tailwind/the Vue remote inject <style>.
       `style-src 'self' 'unsafe-inline' ${remote}`,
       `connect-src 'self' ${api} ${remote}`,
-      "img-src 'self' data: blob:",
+      // The API origin serves uploaded images (the form logo).
+      `img-src 'self' data: blob: ${api}`,
       "font-src 'self' data:",
       "object-src 'none'",
       "base-uri 'self'",

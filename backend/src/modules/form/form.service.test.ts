@@ -11,6 +11,7 @@ vi.mock("../../prisma/prisma.js", () => ({
       update: vi.fn(),
     },
     question: { count: vi.fn() },
+    asset: { findMany: vi.fn(), findUnique: vi.fn() },
     $transaction: vi.fn(),
   },
 }));
@@ -96,6 +97,7 @@ describe("deleteForm", () => {
 
   it("видаляє форму, якщо викликає власник", async () => {
     (prisma.form.findUnique as any).mockResolvedValue(mockForm());
+    (prisma.asset.findMany as any).mockResolvedValue([]);
 
     await deleteForm(FORM_ID, OWNER_ID);
 

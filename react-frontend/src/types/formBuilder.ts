@@ -45,6 +45,8 @@ export interface FormState {
   // Additional languages (without the main one).
   languages?: string[];
   translations?: FormTranslations | null;
+  // Id of the uploaded logo image (see api/assets.ts); null removes it, undefined leaves it as is.
+  logoAssetId?: string | null;
 }
 
 // A form from the admin endpoint: FormState plus the version for optimistic locking.

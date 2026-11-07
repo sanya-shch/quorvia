@@ -6,6 +6,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum AssetKind {
+  LOGO
+}
+
 enum QuestionType {
   TEXT
   CHOICE_SINGLE
@@ -80,7 +84,34 @@ model Form {
   // { [language]: { title?, description? } }, see FormTranslations in shared-types.
   translations    Json?
 
+  // Uploaded images of this form (see Asset) and the one currently used as the logo.
+  assets      Asset[]     @relation("FormAssets")
+  logoAsset   Asset?      @relation("FormLogo", fields: [logoAssetId], references: [id], onDelete: SetNull)
+  logoAssetId String?
+
   @@index([userId])
+  @@index([logoAssetId])
+}
+
+// An uploaded, already re-encoded image. The bytes live behind the Storage interface
+// (disk today); storageKey is the only thing the DB knows about their location.
+model Asset {
+  id         String    @id @default(uuid())
+  form       Form      @relation("FormAssets", fields: [formId], references: [id], onDelete: Cascade)
+  formId     String
+  kind       AssetKind
+  mime       String
+  size       Int
+  width      Int
+  height     Int
+  storageKey String    @unique
+  createdAt  DateTime  @default(now())
+
+  // Forms that use this asset as their logo (empty = the asset is an orphan candidate).
+  logoOf Form[] @relation("FormLogo")
+
+  @@index([formId])
+  @@index([createdAt])
 }
 
 model Question {

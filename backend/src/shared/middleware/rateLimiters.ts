@@ -70,8 +70,21 @@ export const createExportLimiter = (limit = 10) =>
     keyGenerator: (req, res) => String((res.locals as { userId?: string }).userId ?? ip(req)),
   });
 
+// POST /api/forms/:formId/assets: decodes and re-encodes an image (CPU work), so it is
+// limited per user like the export.
+export const createUploadLimiter = (limit = 30) =>
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: rateLimited,
+    keyGenerator: (req, res) => String((res.locals as { userId?: string }).userId ?? ip(req)),
+  });
+
 export const apiLimiter = createApiLimiter();
 export const submitResponseLimiter = createSubmitResponseLimiter();
 export const saveAttemptLimiter = createSaveAttemptLimiter();
 export const exportLimiter = createExportLimiter();
+export const uploadLimiter = createUploadLimiter();
 export const refreshLimiter = createRefreshLimiter();

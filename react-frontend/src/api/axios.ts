@@ -6,6 +6,8 @@ const baseURL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 // withCredentials: true is required for the refresh token: it arrives and is sent as an
 // httpOnly cookie (not via JS), and the browser attaches/accepts it only if the request is
 // explicitly marked as a credentials request.
+export const API_BASE_URL = baseURL;
+
 export const api = axios.create({ baseURL, withCredentials: true });
 export const publicApi = axios.create({ baseURL, withCredentials: true });
 

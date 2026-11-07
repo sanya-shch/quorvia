@@ -14,6 +14,7 @@ export interface PublicFormFields {
   defaultLanguage?: string;
   languages?: string[];
   translations?: FormTranslations | null;
+  logoAssetId?: string | null;
 }
 
 export const fetchPublicForm = async (shareId: string): Promise<PublicFormFields> => {

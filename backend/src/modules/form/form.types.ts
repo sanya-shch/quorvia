@@ -20,6 +20,7 @@ export type FormDto = {
   defaultLanguage: string;
   languages: string[];
   translations: Prisma.JsonValue | null;
+  logoAssetId: string | null;
 };
 
 export type PublicFormDto = {
@@ -31,6 +32,8 @@ export type PublicFormDto = {
   defaultLanguage: string;
   languages: string[];
   translations: Prisma.JsonValue | null;
+  // Served by GET /api/assets/:id.
+  logoAssetId: string | null;
   questions: Question[];
 };
 

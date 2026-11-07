@@ -314,6 +314,9 @@ export const updateFormSchema = z.object({
     .refine((list) => new Set(list).size === list.length, ErrorCode.REQUEST_BODY_INVALID)
     .optional(),
   translations: translationsOf(formTranslationSchema).nullable().optional(),
+  // The logo: an asset uploaded to this form (POST /forms/:formId/assets). null removes it,
+  // omitted leaves it as is.
+  logoAssetId: z.uuid().nullable().optional(),
   questions: z.array(questionSchema).max(FORM_LIMITS.questions),
   // Form version the client edited (optimistic lock). If sent and no longer equal to the
   // current one: 409 FORM_VERSION_CONFLICT. Without it the version read at the start of the

@@ -8,6 +8,15 @@
   "saveError": "Failed to save the form.",
   "titlePlaceholder": "Survey title",
   "descriptionPlaceholder": "Add a survey description...",
+  "logo": {
+    "label": "Logo",
+    "hint": "Shown above the title of the published form. PNG, JPEG or WebP, up to 512 KB.",
+    "input": "Choose a logo image",
+    "upload": "Upload logo",
+    "replace": "Replace",
+    "uploading": "Uploading...",
+    "remove": "Remove"
+  },
   "responseMode": {
     "label": "Response mode",
     "hint": "How respondents will answer the questions",

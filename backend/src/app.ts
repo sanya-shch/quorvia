@@ -9,6 +9,7 @@ import responseRoutes from "./modules/response/response.routes.js";
 import attemptRoutes from "./modules/attempt/attempt.routes.js";
 import analyticsRoutes from "./modules/analytics/analytics.routes.js";
 import exportRoutes from "./modules/export/export.routes.js";
+import { formAssetRoutes, publicAssetRoutes } from "./modules/asset/asset.routes.js";
 
 import { errorHandler } from "./shared/middleware/errorHandler.js";
 import { parseTrustProxy } from "./config/env.js";
@@ -47,6 +48,8 @@ app.use("/api/forms", responseRoutes);
 app.use("/api/forms", attemptRoutes);
 app.use("/api/forms", analyticsRoutes);
 app.use("/api/forms", exportRoutes);
+app.use("/api/forms", formAssetRoutes);
+app.use("/api/assets", publicAssetRoutes);
 
 app.use(errorHandler);
 

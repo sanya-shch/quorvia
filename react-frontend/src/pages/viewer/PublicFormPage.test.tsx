@@ -75,6 +75,41 @@ describe("PublicFormPage - responseMode визначає режим проход
     expect(screen.getByRole("button", { name: "Далі →" })).toBeInTheDocument();
   });
 
+  it.each(["ALL_AT_ONCE", "STEP_BY_STEP"] as const)("%s: shows the logo above the title when the form has one", async (responseMode) => {
+    mockedFetchPublicForm.mockResolvedValue({
+      id: "form-1",
+      title: "Тестова форма",
+      responseMode,
+      logoAssetId: "asset-7",
+      questions: [baseQuestion],
+    });
+
+    const { container } = renderPage();
+
+    await screen.findByText("Перше питання");
+
+    const logo = container.querySelector("img");
+    expect(logo).toHaveAttribute("src", expect.stringMatching(/\/assets\/asset-7$/));
+    // Decorative: the title next to it already names the form.
+    expect(logo).toHaveAttribute("alt", "");
+  });
+
+  it("renders no image for a form without a logo", async () => {
+    mockedFetchPublicForm.mockResolvedValue({
+      id: "form-1",
+      title: "Тестова форма",
+      responseMode: "ALL_AT_ONCE",
+      logoAssetId: null,
+      questions: [baseQuestion],
+    });
+
+    const { container } = renderPage();
+
+    await screen.findByText("Перше питання");
+
+    expect(container.querySelector("img")).toBeNull();
+  });
+
   it("немає локального перемикача режиму - респондент більше не обирає сам", async () => {
     mockedFetchPublicForm.mockResolvedValue({
       id: "form-1",

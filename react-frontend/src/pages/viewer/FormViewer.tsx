@@ -14,9 +14,12 @@ import {
   type FieldValidationError,
 } from "./questionValidation";
 import { useAttemptAutosave } from "./hooks/useAttemptAutosave";
+import FormLogo from "./components/FormLogo";
 
 interface FormViewerProps {
   formTitle: string;
+  // Public URL of the form logo, shown above the title.
+  logoUrl?: string;
   formDescription?: string;
   questions: Question[];
   onSubmit: (data: FormAnswers) => void;
@@ -28,6 +31,7 @@ interface FormViewerProps {
 
 export default function FormViewer({
   formTitle,
+  logoUrl,
   formDescription,
   questions,
   onSubmit,
@@ -140,6 +144,7 @@ export default function FormViewer({
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6">
       <form onSubmit={handleSubmit} noValidate className="max-w-2xl mx-auto space-y-6">
         <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm border-t-8 border-t-indigo-600">
+          {logoUrl && <FormLogo url={logoUrl} />}
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">{formTitle}</h1>
           {formDescription && <p className="text-sm text-slate-500 mt-2">{formDescription}</p>}
         </div>

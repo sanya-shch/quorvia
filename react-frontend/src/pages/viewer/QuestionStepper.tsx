@@ -16,9 +16,12 @@ import {
 import { sortByOrder, getNextQuestion } from "./questionFlow";
 import { useAttemptAutosave } from "./hooks/useAttemptAutosave";
 import StepTransition, { type StepDirection } from "./components/StepTransition";
+import FormLogo from "./components/FormLogo";
 
 interface QuestionStepperProps {
   formTitle: string;
+  // Public URL of the form logo, shown above the title.
+  logoUrl?: string;
   formDescription?: string;
   questions: Question[];
   onSubmit: (data: FormAnswers) => void;
@@ -30,6 +33,7 @@ interface QuestionStepperProps {
 
 export default function QuestionStepper({
   formTitle,
+  logoUrl,
   formDescription,
   questions,
   onSubmit,
@@ -174,6 +178,7 @@ export default function QuestionStepper({
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 flex flex-col items-center">
       <div className="w-full max-w-xl space-y-4">
+        {logoUrl && <FormLogo url={logoUrl} />}
         <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
           <span>{formTitle}</span>
           <span>

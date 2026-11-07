@@ -2,6 +2,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import { localizeForm, localizeQuestion, pickContentLanguage } from "@quorvia/shared-types";
 import i18n, { createIsolatedI18n, isLocaleLoaded, loadLocale } from "../../i18n";
+import { assetUrl } from "../../api/assets";
 import { type FormAnswers } from "../../types/formViewer";
 import { usePublicFormQuery, useSubmitResponsesMutation } from "./hooks/usePublicForm";
 import FormViewer from "./FormViewer";
@@ -199,6 +200,8 @@ export default function PublicFormPage() {
       );
   };
 
+  const logoUrl = localized?.logoAssetId ? assetUrl(localized.logoAssetId) : undefined;
+
   if (isLoading || !uiLocaleReady) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -256,6 +259,7 @@ export default function PublicFormPage() {
         {localized.responseMode === "STEP_BY_STEP" ? (
           <QuestionStepper
             formTitle={localized.title}
+            logoUrl={logoUrl}
             formDescription={localized.description}
             questions={localized.questions}
             serverErrors={formServerErrors}
@@ -267,6 +271,7 @@ export default function PublicFormPage() {
         ) : (
           <FormViewer
             formTitle={localized.title}
+            logoUrl={logoUrl}
             formDescription={localized.description}
             questions={localized.questions}
             serverErrors={formServerErrors}

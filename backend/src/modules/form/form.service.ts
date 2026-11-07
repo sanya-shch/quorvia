@@ -7,6 +7,7 @@ import {
   normalizeQuestionTranslations,
 } from "@quorvia/shared-types";
 import type { UpdateFormInput, UserFormsDto } from "./form.types.js";
+import { assertFormAsset, removeStoredFiles } from "../asset/asset.service.js";
 
 type IncomingQuestion = UpdateFormInput["questions"][number];
 type ResolvedQuestion = IncomingQuestion & { id: string };
@@ -63,9 +64,16 @@ export const deleteForm = async (formId: string, userId: string) => {
     throw new AppError(ErrorCode.FORM_FORBIDDEN, 403);
   }
 
+  // The rows disappear with the form (cascade), the files do not: collect their keys first
+  // and remove the files afterwards. A failure there is not an error, the orphan sweep in
+  // maintenance finds leftovers.
+  const assets = await prisma.asset.findMany({ where: { formId }, select: { storageKey: true } });
+
   await prisma.form.delete({
     where: { id: formId },
   });
+
+  await removeStoredFiles(assets.map((asset) => asset.storageKey));
 };
 
 export const getUserForm = async (formId: string, userId: string) => {
@@ -116,6 +124,7 @@ export const getFormByShareId = async (shareId: string) => {
     defaultLanguage: form.defaultLanguage,
     languages: form.languages,
     translations: form.translations,
+    logoAssetId: form.logoAssetId,
     questions: form.questions,
   };
 };
@@ -128,6 +137,10 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
 
   if (!form) throw new AppError(ErrorCode.FORM_NOT_FOUND, 404);
   if (form.userId !== userId) throw new AppError(ErrorCode.FORM_FORBIDDEN, 403);
+
+  if (data.logoAssetId) {
+    await assertFormAsset(data.logoAssetId, formId, "LOGO");
+  }
 
   const existingQuestions = form.questions;
   const incomingQuestions = data.questions;
@@ -220,6 +233,8 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
         defaultLanguage: data.defaultLanguage,
         languages: data.languages,
         translations: toNullableJson(formTranslations),
+        // undefined leaves the logo as is; null removes it.
+        logoAssetId: data.logoAssetId,
         updatedAt: new Date(),
         version: { increment: 1 },
       },

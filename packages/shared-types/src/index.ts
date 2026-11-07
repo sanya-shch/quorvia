@@ -24,6 +24,13 @@ export const ErrorCode = {
   FORM_QUESTION_ID_CONFLICT: "FORM_QUESTION_ID_CONFLICT",
   FORM_VERSION_CONFLICT: "FORM_VERSION_CONFLICT",
 
+  ASSET_NOT_FOUND: "ASSET_NOT_FOUND",
+  ASSET_UPLOAD_INVALID: "ASSET_UPLOAD_INVALID",
+  ASSET_INVALID_TYPE: "ASSET_INVALID_TYPE",
+  ASSET_INVALID_IMAGE: "ASSET_INVALID_IMAGE",
+  ASSET_TOO_LARGE: "ASSET_TOO_LARGE",
+  ASSET_LIMIT_REACHED: "ASSET_LIMIT_REACHED",
+
   EXPORT_JOB_NOT_FOUND: "EXPORT_JOB_NOT_FOUND",
   EXPORT_NOT_READY: "EXPORT_NOT_READY",
   EXPORT_FILE_MISSING: "EXPORT_FILE_MISSING",
@@ -681,4 +688,32 @@ export const normalizeQuestionTranslations = (
   }
 
   return Object.keys(result).length > 0 ? result : null;
+};
+
+// Uploaded images (the form logo today; option images later).
+export const ASSET_KINDS = ["LOGO"] as const;
+export type AssetKind = (typeof ASSET_KINDS)[number];
+
+export const ASSET_LIMITS = {
+  // Size of the uploaded file; the re-encoded result is checked against the same limit.
+  maxBytes: 512 * 1024,
+  // Decoder safety net against decompression bombs (a tiny PNG that expands to gigabytes).
+  maxInputPixels: 16_000_000,
+  // Larger images are scaled down (a logo does not need more).
+  maxDimension: 1024,
+  // Uploaded and not yet deleted images per form.
+  maxPerForm: 20,
+  // SVG is deliberately absent: it can carry scripts.
+  allowedMimeTypes: ["image/png", "image/jpeg", "image/webp"],
+} as const;
+
+export type AssetMimeType = (typeof ASSET_LIMITS.allowedMimeTypes)[number];
+
+export type AssetDto = {
+  id: string;
+  kind: AssetKind;
+  mime: AssetMimeType;
+  size: number;
+  width: number;
+  height: number;
 };
