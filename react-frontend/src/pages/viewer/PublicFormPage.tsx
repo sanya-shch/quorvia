@@ -4,6 +4,7 @@ import { localizeForm, localizeQuestion, pickContentLanguage } from "@quorvia/sh
 import i18n, { createIsolatedI18n, isLocaleLoaded, loadLocale } from "../../i18n";
 import { assetUrl } from "../../api/assets";
 import ThemeScope from "./theme/ThemeScope";
+import UploadedFilesProvider from "./UploadedFilesProvider";
 import { type FormAnswers } from "../../types/formViewer";
 import { usePublicFormQuery, useSubmitResponsesMutation } from "./hooks/usePublicForm";
 import FormViewer from "./FormViewer";
@@ -287,7 +288,11 @@ export default function PublicFormPage() {
   );
 
   // The theme applies to the public page only (a form without one renders unchanged).
-  const themed = <ThemeScope theme={localized.theme}>{content}</ThemeScope>;
+  const themed = (
+    <ThemeScope theme={localized.theme}>
+      <UploadedFilesProvider>{content}</UploadedFilesProvider>
+    </ThemeScope>
+  );
 
   return (
     <I18nextProvider i18n={viewerI18n}>

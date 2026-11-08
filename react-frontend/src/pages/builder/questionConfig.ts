@@ -34,6 +34,8 @@ export const createDefaultQuestionConfig = (
       return null;
     case "MATRIX":
       return { rows: [{ id: `row-${Date.now()}-0`, text: rowLabel(1) }] };
+    case "FILE":
+      return { maxFiles: 1 };
     default:
       return assertNever(type, "question type");
   }
@@ -55,6 +57,7 @@ export const questionTypeUsesOptions = (type: QuestionType): boolean => {
     case "RATING":
     case "SCALE":
     case "NPS":
+    case "FILE":
       return false;
     default:
       return assertNever(type, "question type");
@@ -104,6 +107,7 @@ export const questionTypeSupportsConditions = (type: QuestionType): boolean => {
       return true;
     case "RANKING":
     case "MATRIX":
+    case "FILE":
       return false;
     default:
       return assertNever(type, "question type");
@@ -122,6 +126,7 @@ export const questionTypeUsesConfig = (type: QuestionType): boolean => {
     case "RATING":
     case "SCALE":
     case "MATRIX": // config.rows
+    case "FILE": // config.maxFiles
       return true;
     case "DATE":
     case "NPS":

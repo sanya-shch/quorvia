@@ -38,6 +38,10 @@ export const formatAnswer = (
   switch (question.type) {
     case "BOOLEAN":
       return value ? "Так" : "Ні";
+    case "FILE":
+      // The export worker has replaced the file ids with the file names (never the contents).
+      return Array.isArray(value) ? value.join("; ") : String(value);
+
     case "CHOICE_SINGLE":
     case "IMAGE_CHOICE":
     case "CHOICE_MULTI": {

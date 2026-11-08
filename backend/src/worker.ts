@@ -8,6 +8,7 @@ const { cleanupRefreshTokens } = await import("./modules/auth/auth.service.js");
 const {
   cleanupExpiredExports,
   cleanupOrphanAssets,
+  cleanupOrphanResponseFiles,
   cleanupOrphanExportFiles,
   cleanupStaleAttempts,
 } = await import(
@@ -51,6 +52,15 @@ const maintenance = startMaintenance([
     run: async () => {
       const { rows, files } = await cleanupOrphanAssets();
       return rows + files > 0 ? `removed unused images: ${rows}, files: ${files}` : undefined;
+    },
+  },
+  {
+    // Files respondents uploaded but never submitted, and files without a DB row.
+    name: "response-file-cleanup",
+    intervalMs: DAY_MS,
+    run: async () => {
+      const { rows, files } = await cleanupOrphanResponseFiles();
+      return rows + files > 0 ? `removed unattached uploads: ${rows}, files: ${files}` : undefined;
     },
   },
   {

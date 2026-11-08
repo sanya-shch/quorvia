@@ -15,3 +15,6 @@ plans.txt
 /backend/coverage
 /react-frontend/coverage
 /vue-analytics/coverage
+
+# Runtime data: exports, owner images and files uploaded by respondents. Never commit these.
+/backend/uploads

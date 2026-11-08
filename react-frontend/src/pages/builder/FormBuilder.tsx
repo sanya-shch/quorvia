@@ -16,6 +16,7 @@ import TextConfigEditor from "./components/editors/TextConfigEditor";
 import MatrixConfigEditor from "./components/editors/MatrixConfigEditor";
 import NumberConfigEditor from "./components/editors/NumberConfigEditor";
 import RatingConfigEditor from "./components/editors/RatingConfigEditor";
+import FileConfigEditor from "./components/editors/FileConfigEditor";
 import ScaleConfigEditor from "./components/editors/ScaleConfigEditor";
 import OptionsConfigEditor from "./components/editors/OptionsConfigEditor";
 import BooleanConfigEditor from "./components/editors/BooleanConfigEditor";
@@ -547,6 +548,15 @@ export default function FormBuilder() {
                                     }
                                     onChangeColumns={(options) =>
                                       updateQuestion(index, { options })
+                                    }
+                                  />
+                                )}
+
+                                {question.type === "FILE" && (
+                                  <FileConfigEditor
+                                    config={question.config}
+                                    onChange={(newConfig) =>
+                                      updateQuestion(index, { config: newConfig })
                                     }
                                   />
                                 )}

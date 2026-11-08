@@ -45,7 +45,12 @@ export type ProcessedImage = {
  * - oversized images are scaled down, animation is flattened to the first frame;
  * - the pixel count is capped so a small file cannot expand into gigabytes of memory.
  */
-export const processImage = async (input: Buffer): Promise<ProcessedImage> => {
+export type ProcessImageOptions = { maxBytes?: number; maxDimension?: number };
+
+export const processImage = async (
+  input: Buffer,
+  { maxBytes = ASSET_LIMITS.maxBytes, maxDimension = ASSET_LIMITS.maxDimension }: ProcessImageOptions = {},
+): Promise<ProcessedImage> => {
   const mime = sniffImageType(input);
 
   if (!mime) throw new AppError(ErrorCode.ASSET_INVALID_TYPE, 415);
@@ -54,8 +59,8 @@ export const processImage = async (input: Buffer): Promise<ProcessedImage> => {
     const resized = sharp(input, { limitInputPixels: ASSET_LIMITS.maxInputPixels, failOn: "error" })
       .rotate()
       .resize({
-        width: ASSET_LIMITS.maxDimension,
-        height: ASSET_LIMITS.maxDimension,
+        width: maxDimension,
+        height: maxDimension,
         fit: "inside",
         withoutEnlargement: true,
       });
@@ -69,7 +74,7 @@ export const processImage = async (input: Buffer): Promise<ProcessedImage> => {
 
     const { data, info } = await encoded.toBuffer({ resolveWithObject: true });
 
-    if (data.length > ASSET_LIMITS.maxBytes) throw new AppError(ErrorCode.ASSET_TOO_LARGE, 413);
+    if (data.length > maxBytes) throw new AppError(ErrorCode.ASSET_TOO_LARGE, 413);
 
     return { data, mime, width: info.width, height: info.height };
   } catch (err) {

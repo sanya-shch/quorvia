@@ -24,6 +24,7 @@ vi.mock("../../prisma/prisma.js", () => ({
     responseAttempt: {
       findMany: vi.fn(),
     },
+    responseFile: { findMany: vi.fn().mockResolvedValue([]) },
   },
 }));
 

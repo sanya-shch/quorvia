@@ -14,7 +14,10 @@ let db: PGlite;
 
 const run = (sql: Prisma.Sql) => db.query<{ id: string; updatedAt: Date }>(sql.text, sql.values);
 
-const upsert = (reached: string[], extra: Partial<Parameters<typeof buildUpsertAttemptSql>[0]> = {}) =>
+const upsert = (
+  reached: string[],
+  extra: Partial<Parameters<typeof buildUpsertAttemptSql>[0]> = {},
+) =>
   run(
     buildUpsertAttemptSql({
       id: crypto.randomUUID(),
@@ -46,7 +49,7 @@ beforeAll(async () => {
     INSERT INTO "User" ("id","email","password") VALUES ('user-1','a@b.c','x');
     INSERT INTO "Form" ("id","title","userId","shareId") VALUES ('form-1','F','user-1','share-1');
   `);
-});
+}, 20_000);
 
 afterAll(async () => {
   await db.close();

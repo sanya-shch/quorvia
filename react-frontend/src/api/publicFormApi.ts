@@ -1,6 +1,6 @@
 import { type Question } from "../types/formBuilder";
 import type { FormAnswers } from "../types/formViewer";
-import type { FormTheme, FormTranslations, ResponseMode } from "@quorvia/shared-types";
+import type { FormTheme, FormTranslations, ResponseMode, UploadedFileDto } from "@quorvia/shared-types";
 import { publicApi } from "./axios";
 
 export interface PublicFormFields {
@@ -21,6 +21,29 @@ export interface PublicFormFields {
 export const fetchPublicForm = async (shareId: string): Promise<PublicFormFields> => {
   const response = await publicApi.get(`/forms/public/${shareId}`);
   return response.data;
+};
+
+// Uploads one file for a FILE question; the answer to the question is the ids of such files.
+export const uploadResponseFile = async (
+  shareId: string,
+  { sessionKey, questionId, file }: { sessionKey: string; questionId: string; file: File },
+): Promise<UploadedFileDto> => {
+  const body = new FormData();
+  body.append("sessionKey", sessionKey);
+  body.append("questionId", questionId);
+  body.append("file", file);
+
+  const response = await publicApi.post<UploadedFileDto>(`/forms/${shareId}/files`, body);
+  return response.data;
+};
+
+// Removes a file that was uploaded in this session and not submitted yet.
+export const deleteResponseFile = async (
+  shareId: string,
+  sessionKey: string,
+  fileId: string,
+): Promise<void> => {
+  await publicApi.delete(`/forms/${shareId}/files/${fileId}`, { params: { sessionKey } });
 };
 
 export const submitFormResponses = async (

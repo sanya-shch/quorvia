@@ -6,6 +6,7 @@ import { type FormAnswers } from "../../types/formViewer";
 import { ErrorInfo } from "../../components/ui/ErrorInfo";
 import QuestionField from "./components/QuestionField";
 import { formatReviewAnswer } from "./reviewAnswer";
+import { useUploadedFiles } from "./uploadedFilesContext";
 import {
   getDefaultAnswer,
   validateField,
@@ -98,6 +99,7 @@ export default function QuestionStepper({
   );
 
   useAttemptAutosave(shareId, sessionKey, answers, reachedQuestionIds);
+  const uploadedFiles = useUploadedFiles();
   const combinedErrors = { ...serverErrors, ...localErrors };
 
   const handleAnswerChange = (questionId: string, value: FormAnswers[string]) => {
@@ -233,6 +235,7 @@ export default function QuestionStepper({
                           yes: t("viewer.stepper.booleanYes"),
                           no: t("viewer.stepper.booleanNo"),
                           empty: t("viewer.stepper.noAnswer"),
+                          fileName: (id) => uploadedFiles.get(id)?.name,
                         },
                       )}
                     </span>
@@ -311,6 +314,8 @@ export default function QuestionStepper({
                       : undefined
                   }
                   invalid={!!combinedErrors[current.id || `q-${currentIndex}`]}
+                  shareId={shareId}
+                  sessionKey={sessionKey}
                 />
 
                 {combinedErrors[current.id || `q-${currentIndex}`] && (

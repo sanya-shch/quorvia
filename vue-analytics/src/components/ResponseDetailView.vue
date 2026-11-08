@@ -1,14 +1,51 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import type { ResponseDetailsDto } from "@quorvia/shared-types";
+import type { ResponseDetailsDto, UploadedFileDto } from "@quorvia/shared-types";
+import { apiDownload } from "../api/client";
 
-defineProps<{
+const props = defineProps<{
   data: ResponseDetailsDto | null;
   isLoading: boolean;
   error: string | null;
+  apiBaseUrl: string;
 }>();
 
 const { t, locale } = useI18n();
+
+// Files are private: the browser cannot just follow a link, the request needs the bearer token.
+// So the file is fetched through the API client and handed to the browser as a download.
+const downloadingId = ref<string | null>(null);
+const downloadError = ref(false);
+
+const downloadFile = async (file: UploadedFileDto) => {
+  if (!props.data) return;
+
+  downloadingId.value = file.id;
+  downloadError.value = false;
+
+  try {
+    const { blob } = await apiDownload(
+      props.apiBaseUrl,
+      `/forms/${props.data.formId}/responses/${props.data.id}/files/${file.id}`,
+    );
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch {
+    downloadError.value = true;
+  } finally {
+    downloadingId.value = null;
+  }
+};
+
+const formatSize = (bytes: number): string =>
+  bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
 const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
 </script>
@@ -39,7 +76,24 @@ const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
         <span v-if="ans.questionDescription" class="answer-description">{{ ans.questionDescription }}</span>
 
         <div class="answer-value">
-          <div v-if="Array.isArray(ans.displayValue)" class="chips">
+          <ul v-if="ans.questionType === 'FILE'" class="files">
+            <li v-for="file in ans.files ?? []" :key="file.id" class="file-row">
+              <span class="file-name">{{ file.name }}</span>
+              <span class="file-size">{{ formatSize(file.size) }}</span>
+              <button
+                type="button"
+                class="file-download"
+                :disabled="downloadingId === file.id"
+                :aria-label="t('analytics.responseDetail.downloadFile', { name: file.name })"
+                @click="downloadFile(file)"
+              >
+                {{ downloadingId === file.id ? t("analytics.responseDetail.downloading") : t("analytics.responseDetail.download") }}
+              </button>
+            </li>
+            <li v-if="!ans.files || ans.files.length === 0" class="file-empty">{{ t("analytics.responseDetail.noFiles") }}</li>
+            <li v-if="downloadError" class="file-error" role="alert">{{ t("analytics.responseDetail.downloadFailed") }}</li>
+          </ul>
+          <div v-else-if="Array.isArray(ans.displayValue)" class="chips">
             <span v-for="(text, idx) in ans.displayValue" :key="idx" class="chip">{{ text }}</span>
           </div>
           <span
@@ -70,6 +124,59 @@ const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
 }
 .state-card--error {
   color: #e11d48;
+}
+.files {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 13px;
+}
+.file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #0f172a;
+  font-weight: 600;
+}
+.file-size {
+  color: #64748b;
+  font-size: 12px;
+}
+.file-download {
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
+  color: #3730a3;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.file-download:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.file-empty {
+  color: #64748b;
+  font-size: 12px;
+}
+.file-error {
+  color: #be123c;
+  font-size: 12px;
+  font-weight: 600;
 }
 .detail {
   background: white;

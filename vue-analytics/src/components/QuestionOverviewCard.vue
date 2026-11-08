@@ -50,7 +50,14 @@ const maxDistributionCount = computed(
 </script>
 
 <template>
-  <button type="button" class="card" @click="$emit('open-detail', question.id)">
+  <!-- FILE questions have no detail view: the card only reports how many files came in. -->
+  <button
+    type="button"
+    class="card"
+    :class="{ 'card--static': question.type === 'FILE' }"
+    :disabled="question.type === 'FILE'"
+    @click="$emit('open-detail', question.id)"
+  >
     <div class="card-header">
       <span class="card-title">{{ question.text || t("analytics.common.untitledQuestion") }}</span>
       <span class="card-type">{{ question.type }}</span>
@@ -131,6 +138,10 @@ const maxDistributionCount = computed(
         </div>
       </template>
 
+      <template v-else-if="question.type === 'FILE'">
+        <p class="file-count">{{ t("analytics.questionCard.filesUploaded", { count: question.fileCount ?? 0 }) }}</p>
+      </template>
+
       <template v-else-if="question.type === 'BOOLEAN'">
         <div class="bool-bar">
           <div
@@ -186,6 +197,16 @@ const maxDistributionCount = computed(
 }
 .card:hover {
   border-color: #cbd5e1;
+}
+.card--static,
+.card--static:hover {
+  cursor: default;
+  border-color: #e2e8f0;
+}
+.file-count {
+  margin: 0;
+  font-size: 13px;
+  color: #475569;
 }
 .card-header {
   display: flex;

@@ -18,6 +18,40 @@ export const EXPORT_ERROR_TOO_LARGE = "EXPORT_TOO_LARGE";
 
 class ExportTooLargeError extends UnrecoverableError {}
 
+// FILE answers hold file ids; exports show the file names instead (the files themselves never leave
+// the application through an export).
+const withFileNames = async <R extends { answers: unknown }>(
+  formId: string,
+  questions: { id: string; type: string }[],
+  responses: R[],
+): Promise<R[]> => {
+  const fileQuestionIds = questions.filter((q) => q.type === "FILE").map((q) => q.id);
+
+  if (fileQuestionIds.length === 0) return responses;
+
+  const files = await prisma.responseFile.findMany({
+    where: { formId, responseId: { not: null } },
+    select: { id: true, originalName: true },
+  });
+  const names = new Map(files.map((file) => [file.id, file.originalName]));
+
+  return responses.map((response) => {
+    const answers = { ...(response.answers as Record<string, unknown>) };
+
+    for (const id of fileQuestionIds) {
+      if (Array.isArray(answers[id])) {
+        answers[id] = (answers[id] as string[]).flatMap((fileId) => {
+          const name = names.get(fileId);
+
+          return name ? [name] : [];
+        });
+      }
+    }
+
+    return { ...response, answers };
+  });
+};
+
 export const processExportJob = async (job: Job<ExportQueueJobData>) => {
   const { exportJobId } = job.data;
 
@@ -55,7 +89,7 @@ export const processExportJob = async (job: Job<ExportQueueJobData>) => {
         description: form.description,
       },
       questions: form.questions,
-      responses: form.responses,
+      responses: await withFileNames(form.id, form.questions, form.responses),
     });
 
     await fs.mkdir(EXPORTS_DIR, { recursive: true });

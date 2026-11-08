@@ -12,6 +12,7 @@ vi.mock("../../prisma/prisma.js", () => ({
     },
     question: { count: vi.fn() },
     asset: { findMany: vi.fn(), findUnique: vi.fn() },
+    responseFile: { findMany: vi.fn().mockResolvedValue([]) },
     $transaction: vi.fn(),
   },
 }));

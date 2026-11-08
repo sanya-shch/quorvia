@@ -3,6 +3,7 @@ import path from "node:path";
 import { prisma } from "../../prisma/prisma.js";
 import { EXPORTS_DIR, resolveExportPath } from "../export/export.paths.js";
 import { defaultStorage, type Storage } from "../asset/asset.storage.js";
+import { defaultFileStorage } from "../file/file.storage.js";
 
 /**
  * Periodic cleanup of data that would otherwise grow forever: finished export files (disk)
@@ -164,6 +165,34 @@ export const cleanupStaleAttempts = async ({
   return { attempts };
 };
 
+// Removes objects older than the threshold that the database knows nothing about, in batches.
+// `findKnown` returns which of the given keys have a row. Returns how many objects were removed.
+const sweepUnknownObjects = async (
+  storage: Storage,
+  threshold: Date,
+  batchSize: number,
+  findKnown: (keys: string[]) => Promise<Set<string>>,
+): Promise<number> => {
+  const candidates: string[] = [];
+
+  for await (const object of storage.list()) {
+    if (object.modifiedAt < threshold) candidates.push(object.key);
+  }
+
+  let removed = 0;
+
+  for (let i = 0; i < candidates.length; i += batchSize) {
+    const chunk = candidates.slice(i, i + batchSize);
+    const known = await findKnown(chunk);
+
+    for (const key of chunk) {
+      if (!known.has(key) && (await storage.remove(key))) removed++;
+    }
+  }
+
+  return removed;
+};
+
 // Ids among the given option-image assets that some IMAGE_CHOICE question still points at. The
 // pictures live inside the options JSON of questions, so there is no relation to query.
 const referencedOptionImages = async (
@@ -254,24 +283,70 @@ export const cleanupOrphanAssets = async ({
     if (batch.length < batchSize) break;
   }
 
-  const candidates: string[] = [];
-
-  for await (const object of storage.list()) {
-    if (object.modifiedAt < threshold) candidates.push(object.key);
-  }
-
-  for (let i = 0; i < candidates.length; i += batchSize) {
-    const chunk = candidates.slice(i, i + batchSize);
+  files += await sweepUnknownObjects(storage, threshold, batchSize, async (keys) => {
     const known = await prisma.asset.findMany({
-      where: { storageKey: { in: chunk } },
+      where: { storageKey: { in: keys } },
       select: { storageKey: true },
     });
-    const knownKeys = new Set(known.map((a) => a.storageKey));
 
-    for (const key of chunk) {
-      if (!knownKeys.has(key) && (await storage.remove(key))) files++;
+    return new Set(known.map((asset) => asset.storageKey));
+  });
+
+  return { rows, files };
+};
+
+/**
+ * Respondent uploads nobody will ever read: files that were uploaded but never attached to a
+ * submitted response (the respondent left, removed the question, or the question was hidden by a
+ * later answer), and files without a row. A longer grace than for images: a respondent may spend
+ * a long time on a form between uploading and submitting.
+ */
+export const cleanupOrphanResponseFiles = async ({
+  graceMs = 2 * DAY_MS,
+  now = new Date(),
+  batchSize = DEFAULT_BATCH_SIZE,
+  storage = defaultFileStorage,
+}: {
+  graceMs?: number;
+  now?: Date;
+  batchSize?: number;
+  storage?: Storage;
+} = {}) => {
+  const threshold = new Date(now.getTime() - graceMs);
+  let rows = 0;
+  let files = 0;
+
+  for (;;) {
+    const batch = await prisma.responseFile.findMany({
+      where: { responseId: null, createdAt: { lt: threshold } },
+      select: { id: true, storageKey: true },
+      orderBy: { createdAt: "asc" },
+      take: batchSize,
+    });
+
+    if (batch.length === 0) break;
+
+    for (const file of batch) {
+      if (await storage.remove(file.storageKey)) files++;
     }
+
+    // responseId: null again: a file attached in the meantime must survive.
+    const { count } = await prisma.responseFile.deleteMany({
+      where: { id: { in: batch.map((file) => file.id) }, responseId: null },
+    });
+    rows += count;
+
+    if (batch.length < batchSize) break;
   }
+
+  files += await sweepUnknownObjects(storage, threshold, batchSize, async (keys) => {
+    const known = await prisma.responseFile.findMany({
+      where: { storageKey: { in: keys } },
+      select: { storageKey: true },
+    });
+
+    return new Set(known.map((file) => file.storageKey));
+  });
 
   return { rows, files };
 };

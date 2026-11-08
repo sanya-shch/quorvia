@@ -122,6 +122,7 @@
     "TEXT": "Text field",
     "NUMBER": "Number field",
     "CHOICE_SINGLE": "Single choice",
+    "FILE": "File upload",
     "IMAGE_CHOICE": "Image choice",
     "CHOICE_MULTI": "Multiple choice",
     "BOOLEAN": "Yes / No",
@@ -203,6 +204,7 @@
         "lt": "is less than"
       }
     },
+    "file": {"maxFiles": "Maximum number of files", "hint": "Respondents can attach PDF, PNG, JPEG, WebP or plain text files, up to {{size}} MB each."},
     "rating": {
       "max": "Number of stars"
     },

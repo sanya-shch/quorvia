@@ -6,6 +6,7 @@ import {
   choiceMultiIcon,
   choiceSingleIcon,
   imageChoiceIcon,
+  fileIcon,
   npsIcon,
   matrixIcon,
   numberIcon,
@@ -115,6 +116,11 @@ export default function QuestionCard({
             {question.type === "CHOICE_MULTI" && (
               <>
                 {choiceMultiIcon} {t(QUESTION_TYPE_LABEL_KEYS.CHOICE_MULTI)}
+              </>
+            )}
+            {question.type === "FILE" && (
+              <>
+                {fileIcon} {t(QUESTION_TYPE_LABEL_KEYS.FILE)}
               </>
             )}
             {question.type === "IMAGE_CHOICE" && (

@@ -125,7 +125,8 @@ export const getDefaultAnswer = (q: Question): AnswerValue => {
     case "NPS":
     case "RANKING":
     case "MATRIX":
-      // Ranking and matrix have no answer until the respondent interacts.
+    case "FILE":
+      // Ranking, matrix and files have no answer until the respondent interacts.
       return "";
     default:
       return assertNever(q.type, "question type");

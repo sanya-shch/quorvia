@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   CONTENT_LOCALES,
   ErrorCode,
+  FILE_LIMITS,
   FORM_FONTS,
   FORM_RADII,
   FORM_THEME_MODES,
@@ -154,6 +155,12 @@ const imageChoiceOptionsSchema = z
     ErrorCode.REQUEST_BODY_INVALID,
   );
 
+// FILE: how many files may be attached. No options.
+const fileConfigSchema = z
+  .object({ maxFiles: z.number().int().min(1).max(FILE_LIMITS.maxFilesPerQuestion) })
+  .nullable()
+  .optional();
+
 // RANKING: 2 to 20 options; ids are unique because the answer is a permutation of ids (a
 // duplicate would make a valid answer impossible). "Other"/isDefault make no sense for
 // ranking: isOther is dropped by the schema (omit).
@@ -226,6 +233,12 @@ export const questionSchema = z.discriminatedUnion("type", [
     ...base,
     type: z.literal("IMAGE_CHOICE"),
     options: imageChoiceOptionsSchema,
+  }),
+
+  z.object({
+    ...base,
+    type: z.literal("FILE"),
+    config: fileConfigSchema,
   }),
 
   z.object({

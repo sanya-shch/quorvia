@@ -196,6 +196,8 @@ export default function FormViewer({
                 labelledBy={labelId}
                 describedBy={hasError ? errorId : undefined}
                 invalid={hasError}
+                shareId={shareId}
+                sessionKey={sessionKey}
               />
 
               {hasError && (

@@ -62,7 +62,8 @@
     "questionCard": {
       "hiddenByCondition": "hidden by condition: {count}",
       "shownButSkipped": "shown but skipped: {count}",
-      "noData": "No responses yet"
+      "noData": "No responses yet",
+      "filesUploaded": "{count} files uploaded"
     },
     "detailPanel": {
       "close": "Close details panel",
@@ -82,7 +83,12 @@
       "placeholder": "Select a response from the list on the left to view its details",
       "title": "Response details",
       "submittedAt": "Submitted: {date}",
-      "language": "Form language: {language}"
+      "language": "Form language: {language}",
+      "download": "Download",
+      "downloading": "Downloading...",
+      "downloadFile": "Download {name}",
+      "noFiles": "No files",
+      "downloadFailed": "The file could not be downloaded. Try again."
     },
     "export": {
       "trigger": "Export",

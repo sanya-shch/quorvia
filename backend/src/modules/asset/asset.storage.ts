@@ -25,7 +25,10 @@ export const extensionFor = (mime: keyof typeof EXTENSIONS): string => EXTENSION
 export const newStorageKey = (mime: keyof typeof EXTENSIONS): string =>
   `${randomUUID()}.${extensionFor(mime)}`;
 
-const KEY_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(png|jpg|webp)$/;
+const KEY_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(png|jpg|webp|bin)$/;
+
+// Respondent files are stored under a random name without any extension from the upload.
+export const newBinaryStorageKey = (): string => `${randomUUID()}.bin`;
 
 export const isStorageKey = (key: string): boolean => KEY_PATTERN.test(key);
 

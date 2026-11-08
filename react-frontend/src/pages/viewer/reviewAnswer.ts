@@ -8,6 +8,8 @@ interface ReviewLabels {
   no: string;
   // Shown when the question was not answered.
   empty: string;
+  // FILE answers hold file ids; this turns an id into the name the respondent saw.
+  fileName?: (id: string) => string | undefined;
 }
 
 // The answer as text for the "Review your answers" screen (step-by-step mode). It used to be
@@ -60,6 +62,14 @@ export const formatReviewAnswer = (
         .map((row) => `${row.text}: ${textOf(cells[row.id])}`);
 
       return parts.length > 0 ? parts.join("; ") : labels.empty;
+    }
+
+    case "FILE": {
+      const names = Array.isArray(value)
+        ? value.map((id) => labels.fileName?.(id) ?? id)
+        : [];
+
+      return names.length > 0 ? names.join(", ") : labels.empty;
     }
 
     default:

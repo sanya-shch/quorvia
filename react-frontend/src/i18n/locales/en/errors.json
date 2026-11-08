@@ -22,6 +22,15 @@
   "ASSET_TOO_LARGE": "The image is too large (512 KB at most)",
   "ASSET_LIMIT_REACHED": "This form has too many uploaded images",
 
+  "FILE_NOT_FOUND": "File not found",
+  "FILE_UPLOAD_INVALID": "The upload is invalid. Send one file",
+  "FILE_INVALID_TYPE": "Unsupported file type. Use PDF, PNG, JPEG, WebP or a plain text file",
+  "FILE_INVALID_CONTENT": "The file is empty or damaged",
+  "FILE_TOO_LARGE": "The file is too large (5 MB at most)",
+  "FILE_LIMIT_REACHED": "You cannot attach more files here",
+  "FILE_QUOTA_EXCEEDED": "This form cannot accept more files right now",
+  "VALIDATION_FILES_INVALID": "Some attached files are no longer available. Remove them and upload again",
+
   "EXPORT_JOB_NOT_FOUND": "Export job not found",
   "EXPORT_NOT_READY": "Export isn't ready yet",
   "EXPORT_FILE_MISSING": "Export file is missing on the server",

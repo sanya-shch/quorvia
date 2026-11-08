@@ -8,6 +8,7 @@ import {
   normalizeQuestionTranslations,
 } from "@quorvia/shared-types";
 import type { UpdateFormInput, UserFormsDto } from "./form.types.js";
+import { removeFileObjects } from "../file/file.service.js";
 import {
   assertFormAsset,
   assertFormAssets,
@@ -74,12 +75,14 @@ export const deleteForm = async (formId: string, userId: string) => {
   // and remove the files afterwards. A failure there is not an error, the orphan sweep in
   // maintenance finds leftovers.
   const assets = await prisma.asset.findMany({ where: { formId }, select: { storageKey: true } });
+  const files = await prisma.responseFile.findMany({ where: { formId }, select: { storageKey: true } });
 
   await prisma.form.delete({
     where: { id: formId },
   });
 
   await removeStoredFiles(assets.map((asset) => asset.storageKey));
+  await removeFileObjects(files.map((file) => file.storageKey));
 };
 
 export const getUserForm = async (formId: string, userId: string) => {

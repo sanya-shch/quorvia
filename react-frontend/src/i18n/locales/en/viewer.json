@@ -26,6 +26,7 @@
     "booleanNo": "No",
     "noAnswer": "No answer"
   },
+  "file": {"choose": "Choose a file", "addMore": "Add another file", "uploading": "Uploading {{name}}...", "remove": "Remove {{name}}", "removeShort": "Remove", "hint": "Up to {{count}} file(s), {{size}} MB each. PDF, PNG, JPEG, WebP or plain text."},
   "validation": {
     "numberMin": "Value must be at least {{min}}",
     "numberMax": "Value must be at most {{max}}",

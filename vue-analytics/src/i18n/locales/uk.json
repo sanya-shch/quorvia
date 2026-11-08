@@ -62,7 +62,8 @@
     "questionCard": {
       "hiddenByCondition": "приховано умовою: {count}",
       "shownButSkipped": "показано, але пропущено: {count}",
-      "noData": "Немає відповідей"
+      "noData": "Немає відповідей",
+      "filesUploaded": "Завантажено файлів: {count}"
     },
     "detailPanel": {
       "close": "Закрити панель деталей",
@@ -82,7 +83,12 @@
       "placeholder": "Оберіть відповідь зі списку ліворуч для перегляду деталей",
       "title": "Перегляд відповіді",
       "submittedAt": "Надіслано: {date}",
-      "language": "Мова форми: {language}"
+      "language": "Мова форми: {language}",
+      "download": "Завантажити",
+      "downloading": "Завантаження...",
+      "downloadFile": "Завантажити {name}",
+      "noFiles": "Немає файлів",
+      "downloadFailed": "Не вдалося завантажити файл. Спробуйте ще раз."
     },
     "export": {
       "trigger": "Експорт",

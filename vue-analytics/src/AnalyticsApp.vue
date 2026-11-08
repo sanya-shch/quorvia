@@ -197,6 +197,7 @@ const selectResponse = (responseId: string) => {
             :data="responseDetail"
             :is-loading="responseDetailLoading"
             :error="responseDetailError"
+            :api-base-url="apiBaseUrl"
           />
           <div v-else class="placeholder">
             {{ t("analytics.responseDetail.placeholder") }}

@@ -82,9 +82,22 @@ export const createUploadLimiter = (limit = 30) =>
     keyGenerator: (req, res) => String((res.locals as { userId?: string }).userId ?? ip(req)),
   });
 
+// POST/DELETE /api/forms/:shareId/files: anonymous uploads (decode, store), so per IP and tighter
+// than the answer submit.
+export const createFileUploadLimiter = (limit = 40) =>
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: rateLimited,
+    keyGenerator: (req) => ip(req),
+  });
+
 export const apiLimiter = createApiLimiter();
 export const submitResponseLimiter = createSubmitResponseLimiter();
 export const saveAttemptLimiter = createSaveAttemptLimiter();
 export const exportLimiter = createExportLimiter();
 export const uploadLimiter = createUploadLimiter();
+export const fileUploadLimiter = createFileUploadLimiter();
 export const refreshLimiter = createRefreshLimiter();

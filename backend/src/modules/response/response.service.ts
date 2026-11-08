@@ -6,6 +6,7 @@ import { Answers } from "./response.types.js";
 import { resolveVisibleQuestionIds, type QuestionLike } from "@quorvia/condition-engine";
 import { toJson } from "../../shared/utils/helpers.js";
 import { buildCompleteAttemptSql } from "../attempt/attempt.sql.js";
+import { attachFilesToResponse, collectFileClaims } from "../file/file.service.js";
 
 export const submitResponse = async (
   shareId: string,
@@ -48,14 +49,33 @@ export const submitResponse = async (
 
   const cleanedAnswers = cleanAnswers(form.questions, result.data as Answers, visibleQuestionIds);
 
-  const response = await prisma.response.create({
-    data: {
-      formId: form.id,
-      answers: toJson(cleanedAnswers),
-      visibleQuestionIds: toJson(Array.from(visibleQuestionIds)),
-      language: resolveResponseLanguage(language, form.defaultLanguage, form.languages),
-    },
-  });
+  const data = {
+    formId: form.id,
+    answers: toJson(cleanedAnswers),
+    visibleQuestionIds: toJson(Array.from(visibleQuestionIds)),
+    language: resolveResponseLanguage(language, form.defaultLanguage, form.languages),
+  };
+
+  // Files uploaded for FILE questions are attached in the same transaction that creates the
+  // response: either the response and all its files exist, or neither does. Forms without file
+  // answers take the plain path.
+  const fileClaims = collectFileClaims(form.questions, cleanedAnswers, visibleQuestionIds);
+
+  const response =
+    fileClaims.length === 0
+      ? await prisma.response.create({ data })
+      : await prisma.$transaction(async (tx) => {
+          const created = await tx.response.create({ data });
+
+          await attachFilesToResponse(tx, {
+            formId: form.id,
+            responseId: created.id,
+            sessionKey,
+            claims: fileClaims,
+          });
+
+          return created;
+        });
 
   if (sessionKey) {
     // The ResponseAttempt row may not exist at all (the respondent submitted before the first

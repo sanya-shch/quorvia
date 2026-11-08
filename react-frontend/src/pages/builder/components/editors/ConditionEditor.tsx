@@ -29,6 +29,8 @@ const OPERATORS_BY_TYPE: Record<Question["type"], ConditionOperator[]> = {
   // Ranking is not supported in conditions (see questionTypeSupportsConditions).
   RANKING: [],
   MATRIX: [],
+  // Files cannot be compared with a value.
+  FILE: [],
   CHOICE_SINGLE: ["equals", "notEquals", "in"],
   // The answer is an option id, exactly like a single choice.
   IMAGE_CHOICE: ["equals", "notEquals", "in"],

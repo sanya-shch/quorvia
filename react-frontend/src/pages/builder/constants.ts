@@ -3,6 +3,7 @@ import {
   calendarIcon,
   choiceMultiIcon,
   imageChoiceIcon,
+  fileIcon,
   choiceSingleIcon,
   npsIcon,
   numberIcon,
@@ -33,6 +34,7 @@ export const getSidebarItems = (t: TFunction): SidebarItem[] => [
     icon: choiceSingleIcon,
   },
   { type: "CHOICE_MULTI", label: t(QUESTION_TYPE_LABEL_KEYS.CHOICE_MULTI), icon: choiceMultiIcon },
+  { type: "FILE", label: t(QUESTION_TYPE_LABEL_KEYS.FILE), icon: fileIcon },
   {
     type: "IMAGE_CHOICE",
     label: t(QUESTION_TYPE_LABEL_KEYS.IMAGE_CHOICE),

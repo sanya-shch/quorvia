@@ -1,4 +1,9 @@
-import type { MatrixStats, NpsBreakdown, RankingOptionStats } from "@quorvia/shared-types";
+import type {
+  MatrixStats,
+  NpsBreakdown,
+  RankingOptionStats,
+  UploadedFileDto,
+} from "@quorvia/shared-types";
 import type { Answer, Answers } from "../response/response.types.js";
 
 /**
@@ -17,6 +22,7 @@ export type QuestionVisibilityStats = {
 };
 
 export type QuestionOverview =
+  | ({ id: string; type: "FILE"; text: string; fileCount: number } & QuestionVisibilityStats)
   | ({
       id: string;
       type: "TEXT" | "DATE";
@@ -231,6 +237,8 @@ export interface EnrichedAnswer {
   questionRequired: boolean;
   displayValue: string | number | string[];
   rawValue: Answer;
+  // FILE answers: what the owner needs to list and download the files.
+  files?: UploadedFileDto[];
 }
 
 export type ResponseDetailsDto = {

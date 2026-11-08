@@ -31,6 +31,15 @@ export const ErrorCode = {
   ASSET_TOO_LARGE: "ASSET_TOO_LARGE",
   ASSET_LIMIT_REACHED: "ASSET_LIMIT_REACHED",
 
+  FILE_NOT_FOUND: "FILE_NOT_FOUND",
+  FILE_UPLOAD_INVALID: "FILE_UPLOAD_INVALID",
+  FILE_INVALID_TYPE: "FILE_INVALID_TYPE",
+  FILE_INVALID_CONTENT: "FILE_INVALID_CONTENT",
+  FILE_TOO_LARGE: "FILE_TOO_LARGE",
+  FILE_LIMIT_REACHED: "FILE_LIMIT_REACHED",
+  FILE_QUOTA_EXCEEDED: "FILE_QUOTA_EXCEEDED",
+  VALIDATION_FILES_INVALID: "VALIDATION_FILES_INVALID",
+
   EXPORT_JOB_NOT_FOUND: "EXPORT_JOB_NOT_FOUND",
   EXPORT_NOT_READY: "EXPORT_NOT_READY",
   EXPORT_FILE_MISSING: "EXPORT_FILE_MISSING",
@@ -93,6 +102,7 @@ export const QUESTION_TYPES = [
   "NPS",
   "RANKING",
   "MATRIX",
+  "FILE",
 ] as const;
 
 export type QuestionType = (typeof QUESTION_TYPES)[number];
@@ -162,6 +172,8 @@ export interface QuestionConfig {
   maxLabel?: string;
   // MATRIX: rows (statements). The columns (answer choices) are the question's `options`.
   rows?: MatrixRow[];
+  // FILE: how many files the respondent may attach (1 to FILE_LIMITS.maxFilesPerQuestion).
+  maxFiles?: number;
 }
 
 export type NumberVariant = "input" | "slider";
@@ -351,6 +363,8 @@ export interface QuestionOverview extends Partial<QuestionVisibilityStats> {
   matrix?: MatrixStats;
   trueCount?: number;
   falseCount?: number;
+  // FILE only: how many files were uploaded in submitted responses.
+  fileCount?: number;
 }
 
 export interface FormAnalyticsDto {
@@ -443,6 +457,8 @@ export interface EnrichedAnswer {
   questionRequired: boolean;
   displayValue: string | number | string[];
   rawValue: string | number | boolean | string[];
+  // FILE answers: what the owner needs to list and download the files.
+  files?: UploadedFileDto[];
 }
 
 export interface ResponseDetailsDto {
@@ -794,4 +810,32 @@ export const normalizeTheme = (raw: unknown): FormTheme | null => {
   if (radius) theme.radius = radius;
 
   return Object.keys(theme).length > 0 ? theme : null;
+};
+
+// FILE: the respondent attaches files. Each file is uploaded on its own (anonymously, to
+// POST /forms/:shareId/files) and the answer is the array of the returned file ids; the
+// server attaches those files to the response when it is submitted.
+export const FILE_LIMITS = {
+  maxBytes: 5 * 1024 * 1024,
+  // Largest value of config.maxFiles.
+  maxFilesPerQuestion: 3,
+  // Uploads of one respondent session that are not attached to a response yet.
+  maxFilesPerSession: 10,
+  // Everything uploaded to one form (attached files included).
+  maxBytesPerForm: 200 * 1024 * 1024,
+  maxNameLength: 120,
+  // Images larger than this are scaled down while being re-encoded.
+  maxImageDimension: 4096,
+  // Office formats are deliberately absent: they are ZIP archives and would need inspecting.
+  allowedMimeTypes: ["application/pdf", "image/png", "image/jpeg", "image/webp", "text/plain"],
+} as const;
+
+export type FileMimeType = (typeof FILE_LIMITS.allowedMimeTypes)[number];
+
+// What the API returns about an uploaded file (never its storage key).
+export type UploadedFileDto = {
+  id: string;
+  name: string;
+  size: number;
+  mime: FileMimeType;
 };

@@ -15,6 +15,7 @@ import {
   type QuestionType,
   type RankingOptionStats,
   type ScaleBounds,
+  type UploadedFileDto,
 } from "@quorvia/shared-types";
 import { Answers } from "../response/response.types.js";
 import { paginate } from "../../shared/utils/paginate.js";
@@ -231,6 +232,7 @@ type QuestionAccumulator = {
   numberMax?: number;
   choiceCounts?: Map<string, number>;
   trueCount: number;
+  fileCount: number;
   falseCount: number;
 };
 
@@ -275,6 +277,7 @@ export const getFormAnalytics = async (
           : undefined,
       trueCount: 0,
       falseCount: 0,
+      fileCount: 0,
     });
   }
 
@@ -333,6 +336,8 @@ export const getFormAnalytics = async (
           recordRanking(acc.ranking!, value);
         } else if (acc.type === "MATRIX") {
           recordMatrix(acc.matrix!, value);
+        } else if (acc.type === "FILE") {
+          if (Array.isArray(value)) acc.fileCount += value.length;
         } else {
           assertNever(acc.type, "question type");
         }
@@ -436,6 +441,14 @@ export const getFormAnalytics = async (
         text: q.text,
         type: "MATRIX",
         matrix: matrixStats(acc.matrix!),
+        ...visibility,
+      });
+    } else if (q.type === "FILE") {
+      questions.push({
+        id: q.id,
+        text: q.text,
+        type: "FILE",
+        fileCount: acc.fileCount,
         ...visibility,
       });
     } else {
@@ -621,6 +634,8 @@ const DETAIL_ANALYTICS_SUPPORT: Record<QuestionType, boolean> = {
   NPS: true,
   RANKING: true,
   MATRIX: true,
+  // Files are not summarized per answer; the overview shows how many were uploaded.
+  FILE: false,
 };
 
 export const getQuestionAnalytics = async (
@@ -739,6 +754,8 @@ export const getQuestionAnalytics = async (
         case "MATRIX":
           recordMatrix(matrix!, value);
           break;
+        case "FILE":
+          break;
         default:
           assertNever(question.type, "question type");
       }
@@ -844,6 +861,9 @@ export const getQuestionAnalytics = async (
     };
   }
 
+  // Unreachable: FILE is rejected above as unsupported for detailed analytics.
+  if (question.type === "FILE") throw new AppError(ErrorCode.ANALYTICS_UNSUPPORTED_TYPE, 400);
+
   return assertNever(question.type, "question type");
 };
 
@@ -912,6 +932,14 @@ export const getResponseById = async (
   const rawAnswers = response.answers as Answers;
   const enrichedAnswers: EnrichedAnswer[] = [];
 
+  const responseFiles = await prisma.responseFile.findMany({ where: { responseId } });
+  const filesById = new Map<string, UploadedFileDto>(
+    responseFiles.map((file) => [
+      file.id,
+      { id: file.id, name: file.originalName, size: file.size, mime: file.mime as UploadedFileDto["mime"] },
+    ]),
+  );
+
   for (const q of form.questions) {
     const userValue = rawAnswers[q.id];
 
@@ -920,6 +948,7 @@ export const getResponseById = async (
     }
 
     let displayValue: string | number | string[] = "";
+    let fileList: UploadedFileDto[] | undefined;
 
     const otherText = rawAnswers[otherAnswerKey(q.id)];
     // "Other" is shown together with the respondent's text: "Other: custom option".
@@ -958,6 +987,14 @@ export const getResponseById = async (
         const opt = options?.find((o) => o.id === id);
         return `${index + 1}. ${opt ? opt.text : `Невідома опція (${id})`}`;
       });
+    } else if (q.type === "FILE") {
+      // The answer holds file ids; the owner sees names and can download each file.
+      const ids = Array.isArray(userValue) ? (userValue as string[]) : [];
+      fileList = ids.flatMap((id) => {
+        const file = filesById.get(id);
+        return file ? [file] : [];
+      });
+      displayValue = fileList.map((file) => file.name);
     } else if (q.type === "BOOLEAN") {
       displayValue = userValue === true ? "Так" : "Ні";
     } else if (
@@ -983,6 +1020,7 @@ export const getResponseById = async (
       questionRequired: q.required,
       displayValue,
       rawValue: userValue,
+      ...(fileList ? { files: fileList } : {}),
     });
   }
 

@@ -24,6 +24,7 @@ enum QuestionType {
   NPS
   RANKING
   MATRIX
+  FILE
 }
 
 enum ResponseMode {
@@ -88,6 +89,7 @@ model Form {
 
   // Uploaded images of this form (see Asset) and the one currently used as the logo.
   assets      Asset[]     @relation("FormAssets")
+  files       ResponseFile[]
   logoAsset   Asset?      @relation("FormLogo", fields: [logoAssetId], references: [id], onDelete: SetNull)
   logoAssetId String?
 
@@ -142,6 +144,30 @@ model Question {
   @@index([formId])
 }
 
+// A file a respondent uploaded for a FILE question. It is created unattached (responseId null) and
+// belongs to one respondent session (sessionKey); submitting the response attaches it. Unattached
+// files older than the grace period are removed by maintenance.
+model ResponseFile {
+  id           String    @id @default(uuid())
+  form         Form      @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId       String
+  // Not a foreign key: questions are rewritten on every form save, the check is done in the service.
+  questionId   String
+  sessionKey   String
+  response     Response? @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  responseId   String?
+  // Display name only (sanitized). The stored object has a random name, see storageKey.
+  originalName String
+  mime         String
+  size         Int
+  storageKey   String    @unique
+  createdAt    DateTime  @default(now())
+
+  @@index([formId, sessionKey])
+  @@index([responseId])
+  @@index([createdAt])
+}
+
 model Response {
   id        String   @id @default(uuid())
 
@@ -160,6 +186,8 @@ model Response {
   language  String?
 
   createdAt DateTime @default(now())
+
+  files     ResponseFile[]
 
   // Covers both the paged list (ORDER BY createdAt DESC) and the analytics keyset walk
   // (ORDER BY createdAt, id) within a form; the formId prefix replaces a separate formId index.

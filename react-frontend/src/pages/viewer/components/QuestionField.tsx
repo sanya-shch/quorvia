@@ -11,6 +11,7 @@ import ScaleField from "./ScaleField";
 import NumberSlider from "./NumberSlider";
 import RankingField from "./RankingField";
 import MatrixField from "./MatrixField";
+import FileField from "./FileField";
 import { type Question } from "../../../types/formBuilder";
 import { type AnswerValue } from "../../../types/formViewer";
 import { assetUrl } from "../../../api/assets";
@@ -23,6 +24,9 @@ interface QuestionControlProps {
   labelledBy: string;
   describedBy?: string;
   invalid?: boolean;
+  // Needed by FILE questions: they upload while the form is being filled in.
+  shareId?: string;
+  sessionKey?: string;
 }
 
 interface QuestionFieldProps extends QuestionControlProps {
@@ -39,6 +43,8 @@ function QuestionControl({
   labelledBy,
   describedBy,
   invalid,
+  shareId,
+  sessionKey,
 }: QuestionControlProps) {
   const { t } = useTranslation();
   const displayVariant = question.config?.displayVariant || "list";
@@ -278,6 +284,22 @@ function QuestionControl({
           </label>
         ))}
       </div>
+    );
+  }
+
+  if (question.type === "FILE") {
+    return (
+      <FileField
+        question={question}
+        qId={qId}
+        value={value}
+        onChange={onChange}
+        shareId={shareId}
+        sessionKey={sessionKey}
+        labelledBy={labelledBy}
+        describedBy={describedBy}
+        invalid={invalid}
+      />
     );
   }
 

@@ -3,6 +3,7 @@ import { Question } from "../../shared/types/questions.js";
 import {
   assertNever,
   ErrorCode,
+  FILE_LIMITS,
   getOtherOption,
   getScaleBounds,
   isOtherSelected,
@@ -142,6 +143,20 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
         schema = z
           .object(Object.fromEntries(rows.map((row) => [row.id, q.required ? cell : cell.optional()])))
           .strict();
+
+        break;
+      }
+
+      case "FILE": {
+        const maxFiles = Math.min(q.config?.maxFiles ?? 1, FILE_LIMITS.maxFilesPerQuestion);
+
+        // Only the shape here: that the ids are real files of this session is checked against the
+        // database when the response is saved (attachFilesToResponse).
+        schema = z.array(z.string().min(1).max(100)).max(maxFiles);
+
+        if (q.required) {
+          schema = schema.min(1);
+        }
 
         break;
       }
