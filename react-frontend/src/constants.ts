@@ -8,6 +8,7 @@ export const QUESTION_TYPE_LABEL_KEYS: Record<QuestionType, string> = {
   NUMBER: "builder.questionTypes.NUMBER",
   CHOICE_SINGLE: "builder.questionTypes.CHOICE_SINGLE",
   CHOICE_MULTI: "builder.questionTypes.CHOICE_MULTI",
+  IMAGE_CHOICE: "builder.questionTypes.IMAGE_CHOICE",
   BOOLEAN: "builder.questionTypes.BOOLEAN",
   DATE: "builder.questionTypes.DATE",
   RATING: "builder.questionTypes.RATING",

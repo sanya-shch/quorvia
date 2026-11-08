@@ -8,12 +8,14 @@ generator client {
 
 enum AssetKind {
   LOGO
+  OPTION_IMAGE
 }
 
 enum QuestionType {
   TEXT
   CHOICE_SINGLE
   CHOICE_MULTI
+  IMAGE_CHOICE
   BOOLEAN
   DATE
   NUMBER

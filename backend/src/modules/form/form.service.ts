@@ -8,7 +8,12 @@ import {
   normalizeQuestionTranslations,
 } from "@quorvia/shared-types";
 import type { UpdateFormInput, UserFormsDto } from "./form.types.js";
-import { assertFormAsset, removeStoredFiles } from "../asset/asset.service.js";
+import {
+  assertFormAsset,
+  assertFormAssets,
+  copyAssetFiles,
+  removeStoredFiles,
+} from "../asset/asset.service.js";
 
 type IncomingQuestion = UpdateFormInput["questions"][number];
 type ResolvedQuestion = IncomingQuestion & { id: string };
@@ -144,6 +149,9 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
   if (data.logoAssetId) {
     await assertFormAsset(data.logoAssetId, formId, "LOGO");
   }
+
+  // Option pictures must be images of this form, not someone else's.
+  await assertFormAssets(collectOptionImageIds(data.questions), formId, "OPTION_IMAGE");
 
   const existingQuestions = form.questions;
   const incomingQuestions = data.questions;
@@ -325,6 +333,13 @@ export const unpublishForm = async (formId: string, userId: string) => {
   });
 };
 
+// Ids of the pictures referenced by the options of IMAGE_CHOICE questions.
+const collectOptionImageIds = (questions: { type: string; options?: unknown }[]): string[] =>
+  questions
+    .filter((q) => q.type === "IMAGE_CHOICE" && Array.isArray(q.options))
+    .flatMap((q) => q.options as { imageAssetId?: string | null }[])
+    .flatMap((option) => (option.imageAssetId ? [option.imageAssetId] : []));
+
 export const duplicateForm = async (formId: string, userId: string) => {
   const form = await prisma.form.findUnique({
     where: { id: formId },
@@ -333,6 +348,15 @@ export const duplicateForm = async (formId: string, userId: string) => {
 
   if (!form) throw new AppError(ErrorCode.FORM_NOT_FOUND, 404);
   if (form.userId !== userId) throw new AppError(ErrorCode.FORM_FORBIDDEN, 403);
+
+  // The copy gets its own copies of the logo and the option pictures (files included), so the two
+  // forms can be deleted independently.
+  const usedAssetIds = [
+    ...(form.logoAssetId ? [form.logoAssetId] : []),
+    ...collectOptionImageIds(form.questions),
+  ];
+  const sourceAssets = await prisma.asset.findMany({ where: { id: { in: usedAssetIds } } });
+  const assetCopies = await copyAssetFiles(sourceAssets);
 
   return prisma.$transaction(async (tx) => {
     const newForm = await tx.form.create({
@@ -348,6 +372,38 @@ export const duplicateForm = async (formId: string, userId: string) => {
         isPublished: false,
       },
     });
+
+    if (assetCopies.size > 0) {
+      await tx.asset.createMany({
+        data: [...assetCopies.values()].map((copy) => ({
+          id: copy.id,
+          formId: newForm.id,
+          kind: copy.source.kind,
+          mime: copy.source.mime,
+          size: copy.source.size,
+          width: copy.source.width,
+          height: copy.source.height,
+          storageKey: copy.storageKey,
+        })),
+      });
+
+      const logoCopy = form.logoAssetId ? assetCopies.get(form.logoAssetId) : undefined;
+
+      if (logoCopy) {
+        await tx.form.update({ where: { id: newForm.id }, data: { logoAssetId: logoCopy.id } });
+      }
+    }
+
+    // Option pictures point at the copied assets (or lose the picture if its file was missing).
+    const remapOptions = (type: string, options: unknown): Prisma.InputJsonValue => {
+      if (!Array.isArray(options)) return [];
+      if (type !== "IMAGE_CHOICE") return options as Prisma.InputJsonValue;
+
+      return options.map((option: { imageAssetId?: string | null }) => ({
+        ...option,
+        imageAssetId: option.imageAssetId ? (assetCopies.get(option.imageAssetId)?.id ?? null) : null,
+      })) as Prisma.InputJsonValue;
+    };
 
     // Copied questions get new ids (the old ones belong to the original), so
     // condition.rules[].questionId must be remapped to them; otherwise the duplicate's
@@ -374,7 +430,7 @@ export const duplicateForm = async (formId: string, userId: string) => {
         type: q.type,
         required: q.required,
         order: q.order,
-        options: Array.isArray(q.options) ? (q.options as Prisma.InputJsonValue) : [],
+        options: remapOptions(q.type, q.options),
         config: q.config as Prisma.InputJsonValue,
         condition: remapCondition(q.condition),
         // Translations are keyed by option/row ids inside the question, which do not change when

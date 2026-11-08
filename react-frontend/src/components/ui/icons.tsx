@@ -72,6 +72,21 @@ export const choiceSingleIcon = (
   </svg>
 );
 
+export const imageChoiceIcon = (
+  <svg
+    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth="2"
+    stroke="currentColor"
+    aria-hidden="true"
+  >
+    <rect x="3" y="4" width="18" height="16" rx="2" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="8.5" cy="9.5" r="1.5" fill="currentColor" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 16l-5-5-8 8" />
+  </svg>
+);
+
 export const choiceMultiIcon = (
   <svg
     className="h-3.5 w-3.5 text-slate-400 shrink-0"

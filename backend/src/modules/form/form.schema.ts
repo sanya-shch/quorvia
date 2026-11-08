@@ -5,6 +5,7 @@ import {
   FORM_FONTS,
   FORM_RADII,
   FORM_THEME_MODES,
+  IMAGE_CHOICE_LIMITS,
   MATRIX_LIMITS,
   MAX_ADDITIONAL_LANGUAGES,
   OTHER_ANSWER_SUFFIX,
@@ -138,6 +139,21 @@ const optionsSchema = z
     return others.length === 1 && options[options.length - 1].isOther && !others[0].isDefault;
   }, ErrorCode.REQUEST_BODY_INVALID);
 
+// IMAGE_CHOICE: 2 to 12 options with an optional picture each (an asset of this form, checked
+// by the service on save). No "Other": a picture cannot be free text.
+const imageOptionSchema = optionSchema
+  .omit({ isOther: true })
+  .extend({ imageAssetId: z.uuid().nullable().optional() });
+
+const imageChoiceOptionsSchema = z
+  .array(imageOptionSchema)
+  .min(IMAGE_CHOICE_LIMITS.minOptions)
+  .max(IMAGE_CHOICE_LIMITS.maxOptions)
+  .refine(
+    (options) => new Set(options.map((o) => o.id)).size === options.length,
+    ErrorCode.REQUEST_BODY_INVALID,
+  );
+
 // RANKING: 2 to 20 options; ids are unique because the answer is a permutation of ids (a
 // duplicate would make a valid answer impossible). "Other"/isDefault make no sense for
 // ranking: isOther is dropped by the schema (omit).
@@ -204,6 +220,12 @@ export const questionSchema = z.discriminatedUnion("type", [
         displayVariant: z.enum(["list", "tabs", "dropdown"]).optional(),
       })
       .optional(),
+  }),
+
+  z.object({
+    ...base,
+    type: z.literal("IMAGE_CHOICE"),
+    options: imageChoiceOptionsSchema,
   }),
 
   z.object({

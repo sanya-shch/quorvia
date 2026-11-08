@@ -1,4 +1,10 @@
-import { assertNever, MATRIX_LIMITS, RANKING_LIMITS, SCALE_LIMITS } from "@quorvia/shared-types";
+import {
+  assertNever,
+  IMAGE_CHOICE_LIMITS,
+  MATRIX_LIMITS,
+  RANKING_LIMITS,
+  SCALE_LIMITS,
+} from "@quorvia/shared-types";
 import type { QuestionConfig, QuestionOption, QuestionType } from "../../types/formBuilder";
 
 // Default config of a new question. A switch without default: a new question type does not
@@ -24,6 +30,7 @@ export const createDefaultQuestionConfig = (
     case "DATE":
     case "NPS":
     case "RANKING":
+    case "IMAGE_CHOICE":
       return null;
     case "MATRIX":
       return { rows: [{ id: `row-${Date.now()}-0`, text: rowLabel(1) }] };
@@ -37,6 +44,7 @@ export const questionTypeUsesOptions = (type: QuestionType): boolean => {
   switch (type) {
     case "CHOICE_SINGLE":
     case "CHOICE_MULTI":
+    case "IMAGE_CHOICE":
     case "RANKING":
     case "MATRIX": // the matrix options are its columns
       return true;
@@ -64,9 +72,11 @@ export const createDefaultOptions = (
   const count =
     type === "RANKING"
       ? RANKING_LIMITS.minOptions
-      : type === "MATRIX"
-        ? MATRIX_LIMITS.minColumns
-        : 1;
+      : type === "IMAGE_CHOICE"
+        ? IMAGE_CHOICE_LIMITS.minOptions
+        : type === "MATRIX"
+          ? MATRIX_LIMITS.minColumns
+          : 1;
   const stamp = Date.now();
 
   return Array.from({ length: count }, (_, i) => ({
@@ -85,6 +95,7 @@ export const questionTypeSupportsConditions = (type: QuestionType): boolean => {
     case "NUMBER":
     case "CHOICE_SINGLE":
     case "CHOICE_MULTI":
+    case "IMAGE_CHOICE":
     case "BOOLEAN":
     case "DATE":
     case "RATING":
@@ -115,6 +126,7 @@ export const questionTypeUsesConfig = (type: QuestionType): boolean => {
     case "DATE":
     case "NPS":
     case "RANKING":
+    case "IMAGE_CHOICE":
       return false;
     default:
       return assertNever(type, "question type");

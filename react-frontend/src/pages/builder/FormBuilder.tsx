@@ -24,6 +24,7 @@ import { calendarIcon } from "../../components/ui/icons";
 import { questionTypeUsesConfig, questionTypeUsesOptions } from "./questionConfig";
 import LanguageBar from "./components/LanguageBar";
 import LogoUploader from "./components/LogoUploader";
+import ImageOptionsEditor from "./components/editors/ImageOptionsEditor";
 import ThemeEditor from "./components/ThemeEditor";
 import type { FormTheme } from "@quorvia/shared-types";
 import TranslationPanel from "./components/TranslationPanel";
@@ -427,6 +428,16 @@ export default function FormBuilder() {
                                     config={question.config}
                                     onChange={(newConfig) =>
                                       updateQuestion(index, { config: newConfig })
+                                    }
+                                  />
+                                )}
+
+                                {question.type === "IMAGE_CHOICE" && (
+                                  <ImageOptionsEditor
+                                    formId={formId!}
+                                    options={question.options}
+                                    onChange={(newOptions) =>
+                                      updateQuestion(index, { options: newOptions })
                                     }
                                   />
                                 )}

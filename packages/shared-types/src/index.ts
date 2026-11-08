@@ -84,6 +84,7 @@ export const QUESTION_TYPES = [
   "TEXT",
   "CHOICE_SINGLE",
   "CHOICE_MULTI",
+  "IMAGE_CHOICE",
   "BOOLEAN",
   "DATE",
   "NUMBER",
@@ -106,6 +107,9 @@ export interface QuestionOption {
   // per question, always last, never the default. The text lives in `answers` under a
   // separate key (see otherAnswerKey), so the answer to the question itself stays the option id.
   isOther?: boolean;
+  // IMAGE_CHOICE: the picture of this option (an asset of kind OPTION_IMAGE of the same form).
+  // The text stays required: it is the label, the alt text and what analytics shows.
+  imageAssetId?: string | null;
 }
 
 // Suffix of the `answers` key that holds the "Other" text.
@@ -119,6 +123,13 @@ export const isOtherAnswerKey = (key: string): boolean => key.endsWith(OTHER_ANS
 export const getOtherOption = <T extends { isOther?: boolean }>(
   options: readonly T[] | null | undefined,
 ): T | undefined => options?.find((option) => option.isOther);
+
+// Questions whose answer is one or several option ids and that are summarized per option.
+export const CHOICE_QUESTION_TYPES = ["CHOICE_SINGLE", "CHOICE_MULTI", "IMAGE_CHOICE"] as const;
+export type ChoiceQuestionType = (typeof CHOICE_QUESTION_TYPES)[number];
+
+export const isChoiceQuestionType = (type: QuestionType): type is ChoiceQuestionType =>
+  (CHOICE_QUESTION_TYPES as readonly QuestionType[]).includes(type);
 
 export const isOtherSelected = (
   type: QuestionType,
@@ -170,6 +181,13 @@ export const MATRIX_LIMITS = {
   maxRows: 30,
   minColumns: 2,
   maxColumns: 10,
+} as const;
+
+// IMAGE_CHOICE: pick one of several pictures. The answer is the option id, exactly as for
+// CHOICE_SINGLE; each option carries an optional image and always a text label.
+export const IMAGE_CHOICE_LIMITS = {
+  minOptions: 2,
+  maxOptions: 12,
 } as const;
 
 export interface MatrixRow {
@@ -691,7 +709,7 @@ export const normalizeQuestionTranslations = (
 };
 
 // Uploaded images (the form logo today; option images later).
-export const ASSET_KINDS = ["LOGO"] as const;
+export const ASSET_KINDS = ["LOGO", "OPTION_IMAGE"] as const;
 export type AssetKind = (typeof ASSET_KINDS)[number];
 
 export const ASSET_LIMITS = {

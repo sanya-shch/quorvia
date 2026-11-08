@@ -164,17 +164,44 @@ export const cleanupStaleAttempts = async ({
   return { attempts };
 };
 
+// Ids among the given option-image assets that some IMAGE_CHOICE question still points at. The
+// pictures live inside the options JSON of questions, so there is no relation to query.
+const referencedOptionImages = async (
+  assets: { id: string; kind: string; formId: string }[],
+): Promise<Set<string>> => {
+  const optionImages = assets.filter((asset) => asset.kind === "OPTION_IMAGE");
+
+  if (optionImages.length === 0) return new Set();
+
+  const questions = await prisma.question.findMany({
+    where: {
+      type: "IMAGE_CHOICE",
+      formId: { in: [...new Set(optionImages.map((asset) => asset.formId))] },
+    },
+    select: { options: true },
+  });
+  const referenced = new Set<string>();
+
+  for (const question of questions) {
+    if (!Array.isArray(question.options)) continue;
+
+    for (const option of question.options as { imageAssetId?: unknown }[]) {
+      if (typeof option?.imageAssetId === "string") referenced.add(option.imageAssetId);
+    }
+  }
+
+  return referenced;
+};
+
 /**
  * Uploaded images nobody uses, in two directions:
- * - rows that are not the logo of any form (replaced or removed logos, uploads the author
- *   never saved), together with their files;
+ * - rows that are neither the logo of a form nor a picture of an IMAGE_CHOICE option (replaced or
+ *   removed images, uploads the author never saved), together with their files;
  * - files without a row (the form was deleted and the best-effort removal failed, or the
  *   process died between writing the file and the row).
  *
  * Only things older than the grace period are touched: a fresh upload may simply not be
- * attached yet because the author has not saved the form. When another kind of asset starts
- * to reference images (option images), its relation must be added to the "unused" filter
- * below.
+ * attached yet because the author has not saved the form.
  */
 export const cleanupOrphanAssets = async ({
   graceMs = DAY_MS,
@@ -190,25 +217,39 @@ export const cleanupOrphanAssets = async ({
   const threshold = new Date(now.getTime() - graceMs);
   let rows = 0;
   let files = 0;
+  let lastId: string | undefined;
 
+  // Keyset by id: batches may contain assets that are kept, so "fetch again after deleting" would
+  // never move past them.
   for (;;) {
     const batch = await prisma.asset.findMany({
-      where: { createdAt: { lt: threshold }, logoOf: { none: {} } },
-      select: { id: true, storageKey: true },
-      orderBy: { createdAt: "asc" },
+      where: {
+        createdAt: { lt: threshold },
+        logoOf: { none: {} },
+        ...(lastId ? { id: { gt: lastId } } : {}),
+      },
+      select: { id: true, storageKey: true, kind: true, formId: true },
+      orderBy: { id: "asc" },
       take: batchSize,
     });
 
     if (batch.length === 0) break;
 
+    lastId = batch[batch.length - 1]!.id;
+
+    const referenced = await referencedOptionImages(batch);
+    const unused = batch.filter((asset) => !referenced.has(asset.id));
+
     // The file first, then the row: if deleting the row fails, the next run retries it,
     // the reverse order would leave the file orphaned.
-    for (const asset of batch) {
+    for (const asset of unused) {
       if (await storage.remove(asset.storageKey)) files++;
     }
 
-    await prisma.asset.deleteMany({ where: { id: { in: batch.map((a) => a.id) } } });
-    rows += batch.length;
+    if (unused.length > 0) {
+      await prisma.asset.deleteMany({ where: { id: { in: unused.map((a) => a.id) } } });
+      rows += unused.length;
+    }
 
     if (batch.length < batchSize) break;
   }

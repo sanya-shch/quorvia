@@ -30,6 +30,8 @@ const OPERATORS_BY_TYPE: Record<Question["type"], ConditionOperator[]> = {
   RANKING: [],
   MATRIX: [],
   CHOICE_SINGLE: ["equals", "notEquals", "in"],
+  // The answer is an option id, exactly like a single choice.
+  IMAGE_CHOICE: ["equals", "notEquals", "in"],
   CHOICE_MULTI: ["contains"],
 };
 
@@ -260,7 +262,9 @@ function ConditionValueInput({ target, operator, value, onChange }: ConditionVal
     );
   }
 
-  if (target.type === "CHOICE_SINGLE" && operator === "in") {
+  const isSingleChoice = target.type === "CHOICE_SINGLE" || target.type === "IMAGE_CHOICE";
+
+  if (isSingleChoice && operator === "in") {
     const selected = Array.isArray(value) ? value : [];
     const toggle = (optionId: string) => {
       onChange(
@@ -291,7 +295,7 @@ function ConditionValueInput({ target, operator, value, onChange }: ConditionVal
   }
 
   if (
-    (target.type === "CHOICE_SINGLE" && (operator === "equals" || operator === "notEquals")) ||
+    (isSingleChoice && (operator === "equals" || operator === "notEquals")) ||
     (target.type === "CHOICE_MULTI" && operator === "contains")
   ) {
     return (

@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import {
   calendarIcon,
   choiceMultiIcon,
+  imageChoiceIcon,
   choiceSingleIcon,
   npsIcon,
   numberIcon,
@@ -32,6 +33,11 @@ export const getSidebarItems = (t: TFunction): SidebarItem[] => [
     icon: choiceSingleIcon,
   },
   { type: "CHOICE_MULTI", label: t(QUESTION_TYPE_LABEL_KEYS.CHOICE_MULTI), icon: choiceMultiIcon },
+  {
+    type: "IMAGE_CHOICE",
+    label: t(QUESTION_TYPE_LABEL_KEYS.IMAGE_CHOICE),
+    icon: imageChoiceIcon,
+  },
   { type: "BOOLEAN", label: t(QUESTION_TYPE_LABEL_KEYS.BOOLEAN), icon: toggleIcon },
   {
     type: "DATE",

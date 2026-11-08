@@ -189,7 +189,9 @@ export default function QuestionDetailsPage() {
             </div>
           )}
 
-          {(question.type === "CHOICE_SINGLE" || question.type === "CHOICE_MULTI") &&
+          {(question.type === "CHOICE_SINGLE" ||
+            question.type === "CHOICE_MULTI" ||
+            question.type === "IMAGE_CHOICE") &&
             distribution && (
               <div className="space-y-4">
                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">

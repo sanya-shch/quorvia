@@ -110,7 +110,8 @@ export const getDefaultAnswer = (q: Question): AnswerValue => {
   switch (q.type) {
     case "BOOLEAN":
       return q.config?.defaultValue ?? false;
-    case "CHOICE_SINGLE": {
+    case "CHOICE_SINGLE":
+    case "IMAGE_CHOICE": {
       const defaultOpt = q.options?.find((o) => o.isDefault);
       return defaultOpt ? defaultOpt.id : "";
     }

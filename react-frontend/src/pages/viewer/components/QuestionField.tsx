@@ -13,6 +13,7 @@ import RankingField from "./RankingField";
 import MatrixField from "./MatrixField";
 import { type Question } from "../../../types/formBuilder";
 import { type AnswerValue } from "../../../types/formViewer";
+import { assetUrl } from "../../../api/assets";
 
 interface QuestionControlProps {
   question: Question;
@@ -276,6 +277,67 @@ function QuestionControl({
             {option.text}
           </label>
         ))}
+      </div>
+    );
+  }
+
+  if (question.type === "IMAGE_CHOICE") {
+    return (
+      <div
+        role="radiogroup"
+        aria-labelledby={labelledBy}
+        aria-describedby={describedBy}
+        className="grid grid-cols-2 sm:grid-cols-3 gap-3"
+      >
+        {question.options.map((option) => {
+          const isSelected = value === option.id;
+
+          return (
+            <label
+              key={option.id}
+              className={`relative flex cursor-pointer flex-col overflow-hidden rounded-xl border transition-all has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-500 has-[:focus-visible]:ring-offset-2 ${
+                isSelected
+                  ? "border-indigo-600 ring-2 ring-indigo-600 bg-indigo-50"
+                  : "border-slate-200 bg-surface hover:border-slate-300"
+              }`}
+            >
+              {/* A native radio keeps arrow-key navigation and the group semantics for free. */}
+              <input
+                type="radio"
+                name={qId}
+                checked={isSelected}
+                onChange={() => onChange(option.id)}
+                className="sr-only"
+              />
+              {option.imageAssetId && (
+                // Decorative: the text label below names the option.
+                <img
+                  src={assetUrl(option.imageAssetId)}
+                  alt=""
+                  loading="lazy"
+                  className="aspect-square w-full object-cover"
+                />
+              )}
+              <span
+                className={`px-3 py-2 text-sm font-medium ${
+                  isSelected ? "text-indigo-900" : "text-slate-700"
+                }`}
+              >
+                {option.text}
+              </span>
+              {isSelected && (
+                <span
+                  aria-hidden="true"
+                  className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-on-primary shadow"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                </span>
+              )}
+            </label>
+          );
+        })}
       </div>
     );
   }

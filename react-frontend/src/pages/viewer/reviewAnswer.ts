@@ -42,6 +42,7 @@ export const formatReviewAnswer = (
       return value === undefined || value === "" ? labels.empty : value ? labels.yes : labels.no;
 
     case "CHOICE_SINGLE":
+    case "IMAGE_CHOICE":
       return typeof value === "string" && value ? textOf(value) : labels.empty;
 
     case "CHOICE_MULTI":

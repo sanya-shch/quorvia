@@ -111,7 +111,8 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
         break;
       }
 
-      case "CHOICE_SINGLE": {
+      case "CHOICE_SINGLE":
+      case "IMAGE_CHOICE": {
         const optionIds = (q.options as { id: string }[]).map((o) => o.id);
 
         schema = z.enum(optionIds as [string, ...string[]]);

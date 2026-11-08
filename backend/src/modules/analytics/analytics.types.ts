@@ -35,7 +35,7 @@ export type QuestionOverview =
     } & QuestionVisibilityStats)
   | ({
       id: string;
-      type: "CHOICE_SINGLE" | "CHOICE_MULTI";
+      type: "CHOICE_SINGLE" | "CHOICE_MULTI" | "IMAGE_CHOICE";
       text: string;
       distribution: { optionId: string; count: number; text: string }[];
     } & QuestionVisibilityStats)
@@ -146,7 +146,7 @@ export type QuestionAnalyticsDto =
         id: string;
         text: string;
         description: string | null;
-        type: "CHOICE_SINGLE" | "CHOICE_MULTI";
+        type: "CHOICE_SINGLE" | "CHOICE_MULTI" | "IMAGE_CHOICE";
       };
       totalAnswers: number;
       distribution: { optionId: string; count: number; text: string }[];

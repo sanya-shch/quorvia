@@ -5,6 +5,7 @@ import { type Question } from "../../../types/formBuilder";
 import {
   choiceMultiIcon,
   choiceSingleIcon,
+  imageChoiceIcon,
   npsIcon,
   matrixIcon,
   numberIcon,
@@ -114,6 +115,11 @@ export default function QuestionCard({
             {question.type === "CHOICE_MULTI" && (
               <>
                 {choiceMultiIcon} {t(QUESTION_TYPE_LABEL_KEYS.CHOICE_MULTI)}
+              </>
+            )}
+            {question.type === "IMAGE_CHOICE" && (
+              <>
+                {imageChoiceIcon} {t(QUESTION_TYPE_LABEL_KEYS.IMAGE_CHOICE)}
               </>
             )}
             {question.type === "BOOLEAN" && (

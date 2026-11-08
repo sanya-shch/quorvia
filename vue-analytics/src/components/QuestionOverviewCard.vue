@@ -149,7 +149,7 @@ const maxDistributionCount = computed(
         </div>
       </template>
 
-      <template v-else-if="(question.type === 'CHOICE_SINGLE' || question.type === 'CHOICE_MULTI') && topDistribution.length">
+      <template v-else-if="(question.type === 'CHOICE_SINGLE' || question.type === 'CHOICE_MULTI' || question.type === 'IMAGE_CHOICE') && topDistribution.length">
         <div v-for="opt in topDistribution" :key="opt.optionId" class="dist-row">
           <span class="dist-label">{{ opt.text }}</span>
           <div class="dist-bar">

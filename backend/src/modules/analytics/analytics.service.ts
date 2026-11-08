@@ -5,6 +5,7 @@ import {
   ErrorCode,
   getOtherOption,
   getScaleBounds,
+  isChoiceQuestionType,
   isOtherSelected,
   isScaleQuestionType,
   otherAnswerKey,
@@ -259,7 +260,7 @@ export const getFormAnalytics = async (
       textCounts: q.type === "TEXT" || q.type === "DATE" ? new Map() : undefined,
       numberSum: 0,
       numberCount: 0,
-      choiceCounts: q.type === "CHOICE_SINGLE" || q.type === "CHOICE_MULTI" ? new Map() : undefined,
+      choiceCounts: isChoiceQuestionType(q.type) ? new Map() : undefined,
       scaleBounds: isScaleQuestionType(q.type)
         ? getScaleBounds(q.type, q.config as QuestionConfig | null)
         : undefined,
@@ -307,7 +308,7 @@ export const getFormAnalytics = async (
           acc.numberCount += 1;
           acc.numberMin = acc.numberMin === undefined ? n : Math.min(acc.numberMin, n);
           acc.numberMax = acc.numberMax === undefined ? n : Math.max(acc.numberMax, n);
-        } else if (acc.type === "CHOICE_SINGLE") {
+        } else if (acc.type === "CHOICE_SINGLE" || acc.type === "IMAGE_CHOICE") {
           if (typeof value === "string") {
             acc.choiceCounts!.set(value, (acc.choiceCounts!.get(value) || 0) + 1);
           }
@@ -379,7 +380,7 @@ export const getFormAnalytics = async (
         },
         ...visibility,
       });
-    } else if (q.type === "CHOICE_SINGLE" || q.type === "CHOICE_MULTI") {
+    } else if (isChoiceQuestionType(q.type)) {
       const options = (q.options as { id: string; text: string }[]) ?? [];
 
       questions.push({
@@ -613,6 +614,7 @@ const DETAIL_ANALYTICS_SUPPORT: Record<QuestionType, boolean> = {
   NUMBER: true,
   CHOICE_SINGLE: true,
   CHOICE_MULTI: true,
+  IMAGE_CHOICE: true,
   BOOLEAN: true,
   RATING: true,
   SCALE: true,
@@ -700,6 +702,7 @@ export const getQuestionAnalytics = async (
           if (value > numberMax) numberMax = value;
           break;
         case "CHOICE_SINGLE":
+        case "IMAGE_CHOICE":
         case "CHOICE_MULTI":
           for (const v of Array.isArray(value) ? value : [value]) {
             if (typeof v === "string" && v) choiceCounts.set(v, (choiceCounts.get(v) ?? 0) + 1);
@@ -777,7 +780,7 @@ export const getQuestionAnalytics = async (
     };
   }
 
-  if (question.type === "CHOICE_SINGLE" || question.type === "CHOICE_MULTI") {
+  if (isChoiceQuestionType(question.type)) {
     const options = (question.options ?? []) as StoredOption[];
 
     return {
@@ -925,7 +928,7 @@ export const getResponseById = async (
         ? `${opt.text}: ${otherText}`
         : opt.text;
 
-    if (q.type === "CHOICE_SINGLE") {
+    if (q.type === "CHOICE_SINGLE" || q.type === "IMAGE_CHOICE") {
       const option = (q.options as StoredOption[] | null)?.find((o) => o.id === userValue);
       displayValue = option ? withOtherText(option) : `Опція видалена (${userValue})`;
     } else if (q.type === "CHOICE_MULTI") {

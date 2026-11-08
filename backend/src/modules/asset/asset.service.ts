@@ -1,4 +1,12 @@
-import { ErrorCode, ASSET_LIMITS, type AssetDto, type AssetKind } from "@quorvia/shared-types";
+import { randomUUID } from "node:crypto";
+import type { Asset } from "@prisma/client";
+import {
+  ErrorCode,
+  ASSET_LIMITS,
+  type AssetDto,
+  type AssetKind,
+  type AssetMimeType,
+} from "@quorvia/shared-types";
 import { prisma } from "../../prisma/prisma.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
 import { processImage } from "./asset.image.js";
@@ -94,6 +102,50 @@ export const assertFormAsset = async (
   if (!asset || asset.formId !== formId || asset.kind !== kind) {
     throw new AppError(ErrorCode.ASSET_NOT_FOUND, 400);
   }
+};
+
+/**
+ * Same check for many ids at once (the option images of a form being saved): every id must be
+ * an asset of THIS form with the expected kind.
+ */
+export const assertFormAssets = async (
+  assetIds: string[],
+  formId: string,
+  kind: AssetKind,
+): Promise<void> => {
+  const unique = [...new Set(assetIds)];
+
+  if (unique.length === 0) return;
+
+  const found = await prisma.asset.count({ where: { id: { in: unique }, formId, kind } });
+
+  if (found !== unique.length) throw new AppError(ErrorCode.ASSET_NOT_FOUND, 400);
+};
+
+export type AssetCopy = { id: string; storageKey: string; source: Asset };
+
+/**
+ * Copies the files of assets for a duplicated form (the copy must not share files with the
+ * original: deleting one form would break the other). Returns the new ids and keys; the rows are
+ * created by the caller inside its transaction. An asset whose file is missing is skipped.
+ */
+export const copyAssetFiles = async (
+  assets: Asset[],
+  storage: Storage = defaultStorage,
+): Promise<Map<string, AssetCopy>> => {
+  const copies = new Map<string, AssetCopy>();
+
+  for (const asset of assets) {
+    const data = await storage.get(asset.storageKey);
+
+    if (!data) continue;
+
+    const storageKey = newStorageKey(asset.mime as AssetMimeType);
+    await storage.put(storageKey, data);
+    copies.set(asset.id, { id: randomUUID(), storageKey, source: asset });
+  }
+
+  return copies;
 };
 
 // Best-effort removal of the files of an already deleted form's assets.

@@ -39,6 +39,7 @@ export const formatAnswer = (
     case "BOOLEAN":
       return value ? "Так" : "Ні";
     case "CHOICE_SINGLE":
+    case "IMAGE_CHOICE":
     case "CHOICE_MULTI": {
       const labels = optionLabelsById(question, otherText);
       const ids = Array.isArray(value) ? value : [value as string];

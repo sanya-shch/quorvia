@@ -25,7 +25,9 @@ const renderScope = (theme: unknown) =>
   );
 
 describe("ThemeScope", () => {
-  beforeEach(() => loadFont.mockClear());
+  beforeEach(() => {
+    loadFont.mockClear();
+  });
 
   it.each([null, undefined, {}, "dark", []])("renders the children untouched for %j", (theme) => {
     const { container } = renderScope(theme);
