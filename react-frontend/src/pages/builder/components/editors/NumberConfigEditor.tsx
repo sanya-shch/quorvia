@@ -128,7 +128,9 @@ export default function NumberConfigEditor({ config, onChange }: NumberConfigEdi
       {hasValidationError && (
         <ErrorInfo
           errorText={t(
-            isSlider ? "builder.editors.number.sliderRangeError" : "builder.editors.number.minMaxError",
+            isSlider
+              ? "builder.editors.number.sliderRangeError"
+              : "builder.editors.number.minMaxError",
           )}
         />
       )}

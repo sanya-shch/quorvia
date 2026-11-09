@@ -208,13 +208,11 @@ describe("міст автентифікації: refresh при 401", () => {
 
   it("якщо refresh не вдався - диспатчить AUTH_EXPIRED_EVENT і кидає ApiError", async () => {
     setAuthBridge({ getAccessToken: () => "expired-token", refreshAccessToken: async () => null });
-    globalThis.fetch = vi
-      .fn()
-      .mockResolvedValue({
-        ok: false,
-        status: 401,
-        json: async () => ({}),
-      }) as unknown as typeof fetch;
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({}),
+    }) as unknown as typeof fetch;
     const listener = vi.fn();
     window.addEventListener(AUTH_EXPIRED_EVENT, listener);
 

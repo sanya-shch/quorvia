@@ -22,11 +22,15 @@ const option = (id: string, extra: Partial<QuestionOption> = {}): QuestionOption
   ...extra,
 });
 
-const setup = (options: QuestionOption[] = [option("a", { imageAssetId: "img-a" }), option("b")]) => {
+const setup = (
+  options: QuestionOption[] = [option("a", { imageAssetId: "img-a" }), option("b")],
+) => {
   const onChange = vi.fn();
 
   render(
-    <QueryClientProvider client={new QueryClient({ defaultOptions: { mutations: { retry: false } } })}>
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { mutations: { retry: false } } })}
+    >
       <ImageOptionsEditor formId="form-1" options={options} onChange={onChange} />
     </QueryClientProvider>,
   );
@@ -34,7 +38,8 @@ const setup = (options: QuestionOption[] = [option("a", { imageAssetId: "img-a" 
   return { onChange, user: userEvent.setup({ applyAccept: false }) };
 };
 
-const file = (name: string, type: string, size = 100) => new File([new Uint8Array(size)], name, { type });
+const file = (name: string, type: string, size = 100) =>
+  new File([new Uint8Array(size)], name, { type });
 
 describe("ImageOptionsEditor", () => {
   beforeEach(() => {
@@ -61,7 +66,14 @@ describe("ImageOptionsEditor", () => {
   });
 
   it("uploads a picture and attaches it to that option", async () => {
-    upload.mockResolvedValue({ id: "new-img", kind: "OPTION_IMAGE", mime: "image/png", size: 1, width: 1, height: 1 });
+    upload.mockResolvedValue({
+      id: "new-img",
+      kind: "OPTION_IMAGE",
+      mime: "image/png",
+      size: 1,
+      width: 1,
+      height: 1,
+    });
     const { onChange, user } = setup();
     const picture = file("b.png", "image/png");
 
@@ -142,7 +154,10 @@ describe("ImageOptionsEditor", () => {
 
     await user.click(screen.getByRole("button", { name: "Видалити варіант 2" }));
 
-    expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ id: "a" }), expect.objectContaining({ id: "c" })]);
+    expect(onChange).toHaveBeenCalledWith([
+      expect.objectContaining({ id: "a" }),
+      expect.objectContaining({ id: "c" }),
+    ]);
   });
 
   it("reorders options and disables moves at the ends", async () => {

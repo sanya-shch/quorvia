@@ -302,7 +302,10 @@ export const getFormAnalytics = async (
           const key = value as string;
           // Free text has an unbounded number of distinct values and the Map cannot grow forever
           // (for very large forms the top 5 becomes approximate).
-          if (acc.textCounts!.has(key) || acc.textCounts!.size < analyticsConfig.maxTrackedTextValues) {
+          if (
+            acc.textCounts!.has(key) ||
+            acc.textCounts!.size < analyticsConfig.maxTrackedTextValues
+          ) {
             acc.textCounts!.set(key, (acc.textCounts!.get(key) || 0) + 1);
           }
         } else if (acc.type === "NUMBER") {
@@ -465,7 +468,9 @@ export const getFormAnalytics = async (
 // Incremental accumulator of transitions between visible questions: responses are fed
 // one by one (add) and the result is read at the end (result), so getFormPaths does not
 // hold every response in memory. orderedQuestions must be sorted by `order`.
-const createPathsAccumulator = (orderedQuestions: { id: string; text: string; order: number }[]) => {
+const createPathsAccumulator = (
+  orderedQuestions: { id: string; text: string; order: number }[],
+) => {
   const allQuestionIds = orderedQuestions.map((q) => q.id);
   const shownCount: Record<string, number> = {};
   const edgeCount = new Map<string, number>();
@@ -554,7 +559,9 @@ type FunnelAttempt = {
   completedAt: Date | null;
 };
 
-const createFunnelAccumulator = (orderedQuestions: { id: string; text: string; order: number }[]) => {
+const createFunnelAccumulator = (
+  orderedQuestions: { id: string; text: string; order: number }[],
+) => {
   const reachedCount: Record<string, number> = {};
   let totalAttempts = 0;
   let totalCompletions = 0;
@@ -936,7 +943,12 @@ export const getResponseById = async (
   const filesById = new Map<string, UploadedFileDto>(
     responseFiles.map((file) => [
       file.id,
-      { id: file.id, name: file.originalName, size: file.size, mime: file.mime as UploadedFileDto["mime"] },
+      {
+        id: file.id,
+        name: file.originalName,
+        size: file.size,
+        mime: file.mime as UploadedFileDto["mime"],
+      },
     ]),
   );
 
@@ -1007,7 +1019,9 @@ export const getResponseById = async (
     ) {
       // For these types the answer is a string/number (an object only occurs in MATRIX, above).
       displayValue =
-        typeof userValue === "boolean" ? String(userValue) : (userValue as string | number | string[]);
+        typeof userValue === "boolean"
+          ? String(userValue)
+          : (userValue as string | number | string[]);
     } else {
       assertNever(q.type, "question type");
     }

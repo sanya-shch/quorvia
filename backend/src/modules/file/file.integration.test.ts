@@ -21,12 +21,12 @@ vi.mock("./file.storage.js", async () => {
 
 const { prisma } = await import("../../prisma/prisma.js");
 const { defaultFileStorage: storage } = await import("./file.storage.js");
-const { uploadResponseFile, deleteUnattachedFile, getOwnerFile } = await import("./file.service.js");
+const { uploadResponseFile, deleteUnattachedFile, getOwnerFile } =
+  await import("./file.service.js");
 const { updateForm, deleteForm } = await import("../form/form.service.js");
 const { submitResponse } = await import("../response/response.service.js");
-const { getFormAnalytics, getQuestionAnalytics, getResponseById } = await import(
-  "../analytics/analytics.service.js"
-);
+const { getFormAnalytics, getQuestionAnalytics, getResponseById } =
+  await import("../analytics/analytics.service.js");
 const { cleanupOrphanResponseFiles } = await import("../maintenance/maintenance.service.js");
 const { makePng } = await import("../asset/testImages.js");
 
@@ -61,7 +61,8 @@ const fileQuestion = (id = Q, extra: Record<string, unknown> = {}) => ({
   ...extra,
 });
 
-const save = (questions: unknown[]) => updateForm(FORM, OWNER, { title: "Form", questions } as never);
+const save = (questions: unknown[]) =>
+  updateForm(FORM, OWNER, { title: "Form", questions } as never);
 
 const upload = (overrides: Record<string, unknown> = {}) =>
   uploadResponseFile({
@@ -106,7 +107,12 @@ describe("uploadResponseFile", () => {
 
     const row = await prisma.responseFile.findUniqueOrThrow({ where: { id: dto.id } });
 
-    expect(row).toMatchObject({ formId: FORM, questionId: Q, sessionKey: SESSION, responseId: null });
+    expect(row).toMatchObject({
+      formId: FORM,
+      questionId: Q,
+      sessionKey: SESSION,
+      responseId: null,
+    });
     expect(row.storageKey).toMatch(/^[0-9a-f-]{36}\.bin$/);
     expect(row.storageKey).not.toContain("pdf");
     expect((await storage.get(row.storageKey))!.equals(PDF)).toBe(true);
@@ -128,7 +134,14 @@ describe("uploadResponseFile", () => {
   it("refuses an unknown question and a question of another type alike", async () => {
     await save([
       fileQuestion(),
-      { id: "q-text", text: "T", type: "TEXT", order: 1, required: false, config: { variant: "input" } },
+      {
+        id: "q-text",
+        text: "T",
+        type: "TEXT",
+        order: 1,
+        required: false,
+        config: { variant: "input" },
+      },
     ]);
 
     await rejectsWith(upload({ questionId: "missing" }), ErrorCode.FILE_UPLOAD_INVALID);
@@ -153,7 +166,9 @@ describe("uploadResponseFile", () => {
   });
 
   it("limits the pending files of one session across questions", async () => {
-    const questions = Array.from({ length: 6 }, (_, i) => fileQuestion(`q-${i}`, { order: i, config: { maxFiles: 3 } }));
+    const questions = Array.from({ length: 6 }, (_, i) =>
+      fileQuestion(`q-${i}`, { order: i, config: { maxFiles: 3 } }),
+    );
     await save(questions);
 
     for (let i = 0; i < FILE_LIMITS.maxFilesPerSession; i++) {
@@ -214,7 +229,10 @@ describe("deleteUnattachedFile", () => {
     const dto = await upload();
 
     await rejectsWith(deleteUnattachedFile(SHARE, OTHER_SESSION, dto.id), ErrorCode.FILE_NOT_FOUND);
-    await rejectsWith(deleteUnattachedFile("other-share", SESSION, dto.id), ErrorCode.FILE_NOT_FOUND);
+    await rejectsWith(
+      deleteUnattachedFile("other-share", SESSION, dto.id),
+      ErrorCode.FILE_NOT_FOUND,
+    );
     await rejectsWith(deleteUnattachedFile(SHARE, SESSION, "nope"), ErrorCode.FILE_NOT_FOUND);
     expect(await prisma.responseFile.count()).toBe(1);
   });
@@ -232,7 +250,9 @@ describe("submitResponse with files", () => {
   const submitFails = async (promise: Promise<unknown>) => {
     await expect(promise).rejects.toMatchObject({
       message: ErrorCode.RESPONSE_VALIDATION_FAILED,
-      errors: expect.arrayContaining([expect.objectContaining({ message: ErrorCode.VALIDATION_FILES_INVALID })]),
+      errors: expect.arrayContaining([
+        expect.objectContaining({ message: ErrorCode.VALIDATION_FILES_INVALID }),
+      ]),
     });
     expect(await prisma.response.count()).toBe(0);
   };
@@ -256,11 +276,15 @@ describe("submitResponse with files", () => {
     const foreign = await upload({ sessionKey: OTHER_SESSION });
 
     await submitFails(submitResponse(SHARE, { [Q]: [foreign.id] }, SESSION));
-    expect((await prisma.responseFile.findUniqueOrThrow({ where: { id: foreign.id } })).responseId).toBeNull();
+    expect(
+      (await prisma.responseFile.findUniqueOrThrow({ where: { id: foreign.id } })).responseId,
+    ).toBeNull();
   });
 
   it("rejects an unknown file id", async () => {
-    await submitFails(submitResponse(SHARE, { [Q]: ["11111111-aaaa-4bbb-8ccc-111111111111"] }, SESSION));
+    await submitFails(
+      submitResponse(SHARE, { [Q]: ["11111111-aaaa-4bbb-8ccc-111111111111"] }, SESSION),
+    );
   });
 
   it("rejects files without a session key", async () => {
@@ -299,13 +323,15 @@ describe("submitResponse with files", () => {
     await submitFails(submitResponse(SHARE, { [Q]: [good.id, foreign.id] }, SESSION));
 
     // Nothing was attached: the good file is still free.
-    expect((await prisma.responseFile.findUniqueOrThrow({ where: { id: good.id } })).responseId).toBeNull();
+    expect(
+      (await prisma.responseFile.findUniqueOrThrow({ where: { id: good.id } })).responseId,
+    ).toBeNull();
   });
 
   it("rejects more files than the question allows", async () => {
-    await expect(
-      submitResponse(SHARE, { [Q]: ["a", "b", "c"] }, SESSION),
-    ).rejects.toMatchObject({ message: ErrorCode.RESPONSE_VALIDATION_FAILED });
+    await expect(submitResponse(SHARE, { [Q]: ["a", "b", "c"] }, SESSION)).rejects.toMatchObject({
+      message: ErrorCode.RESPONSE_VALIDATION_FAILED,
+    });
   });
 
   it("requires a file for a required question", async () => {
@@ -321,10 +347,20 @@ describe("submitResponse with files", () => {
 
   it("ignores the files of a question hidden by a condition", async () => {
     await save([
-      { id: "q-gate", text: "Gate", type: "BOOLEAN", order: 0, required: false, config: { defaultValue: false } },
+      {
+        id: "q-gate",
+        text: "Gate",
+        type: "BOOLEAN",
+        order: 0,
+        required: false,
+        config: { defaultValue: false },
+      },
       fileQuestion(Q, {
         order: 1,
-        condition: { operator: "AND", rules: [{ questionId: "q-gate", operator: "equals", value: true }] },
+        condition: {
+          operator: "AND",
+          rules: [{ questionId: "q-gate", operator: "equals", value: true }],
+        },
       }),
     ]);
     const dto = await upload();
@@ -332,7 +368,9 @@ describe("submitResponse with files", () => {
     const response = await submitResponse(SHARE, { "q-gate": false, [Q]: [dto.id] }, SESSION);
 
     expect((response.answers as Record<string, unknown>)[Q]).toBeUndefined();
-    expect((await prisma.responseFile.findUniqueOrThrow({ where: { id: dto.id } })).responseId).toBeNull();
+    expect(
+      (await prisma.responseFile.findUniqueOrThrow({ where: { id: dto.id } })).responseId,
+    ).toBeNull();
   });
 });
 
@@ -358,7 +396,10 @@ describe("the owner's view", () => {
     const pending = await upload({ sessionKey: OTHER_SESSION });
 
     await rejectsWith(getOwnerFile(FORM, response.id, dto.id, OTHER), ErrorCode.FORM_FORBIDDEN);
-    await rejectsWith(getOwnerFile(FORM, "other-response", dto.id, OWNER), ErrorCode.FILE_NOT_FOUND);
+    await rejectsWith(
+      getOwnerFile(FORM, "other-response", dto.id, OWNER),
+      ErrorCode.FILE_NOT_FOUND,
+    );
     await rejectsWith(getOwnerFile(FORM, response.id, pending.id, OWNER), ErrorCode.FILE_NOT_FOUND);
 
     const row = await prisma.responseFile.findUniqueOrThrow({ where: { id: dto.id } });
@@ -374,7 +415,9 @@ describe("the owner's view", () => {
     const answer = details.answers.find((a) => a.questionId === Q)!;
 
     expect(answer.displayValue).toEqual(["Звіт.pdf"]);
-    expect(answer.files).toEqual([{ id: dto.id, name: "Звіт.pdf", size: PDF.length, mime: "application/pdf" }]);
+    expect(answer.files).toEqual([
+      { id: dto.id, name: "Звіт.pdf", size: PDF.length, mime: "application/pdf" },
+    ]);
   });
 
   it("counts the uploaded files in the analytics overview and has no detail view", async () => {
@@ -425,7 +468,9 @@ describe("cleanupOrphanResponseFiles", () => {
     const result = await cleanupOrphanResponseFiles({ now: NOW });
 
     expect(result.rows).toBe(1);
-    const left = (await prisma.responseFile.findMany({ select: { id: true } })).map((f) => f.id).sort();
+    const left = (await prisma.responseFile.findMany({ select: { id: true } }))
+      .map((f) => f.id)
+      .sort();
     expect(left).toEqual([attached.id, fresh.id].sort());
     expect(await keysOf()).toHaveLength(2);
     expect(left).not.toContain(oldUnattached.id);
@@ -447,7 +492,9 @@ describe("cleanupOrphanResponseFiles", () => {
   it("keeps the files of a file that was attached while the cleanup was running", async () => {
     const dto = await aged(3 * DAY_MS);
     const real = prisma.responseFile.findMany.bind(prisma.responseFile);
-    const spy = vi.spyOn(prisma.responseFile, "findMany").mockImplementationOnce((async (args?: never) => {
+    const spy = vi.spyOn(prisma.responseFile, "findMany").mockImplementationOnce((async (
+      args?: never,
+    ) => {
       const batch = await real(args);
       // The submit wins the race right after the batch was read.
       await submitResponse(SHARE, { [Q]: [dto.id] }, SESSION);
@@ -462,7 +509,8 @@ describe("cleanupOrphanResponseFiles", () => {
   });
 
   it("works in batches", async () => {
-    for (let i = 0; i < 3; i++) await aged(3 * DAY_MS, { sessionKey: `00000000-0000-4000-8000-00000000000${i}` });
+    for (let i = 0; i < 3; i++)
+      await aged(3 * DAY_MS, { sessionKey: `00000000-0000-4000-8000-00000000000${i}` });
 
     const result = await cleanupOrphanResponseFiles({ now: NOW, batchSize: 2 });
 

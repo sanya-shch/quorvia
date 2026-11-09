@@ -17,9 +17,12 @@ describe("parsePagination", () => {
     });
   });
 
-  it.each(["0", "-5", "abc", "1.5", "", "NaN"])("некоректне значення %j замінюється дефолтом", (v) => {
-    expect(parsePagination({ page: v, limit: v })).toEqual({ page: 1, limit: 10 });
-  });
+  it.each(["0", "-5", "abc", "1.5", "", "NaN"])(
+    "некоректне значення %j замінюється дефолтом",
+    (v) => {
+      expect(parsePagination({ page: v, limit: v })).toEqual({ page: 1, limit: 10 });
+    },
+  );
 
   it("масив у query (?page=1&page=2) не ламає розбір", () => {
     expect(parsePagination({ page: ["1", "2"], limit: ["5"] })).toEqual({ page: 1, limit: 10 });

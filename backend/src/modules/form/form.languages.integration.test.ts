@@ -8,9 +8,8 @@ vi.mock("../../prisma/prisma.js", async () =>
 );
 
 const { prisma } = await import("../../prisma/prisma.js");
-const { updateForm, getUserForm, getFormByShareId, duplicateForm, createForm } = await import(
-  "./form.service.js"
-);
+const { updateForm, getUserForm, getFormByShareId, duplicateForm, createForm } =
+  await import("./form.service.js");
 const { submitResponse } = await import("../response/response.service.js");
 const { getResponses, getResponseById } = await import("../analytics/analytics.service.js");
 
@@ -58,7 +57,11 @@ describe("мови контенту: типові значення", () => {
   });
 
   it("createForm приймає основну мову", async () => {
-    const created = await createForm({ title: "English form", defaultLanguage: "en", userId: USER });
+    const created = await createForm({
+      title: "English form",
+      defaultLanguage: "en",
+      userId: USER,
+    });
 
     expect(created.defaultLanguage).toBe("en");
   });
@@ -187,7 +190,11 @@ describe("updateForm: збереження мов і перекладів", () =
 
   it("зміна основної мови зберігається, переклади лишаються", async () => {
     await save({ languages: ["en"], translations: { en: { title: "Survey" } } });
-    await save({ defaultLanguage: "pl", languages: ["en"], translations: { en: { title: "Survey" } } });
+    await save({
+      defaultLanguage: "pl",
+      languages: ["en"],
+      translations: { en: { title: "Survey" } },
+    });
 
     const form = await read();
 
@@ -292,7 +299,9 @@ describe("мова відповіді респондента", () => {
   it("мова, якої немає у форми, не блокує відповідь і не записується", async () => {
     const answered = await submitResponse("share-lang", { "q-choice": "o1" }, undefined, "pl");
 
-    expect((await prisma.response.findUniqueOrThrow({ where: { id: answered.id } })).language).toBeNull();
+    expect(
+      (await prisma.response.findUniqueOrThrow({ where: { id: answered.id } })).language,
+    ).toBeNull();
   });
 
   it("мову, яку з форми видалили, відповідь уже не отримає (кеш респондента застарів)", async () => {
@@ -300,6 +309,8 @@ describe("мова відповіді респондента", () => {
 
     const answered = await submitResponse("share-lang", { "q-choice": "o1" }, undefined, "en");
 
-    expect((await prisma.response.findUniqueOrThrow({ where: { id: answered.id } })).language).toBeNull();
+    expect(
+      (await prisma.response.findUniqueOrThrow({ where: { id: answered.id } })).language,
+    ).toBeNull();
   });
 });

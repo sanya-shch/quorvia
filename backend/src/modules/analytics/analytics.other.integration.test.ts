@@ -7,9 +7,8 @@ vi.mock("../../prisma/prisma.js", async () =>
 );
 
 const { prisma } = await import("../../prisma/prisma.js");
-const { getFormAnalytics, getQuestionAnalytics, getResponseById } = await import(
-  "./analytics.service.js"
-);
+const { getFormAnalytics, getQuestionAnalytics, getResponseById } =
+  await import("./analytics.service.js");
 
 const USER = "user-other";
 const FORM = "form-other";

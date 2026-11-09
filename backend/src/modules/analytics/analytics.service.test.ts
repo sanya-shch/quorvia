@@ -535,7 +535,11 @@ describe("buildFormFunnel", () => {
     // reached q1; reached is what shows the real drop-off.
     const attempts = [
       { reachedQuestionIds: ["q1"], visibleQuestionIds: ["q1", "q2", "q3"], completedAt: null },
-      { reachedQuestionIds: ["q1", "q2"], visibleQuestionIds: ["q1", "q2", "q3"], completedAt: null },
+      {
+        reachedQuestionIds: ["q1", "q2"],
+        visibleQuestionIds: ["q1", "q2", "q3"],
+        completedAt: null,
+      },
     ];
 
     const result = buildFormFunnel(orderedQuestions, attempts);

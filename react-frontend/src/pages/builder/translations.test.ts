@@ -96,7 +96,9 @@ describe("listTranslationFields", () => {
         }),
       ],
     });
-    const byKey = Object.fromEntries(listTranslationFields(form, "en").map((f) => [f.key, f.value]));
+    const byKey = Object.fromEntries(
+      listTranslationFields(form, "en").map((f) => [f.key, f.value]),
+    );
 
     expect(byKey).toMatchObject({
       "form:title": "Survey",
@@ -108,7 +110,9 @@ describe("listTranslationFields", () => {
 
   it("питання без варіантів у типі (TEXT) не отримують полів варіантів, навіть якщо options не порожній", () => {
     const form = baseForm({
-      questions: [question({ type: "TEXT", options: [{ id: "x", text: "Stale", isDefault: false }] })],
+      questions: [
+        question({ type: "TEXT", options: [{ id: "x", text: "Stale", isDefault: false }] }),
+      ],
     });
 
     expect(listTranslationFields(form, "en").some((f) => f.kind === "option")).toBe(false);
@@ -143,20 +147,24 @@ describe("setFieldTranslation", () => {
 
   it("записує текст питання й варіант, не чіпаючи інші питання", () => {
     const form = baseForm({
-      questions: [
-        ...baseForm().questions,
-        question({ id: "t", text: "Інше", order: 1 }),
-      ],
+      questions: [...baseForm().questions, question({ id: "t", text: "Інше", order: 1 })],
     });
     const step1 = setFieldTranslation(form, "en", field("questionText" as never, 0), "Drink");
     const step2 = setFieldTranslation(step1, "en", field("option" as never, 0, "o1"), "Coffee");
 
-    expect(step2.questions[0].translations).toEqual({ en: { text: "Drink", options: { o1: "Coffee" } } });
+    expect(step2.questions[0].translations).toEqual({
+      en: { text: "Drink", options: { o1: "Coffee" } },
+    });
     expect(step2.questions[1]).toBe(form.questions[1]);
   });
 
   it("порожнє значення прибирає переклад, а порожні структури зникають зовсім", () => {
-    const withValue = setFieldTranslation(baseForm(), "en", field("formTitle" as never, null), "Survey");
+    const withValue = setFieldTranslation(
+      baseForm(),
+      "en",
+      field("formTitle" as never, null),
+      "Survey",
+    );
     const cleared = setFieldTranslation(withValue, "en", field("formTitle" as never, null), "  ");
 
     expect(cleared.translations).toBeNull();
@@ -196,7 +204,9 @@ describe("setFieldTranslation", () => {
     const next = setFieldTranslation(form, "en", field("row" as never, 0, "r1"), "Row");
     const labeled = setFieldTranslation(next, "en", field("minLabel" as never, 0), "Bad");
 
-    expect(labeled.questions[0].translations).toEqual({ en: { rows: { r1: "Row" }, minLabel: "Bad" } });
+    expect(labeled.questions[0].translations).toEqual({
+      en: { rows: { r1: "Row" }, minLabel: "Bad" },
+    });
   });
 });
 

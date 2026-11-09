@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useFormAnalytics } from "./composables/useFormAnalytics";
@@ -49,14 +48,27 @@ setAuthBridge(
     : null,
 );
 
-const { data: analytics, isLoading: analyticsLoading, error: analyticsError } = useFormAnalytics(
-  apiBaseUrl,
-  props.formId,
-);
-const { data: paths, isLoading: pathsLoading, error: pathsError } = useFormPaths(apiBaseUrl, props.formId);
-const { data: funnel, isLoading: funnelLoading, error: funnelError } = useFormFunnel(apiBaseUrl, props.formId);
-const { data: detail, isLoading: detailLoading, error: detailError, load: loadDetail } =
-  useQuestionAnalytics(apiBaseUrl, props.formId);
+const {
+  data: analytics,
+  isLoading: analyticsLoading,
+  error: analyticsError,
+} = useFormAnalytics(apiBaseUrl, props.formId);
+const {
+  data: paths,
+  isLoading: pathsLoading,
+  error: pathsError,
+} = useFormPaths(apiBaseUrl, props.formId);
+const {
+  data: funnel,
+  isLoading: funnelLoading,
+  error: funnelError,
+} = useFormFunnel(apiBaseUrl, props.formId);
+const {
+  data: detail,
+  isLoading: detailLoading,
+  error: detailError,
+  load: loadDetail,
+} = useQuestionAnalytics(apiBaseUrl, props.formId);
 
 const activeQuestionId = ref<string | null>(null);
 
@@ -135,8 +147,12 @@ const selectResponse = (responseId: string) => {
         <FunnelChart v-else-if="funnel" :funnel="funnel" />
       </section>
 
-      <section v-if="analyticsLoading" class="state-msg">{{ t("analytics.analyticsSection.loading") }}</section>
-      <section v-else-if="analyticsError" class="state-msg state-msg--error">{{ t(analyticsError) }}</section>
+      <section v-if="analyticsLoading" class="state-msg">
+        {{ t("analytics.analyticsSection.loading") }}
+      </section>
+      <section v-else-if="analyticsError" class="state-msg state-msg--error">
+        {{ t(analyticsError) }}
+      </section>
 
       <template v-else-if="analytics">
         <section v-if="analytics.totalResponses === 0" class="empty-state">

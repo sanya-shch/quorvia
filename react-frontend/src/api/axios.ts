@@ -91,8 +91,7 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config as
-      | (typeof error.config & { _retriedAfterRefresh?: boolean })
-      | undefined;
+      (typeof error.config & { _retriedAfterRefresh?: boolean }) | undefined;
 
     const isAuthEndpoint = originalRequest?.url?.startsWith("/auth/");
 

@@ -39,7 +39,8 @@ const uploaded = (id: string, name: string, size = 2048) => ({
   mime: "application/pdf" as const,
 });
 
-const file = (name: string, type: string, size = 100) => new File([new Uint8Array(size)], name, { type });
+const file = (name: string, type: string, size = 100) =>
+  new File([new Uint8Array(size)], name, { type });
 
 const renderForm = (question: Question = q(), onSubmit = vi.fn()) => {
   render(
@@ -87,11 +88,17 @@ describe("FormViewer - FILE", () => {
 
     expect(await screen.findByText("report.pdf")).toBeInTheDocument();
     expect(screen.getByText("2 KB")).toBeInTheDocument();
-    expect(upload).toHaveBeenCalledWith("share-1", { sessionKey: SESSION, questionId: "q", file: report });
+    expect(upload).toHaveBeenCalledWith("share-1", {
+      sessionKey: SESSION,
+      questionId: "q",
+      file: report,
+    });
   });
 
   it("submits the ids of the uploaded files", async () => {
-    upload.mockResolvedValueOnce(uploaded("f1", "a.pdf")).mockResolvedValueOnce(uploaded("f2", "b.pdf"));
+    upload
+      .mockResolvedValueOnce(uploaded("f1", "a.pdf"))
+      .mockResolvedValueOnce(uploaded("f2", "b.pdf"));
     const { user, onSubmit } = renderForm();
 
     await user.upload(input(), file("a.pdf", "application/pdf"));
@@ -123,8 +130,16 @@ describe("FormViewer - FILE", () => {
   it.each([
     ["an executable", file("virus.exe", "application/x-msdownload"), "Непідтримуваний тип файлу"],
     ["an SVG image", file("logo.svg", "image/svg+xml"), "Непідтримуваний тип файлу"],
-    ["a Word document", file("a.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"), "Непідтримуваний тип файлу"],
-    ["a file above the size limit", file("big.pdf", "application/pdf", FILE_LIMITS.maxBytes + 1), "завеликий"],
+    [
+      "a Word document",
+      file("a.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+      "Непідтримуваний тип файлу",
+    ],
+    [
+      "a file above the size limit",
+      file("big.pdf", "application/pdf", FILE_LIMITS.maxBytes + 1),
+      "завеликий",
+    ],
   ])("rejects %s without a request", async (_label, bad, message) => {
     const { user } = renderForm();
 
@@ -149,7 +164,9 @@ describe("FormViewer - FILE", () => {
 
     await user.upload(input(), file("broken.pdf", "application/pdf"));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("broken.pdf: Файл порожній або пошкоджений");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "broken.pdf: Файл порожній або пошкоджений",
+    );
 
     await user.click(screen.getByRole("button", SUBMIT));
     expect(onSubmit).toHaveBeenCalledWith({});

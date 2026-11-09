@@ -7,7 +7,8 @@ vi.mock("../../prisma/prisma.js", async () =>
 );
 
 const { prisma } = await import("../../prisma/prisma.js");
-const { updateForm, getFormByShareId, getUserForm, duplicateForm } = await import("./form.service.js");
+const { updateForm, getFormByShareId, getUserForm, duplicateForm } =
+  await import("./form.service.js");
 
 const USER = "user-1";
 const FORM = "form-1";
@@ -21,7 +22,9 @@ beforeEach(async () => {
   await prisma.form.deleteMany();
   await prisma.user.deleteMany();
   await prisma.user.create({ data: { id: USER, email: "a@b.c", password: "x" } });
-  await prisma.form.create({ data: { id: FORM, title: "Form", userId: USER, shareId: "share-1", isPublished: true } });
+  await prisma.form.create({
+    data: { id: FORM, title: "Form", userId: USER, shareId: "share-1", isPublished: true },
+  });
 });
 
 afterAll(async () => {

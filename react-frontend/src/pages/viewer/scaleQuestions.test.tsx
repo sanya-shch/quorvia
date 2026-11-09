@@ -59,7 +59,9 @@ describe("FormViewer - RATING", () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
 
-    render(<FormViewer formTitle="Т" questions={[q({ id: "r", type: "RATING" })]} onSubmit={onSubmit} />);
+    render(
+      <FormViewer formTitle="Т" questions={[q({ id: "r", type: "RATING" })]} onSubmit={onSubmit} />,
+    );
 
     await user.click(screen.getByRole("radio", { name: "3 з 5" }));
     await user.click(screen.getByRole("button", { name: "Скасувати відповідь" }));
@@ -105,7 +107,9 @@ describe("FormViewer - NPS", () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
 
-    render(<FormViewer formTitle="Т" questions={[q({ id: "n", type: "NPS" })]} onSubmit={onSubmit} />);
+    render(
+      <FormViewer formTitle="Т" questions={[q({ id: "n", type: "NPS" })]} onSubmit={onSubmit} />,
+    );
 
     expect(screen.getAllByRole("radio")).toHaveLength(11);
     expect(screen.getByText("Зовсім малоймовірно")).toBeInTheDocument();

@@ -4,7 +4,10 @@ import userEvent from "@testing-library/user-event";
 import type { FormTheme } from "@quorvia/shared-types";
 import ThemeEditor from "./ThemeEditor";
 
-vi.mock("../../viewer/theme/fonts", () => ({ useThemeFont: () => undefined, loadFont: () => Promise.resolve() }));
+vi.mock("../../viewer/theme/fonts", () => ({
+  useThemeFont: () => undefined,
+  loadFont: () => Promise.resolve(),
+}));
 
 const setup = (theme: FormTheme | null = null) => {
   const onChange = vi.fn();
@@ -128,7 +131,10 @@ describe("ThemeEditor", () => {
 
   it("renders a live preview with the chosen colors", () => {
     const { container } = render(
-      <ThemeEditor theme={{ primaryColor: "#ff0000", backgroundColor: "#000000", textColor: "#ffffff" }} onChange={vi.fn()} />,
+      <ThemeEditor
+        theme={{ primaryColor: "#ff0000", backgroundColor: "#000000", textColor: "#ffffff" }}
+        onChange={vi.fn()}
+      />,
     );
     const scope = container.querySelector<HTMLElement>(".q-theme")!;
 

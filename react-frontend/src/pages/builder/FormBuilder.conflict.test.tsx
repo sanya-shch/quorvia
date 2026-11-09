@@ -101,7 +101,9 @@ describe("FormBuilder - optimistic locking (version)", () => {
     await editTitleAndSave(user, "Початкова");
 
     expect(await screen.findByText("Форму змінили в іншому місці")).toBeInTheDocument();
-    expect(screen.queryByRole("alert", { name: "" })?.textContent ?? "").not.toContain("Помилка при збереженні");
+    expect(screen.queryByRole("alert", { name: "" })?.textContent ?? "").not.toContain(
+      "Помилка при збереженні",
+    );
   });
 
   it("«Завантажити актуальну» підтягує свіжу форму і наступне збереження йде з її версією", async () => {

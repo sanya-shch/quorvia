@@ -46,7 +46,10 @@ describe("MatrixConfigEditor", () => {
     render(<Harness rows={[row("r1")]} columns={[col("a"), col("b")]} spy={spy} />);
 
     await user.click(screen.getByRole("button", { name: "Додати рядок" }));
-    expect(spy.mock.calls.at(-1)![0].rows.map((r: MatrixRow) => r.text)).toEqual(["Р r1", "Рядок 2"]);
+    expect(spy.mock.calls.at(-1)![0].rows.map((r: MatrixRow) => r.text)).toEqual([
+      "Р r1",
+      "Рядок 2",
+    ]);
 
     await user.click(screen.getByRole("button", { name: "Додати колонку" }));
     expect(spy.mock.calls.at(-1)![0].columns).toHaveLength(3);

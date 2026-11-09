@@ -104,7 +104,8 @@ export default function PublicFormPage() {
   const uiLanguage = getUiLanguageFor(language);
   // The UI bundle may differ from the app's language, so it can still be downloading.
   const [loadedUiLanguage, setLoadedUiLanguage] = useState<string | null>(null);
-  const uiLocaleReady = !isMultilingual || isLocaleLoaded(uiLanguage) || loadedUiLanguage === uiLanguage;
+  const uiLocaleReady =
+    !isMultilingual || isLocaleLoaded(uiLanguage) || loadedUiLanguage === uiLanguage;
 
   useEffect(() => {
     if (!isMultilingual) return;

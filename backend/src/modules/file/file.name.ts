@@ -41,7 +41,10 @@ export const sanitizeFileName = (raw: string | undefined, mime: FileMimeType): s
 
   name = name.split(/[\\/]/).pop() ?? "";
   // eslint-disable-next-line no-control-regex
-  name = name.replace(/[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff"<>:|?*]/g, "");
+  name = name.replace(
+    /[\u0000-\u001f\u007f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff"<>:|?*]/g,
+    "",
+  );
   name = name.replace(/^[.\s]+/, "").trim();
 
   const dot = name.lastIndexOf(".");
@@ -57,7 +60,10 @@ export const sanitizeFileName = (raw: string | undefined, mime: FileMimeType): s
 // Content-Disposition for a download: ASCII fallback plus the RFC 5987 UTF-8 form.
 export const attachmentDisposition = (name: string): string => {
   const fallback = name.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "_");
-  const encoded = encodeURIComponent(name).replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+  const encoded = encodeURIComponent(name).replace(
+    /['()*]/g,
+    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`,
+  );
 
   return `attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`;
 };

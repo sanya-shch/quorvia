@@ -9,10 +9,11 @@ const css = fs.readFileSync(path.resolve(import.meta.dirname, "viewerTheme.css")
 // The theme works by re-pointing Tailwind palette variables, so a viewer component that starts
 // using a palette step the stylesheet does not map would silently ignore the author's colors.
 // This keeps the two in step.
-const sources = import.meta.glob(
-  ["../*.tsx", "../components/*.tsx", "!../**/*.test.tsx"],
-  { query: "?raw", import: "default", eager: true },
-) as Record<string, string>;
+const sources = import.meta.glob(["../*.tsx", "../components/*.tsx", "!../**/*.test.tsx"], {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
 
 const TOKEN =
   /(?<![\w-])(?:[a-z-]+:)*(?:bg|text|border|ring|divide|accent|fill|stroke|from|to|via|outline|placeholder|decoration|shadow)-(slate|indigo)-(\d{2,3})(?!\d)/g;

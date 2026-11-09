@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import ThemeScope from "./ThemeScope";
 
-const { loadFont } = vi.hoisted(() => ({ loadFont: vi.fn<(font: string) => Promise<void>>(() => Promise.resolve()) }));
+const { loadFont } = vi.hoisted(() => ({
+  loadFont: vi.fn<(font: string) => Promise<void>>(() => Promise.resolve()),
+}));
 
 vi.mock("./fonts", async () => {
   const { useEffect } = await import("react");
@@ -37,7 +39,12 @@ describe("ThemeScope", () => {
   });
 
   it("wraps the children in a themed element with variables and a radius", () => {
-    const { container } = renderScope({ mode: "dark", primaryColor: "#FF0000", radius: "large", font: "lora" });
+    const { container } = renderScope({
+      mode: "dark",
+      primaryColor: "#FF0000",
+      radius: "large",
+      font: "lora",
+    });
     const scope = container.querySelector<HTMLElement>(".q-theme")!;
 
     expect(scope).toContainElement(screen.getByText("content"));

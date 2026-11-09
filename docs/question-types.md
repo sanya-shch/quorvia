@@ -1,18 +1,18 @@
 # Question Types
 
-| Type | Answer | Notes |
-| --- | --- | --- |
-| `TEXT` | string | variants: input, textarea, email, name; length limits and an RE2-compatible pattern |
-| `NUMBER` | number | `min`/`max`; optional slider variant with a `step` |
-| `CHOICE_SINGLE` | option id | list, tabs or dropdown; optional “Other” option |
-| `CHOICE_MULTI` | array of option ids | list or tabs; optional “Other” option |
-| `BOOLEAN` | boolean | optional default value |
-| `DATE` | date string | |
-| `RATING` | integer | stars, 3-10 |
-| `SCALE` | integer | linear scale starting at 0 or 1, up to 10, with labels for both ends |
-| `NPS` | integer 0-10 | fixed scale; analytics show promoters, passives, detractors and the score |
-| `RANKING` | array of option ids | a full ordering of the options, best first (2-20 options) |
-| `MATRIX` | `{ rowId: columnId }` | rows x columns, one column per row; also covers Likert statements |
+| Type            | Answer                | Notes                                                                               |
+| --------------- | --------------------- | ----------------------------------------------------------------------------------- |
+| `TEXT`          | string                | variants: input, textarea, email, name; length limits and an RE2-compatible pattern |
+| `NUMBER`        | number                | `min`/`max`; optional slider variant with a `step`                                  |
+| `CHOICE_SINGLE` | option id             | list, tabs or dropdown; optional “Other” option                                     |
+| `CHOICE_MULTI`  | array of option ids   | list or tabs; optional “Other” option                                               |
+| `BOOLEAN`       | boolean               | optional default value                                                              |
+| `DATE`          | date string           |                                                                                     |
+| `RATING`        | integer               | stars, 3-10                                                                         |
+| `SCALE`         | integer               | linear scale starting at 0 or 1, up to 10, with labels for both ends                |
+| `NPS`           | integer 0-10          | fixed scale; analytics show promoters, passives, detractors and the score           |
+| `RANKING`       | array of option ids   | a full ordering of the options, best first (2-20 options)                           |
+| `MATRIX`        | `{ rowId: columnId }` | rows x columns, one column per row; also covers Likert statements                   |
 
 The scale types (`RATING`, `SCALE`, `NPS`) answer with plain numbers, so validation and conditions (`equals`, `gt`, `lt`, ...) work the same way as for `NUMBER`. `RANKING` and `MATRIX` are not available in conditions.
 
@@ -24,19 +24,19 @@ The single source of truth is `QUESTION_TYPES` in `packages/shared-types/src/ind
 
 ## What is checked automatically
 
-| Place | How it is caught |
-| --- | --- |
-| Prisma enum `QuestionType` does not match the list | `tsc`: `backend/src/shared/types/questions.check.ts` |
-| Zod `questionSchema` does not cover the type | `tsc`: the same file |
-| `buildResponseSchema` (answer validation) | `tsc`: `assertNever` in `default` |
-| Analytics (overview, details, answer), `formatAnswer` (export) | `tsc`: `assertNever` / `Record<QuestionType, ...>` |
-| `QuestionField` (rendering), `getDefaultAnswer` | `tsc`: `assertNever` |
-| Builder palette, labels, uk/en translations | `vitest`: `questionTypes.coverage.test.ts` |
-| Default question config, whether the config is persisted | `tsc`: `switch` without `default` in `pages/builder/questionConfig.ts` |
-| Operators in the condition editor | `tsc`: `Record<QuestionType, ...>` in `ConditionEditor.tsx` |
-| Whether the type has options / can be used in conditions | `tsc`: `questionTypeUsesOptions`, `questionTypeSupportsConditions` (`questionConfig.ts`) |
-| Answer text on the “Review your answers” screen | `tsc`: `switch` without `default` in `viewer/reviewAnswer.ts` |
-| The quick “+” add between questions | built from `QUESTION_TYPES`; checked by `questionTypes.coverage.test.tsx` |
+| Place                                                          | How it is caught                                                                         |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Prisma enum `QuestionType` does not match the list             | `tsc`: `backend/src/shared/types/questions.check.ts`                                     |
+| Zod `questionSchema` does not cover the type                   | `tsc`: the same file                                                                     |
+| `buildResponseSchema` (answer validation)                      | `tsc`: `assertNever` in `default`                                                        |
+| Analytics (overview, details, answer), `formatAnswer` (export) | `tsc`: `assertNever` / `Record<QuestionType, ...>`                                       |
+| `QuestionField` (rendering), `getDefaultAnswer`                | `tsc`: `assertNever`                                                                     |
+| Builder palette, labels, uk/en translations                    | `vitest`: `questionTypes.coverage.test.ts`                                               |
+| Default question config, whether the config is persisted       | `tsc`: `switch` without `default` in `pages/builder/questionConfig.ts`                   |
+| Operators in the condition editor                              | `tsc`: `Record<QuestionType, ...>` in `ConditionEditor.tsx`                              |
+| Whether the type has options / can be used in conditions       | `tsc`: `questionTypeUsesOptions`, `questionTypeSupportsConditions` (`questionConfig.ts`) |
+| Answer text on the “Review your answers” screen                | `tsc`: `switch` without `default` in `viewer/reviewAnswer.ts`                            |
+| The quick “+” add between questions                            | built from `QUESTION_TYPES`; checked by `questionTypes.coverage.test.tsx`                |
 
 ## What is done by hand
 

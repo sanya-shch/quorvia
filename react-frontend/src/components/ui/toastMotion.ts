@@ -18,7 +18,10 @@ const prefersReducedMotion = () =>
   typeof window.matchMedia === "function" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export const playToastAnimation = async (element: HTMLElement, phase: ToastPhase): Promise<void> => {
+export const playToastAnimation = async (
+  element: HTMLElement,
+  phase: ToastPhase,
+): Promise<void> => {
   if (typeof element.animate !== "function") return;
 
   // prefers-reduced-motion: no movement, only opacity.

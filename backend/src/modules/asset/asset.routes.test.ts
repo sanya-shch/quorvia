@@ -56,7 +56,10 @@ describe("POST /api/forms/:formId/assets", () => {
   it("defaults the kind to LOGO", async () => {
     (service.uploadAsset as any).mockResolvedValue(DTO);
 
-    await request(app).post("/api/forms/f1/assets").set("Authorization", AUTH).attach("file", png, "a.png");
+    await request(app)
+      .post("/api/forms/f1/assets")
+      .set("Authorization", AUTH)
+      .attach("file", png, "a.png");
 
     expect((service.uploadAsset as any).mock.calls[0][2]).toBe("LOGO");
   });
@@ -75,7 +78,10 @@ describe("POST /api/forms/:formId/assets", () => {
   });
 
   it("400 ASSET_UPLOAD_INVALID when there is no file", async () => {
-    const res = await request(app).post("/api/forms/f1/assets").set("Authorization", AUTH).field("kind", "LOGO");
+    const res = await request(app)
+      .post("/api/forms/f1/assets")
+      .set("Authorization", AUTH)
+      .field("kind", "LOGO");
 
     expect(res.status).toBe(400);
     expect(res.body.message).toBe(ErrorCode.ASSET_UPLOAD_INVALID);
@@ -94,7 +100,10 @@ describe("POST /api/forms/:formId/assets", () => {
   });
 
   it("400 ASSET_UPLOAD_INVALID when the file is under a different field name", async () => {
-    const res = await request(app).post("/api/forms/f1/assets").set("Authorization", AUTH).attach("upload", png, "a.png");
+    const res = await request(app)
+      .post("/api/forms/f1/assets")
+      .set("Authorization", AUTH)
+      .attach("upload", png, "a.png");
 
     expect(res.status).toBe(400);
     expect(res.body.message).toBe(ErrorCode.ASSET_UPLOAD_INVALID);
@@ -114,7 +123,10 @@ describe("POST /api/forms/:formId/assets", () => {
   it("413 ASSET_TOO_LARGE above the size limit, before the service is called", async () => {
     const big = Buffer.concat([png, Buffer.alloc(ASSET_LIMITS.maxBytes)]);
 
-    const res = await request(app).post("/api/forms/f1/assets").set("Authorization", AUTH).attach("file", big, "big.png");
+    const res = await request(app)
+      .post("/api/forms/f1/assets")
+      .set("Authorization", AUTH)
+      .attach("file", big, "big.png");
 
     expect(res.status).toBe(413);
     expect(res.body.message).toBe(ErrorCode.ASSET_TOO_LARGE);
@@ -124,7 +136,10 @@ describe("POST /api/forms/:formId/assets", () => {
   it("passes service errors through (for example someone else's form)", async () => {
     (service.uploadAsset as any).mockRejectedValue(new AppError(ErrorCode.FORM_FORBIDDEN, 403));
 
-    const res = await request(app).post("/api/forms/f1/assets").set("Authorization", AUTH).attach("file", png, "a.png");
+    const res = await request(app)
+      .post("/api/forms/f1/assets")
+      .set("Authorization", AUTH)
+      .attach("file", png, "a.png");
 
     expect(res.status).toBe(403);
     expect(res.body.message).toBe(ErrorCode.FORM_FORBIDDEN);
@@ -148,7 +163,9 @@ describe("GET /api/assets/:assetId", () => {
   });
 
   it("404 ASSET_NOT_FOUND for an unknown id", async () => {
-    (service.getAssetContent as any).mockRejectedValue(new AppError(ErrorCode.ASSET_NOT_FOUND, 404));
+    (service.getAssetContent as any).mockRejectedValue(
+      new AppError(ErrorCode.ASSET_NOT_FOUND, 404),
+    );
 
     const res = await request(app).get("/api/assets/missing");
 

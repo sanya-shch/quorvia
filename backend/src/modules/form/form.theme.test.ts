@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { updateFormSchema } from "./form.schema.js";
 
-const parse = (theme: unknown) => updateFormSchema.safeParse({ title: "Form", questions: [], theme });
+const parse = (theme: unknown) =>
+  updateFormSchema.safeParse({ title: "Form", questions: [], theme });
 
 describe("updateFormSchema: theme", () => {
   it("accepts a complete valid theme", () => {

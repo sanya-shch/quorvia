@@ -45,9 +45,9 @@ describe("saveAttemptSchema", () => {
     expect(parse({ nested: { deep: "object" } })).toBe(false);
     expect(parse({ row: 5 })).toBe(false);
     expect(parse({ row: ["a"] })).toBe(false);
-    expect(
-      parse(Object.fromEntries(Array.from({ length: 31 }, (_, i) => [`row-${i}`, "c"]))),
-    ).toBe(false);
+    expect(parse(Object.fromEntries(Array.from({ length: 31 }, (_, i) => [`row-${i}`, "c"])))).toBe(
+      false,
+    );
     expect(parse({ ["k".repeat(101)]: "c" })).toBe(false);
   });
 
@@ -76,11 +76,15 @@ describe("saveAttemptSchema", () => {
 
     it("відхиляє id довше 100 символів і не-рядки", () => {
       expect(
-        saveAttemptSchema.safeParse({ sessionKey: "s", answers: {}, reachedQuestionIds: ["x".repeat(101)] })
-          .success,
+        saveAttemptSchema.safeParse({
+          sessionKey: "s",
+          answers: {},
+          reachedQuestionIds: ["x".repeat(101)],
+        }).success,
       ).toBe(false);
       expect(
-        saveAttemptSchema.safeParse({ sessionKey: "s", answers: {}, reachedQuestionIds: [1] }).success,
+        saveAttemptSchema.safeParse({ sessionKey: "s", answers: {}, reachedQuestionIds: [1] })
+          .success,
       ).toBe(false);
     });
   });

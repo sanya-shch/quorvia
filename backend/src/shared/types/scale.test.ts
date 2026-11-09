@@ -34,8 +34,10 @@ describe("getScaleBounds", () => {
 describe("isScaleQuestionType", () => {
   it("розпізнає лише шкальні типи", () => {
     expect(["RATING", "SCALE", "NPS"].every((t) => isScaleQuestionType(t as never))).toBe(true);
-    expect(["TEXT", "NUMBER", "CHOICE_SINGLE", "BOOLEAN", "DATE"].some((t) =>
-      isScaleQuestionType(t as never),
-    )).toBe(false);
+    expect(
+      ["TEXT", "NUMBER", "CHOICE_SINGLE", "BOOLEAN", "DATE"].some((t) =>
+        isScaleQuestionType(t as never),
+      ),
+    ).toBe(false);
   });
 });

@@ -156,11 +156,7 @@ export const npsIcon = (
     strokeWidth="2"
     stroke="currentColor"
   >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M3 17l5-5 4 4 8-9M15 7h5v5"
-    />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 17l5-5 4 4 8-9M15 7h5v5" />
   </svg>
 );
 
@@ -172,7 +168,11 @@ export const rankingIcon = (
     strokeWidth="2"
     stroke="currentColor"
   >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h10M4 12h7M4 18h4M18 5v14m0 0l-3-3m3 3l3-3" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M4 6h10M4 12h7M4 18h4M18 5v14m0 0l-3-3m3 3l3-3"
+    />
   </svg>
 );
 

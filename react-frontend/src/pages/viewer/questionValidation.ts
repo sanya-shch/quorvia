@@ -1,12 +1,7 @@
 import { type Question } from "../../types/formBuilder";
 import { type AnswerValue } from "../../types/formViewer";
 import { toMatrixAnswer } from "./matrixAnswer";
-import {
-  assertNever,
-  ErrorCode,
-  isOtherSelected,
-  otherAnswerKey,
-} from "@quorvia/shared-types";
+import { assertNever, ErrorCode, isOtherSelected, otherAnswerKey } from "@quorvia/shared-types";
 
 /**
  * The validation result is NOT display text but an i18next translation key (+ interpolation
@@ -166,7 +161,8 @@ export const buildCleanedAnswers = (
     const isEmptyText = typeof value === "string" && value.trim() === "";
     const isEmptyArray = Array.isArray(value) && value.length === 0;
     const isUndefinedOrNull = value === undefined || value === null || value === "";
-    const isEmptyMatrix = question.type === "MATRIX" && Object.keys(toMatrixAnswer(value)).length === 0;
+    const isEmptyMatrix =
+      question.type === "MATRIX" && Object.keys(toMatrixAnswer(value)).length === 0;
 
     if (!question.required && (isEmptyText || isEmptyArray || isUndefinedOrNull || isEmptyMatrix)) {
       return;

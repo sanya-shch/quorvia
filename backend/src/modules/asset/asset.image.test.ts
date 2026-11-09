@@ -49,7 +49,9 @@ describe("processImage", () => {
   });
 
   it("strips EXIF metadata (for example GPS and copyright)", async () => {
-    const withExif = await sharp({ create: { width: 8, height: 8, channels: 3, background: "#fff" } })
+    const withExif = await sharp({
+      create: { width: 8, height: 8, channels: 3, background: "#fff" },
+    })
       .jpeg()
       .withExif({ IFD0: { Copyright: "secret-owner" } })
       .toBuffer();
@@ -106,7 +108,9 @@ describe("processImage", () => {
 
   it("rejects images with too many pixels (decompression bomb)", async () => {
     // Tiny on disk, but about 25 million pixels once decoded.
-    const bomb = await sharp({ create: { width: 5000, height: 5000, channels: 3, background: "#000" } })
+    const bomb = await sharp({
+      create: { width: 5000, height: 5000, channels: 3, background: "#000" },
+    })
       .png({ compressionLevel: 9 })
       .toBuffer();
 

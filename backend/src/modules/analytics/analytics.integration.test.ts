@@ -23,11 +23,47 @@ const OPTIONS = [
 ];
 
 // 11 responses; created-at deliberately has duplicates (tiebreak by id).
-const TEXTS = ["a", "b", "a", "constructor", "__proto__", "a", "b", "constructor", undefined, "a", "toString"];
+const TEXTS = [
+  "a",
+  "b",
+  "a",
+  "constructor",
+  "__proto__",
+  "a",
+  "b",
+  "constructor",
+  undefined,
+  "a",
+  "toString",
+];
 const NUMS = [10, 20, 20, 5, 1.5, undefined, 100, 7, 3, 3, 12];
 const BOOLS = [true, false, true, true, undefined, false, true, false, true, true, false];
-const SINGLES = ["opt-a", "opt-b", "opt-a", "opt-a", undefined, "opt-b", "opt-a", "opt-b", "opt-a", "opt-a", "opt-b"];
-const MULTIS = [["opt-a"], ["opt-a", "opt-b"], [], ["opt-b"], undefined, ["opt-a"], ["opt-a", "opt-b"], [], ["opt-b"], ["opt-a"], ["opt-b"]];
+const SINGLES = [
+  "opt-a",
+  "opt-b",
+  "opt-a",
+  "opt-a",
+  undefined,
+  "opt-b",
+  "opt-a",
+  "opt-b",
+  "opt-a",
+  "opt-a",
+  "opt-b",
+];
+const MULTIS = [
+  ["opt-a"],
+  ["opt-a", "opt-b"],
+  [],
+  ["opt-b"],
+  undefined,
+  ["opt-a"],
+  ["opt-a", "opt-b"],
+  [],
+  ["opt-b"],
+  ["opt-a"],
+  ["opt-b"],
+];
 
 const responseRows = TEXTS.map((_, i) => {
   const answers: Record<string, unknown> = {};
@@ -65,8 +101,22 @@ beforeAll(async () => {
       { id: Q.text, text: "Text", type: "TEXT", order: 0, formId: FORM },
       { id: Q.num, text: "Num", type: "NUMBER", order: 1, formId: FORM },
       { id: Q.bool, text: "Bool", type: "BOOLEAN", order: 2, formId: FORM },
-      { id: Q.single, text: "Single", type: "CHOICE_SINGLE", order: 3, formId: FORM, options: OPTIONS },
-      { id: Q.multi, text: "Multi", type: "CHOICE_MULTI", order: 4, formId: FORM, options: OPTIONS },
+      {
+        id: Q.single,
+        text: "Single",
+        type: "CHOICE_SINGLE",
+        order: 3,
+        formId: FORM,
+        options: OPTIONS,
+      },
+      {
+        id: Q.multi,
+        text: "Multi",
+        type: "CHOICE_MULTI",
+        order: 4,
+        formId: FORM,
+        options: OPTIONS,
+      },
     ],
   });
   await prisma.response.createMany({ data: responseRows });
@@ -95,7 +145,9 @@ describe("аналітика на реальному Prisma + Postgres", () => {
       overview: await getFormAnalytics(FORM, USER),
       paths: await getFormPaths(FORM, USER),
       funnel: await getFormFunnel(FORM, USER),
-      questions: await Promise.all(Object.values(Q).map((id) => getQuestionAnalytics(FORM, id, USER))),
+      questions: await Promise.all(
+        Object.values(Q).map((id) => getQuestionAnalytics(FORM, id, USER)),
+      ),
     });
 
     const whole = await withBatchSize(2000, run);
@@ -124,7 +176,9 @@ describe("аналітика на реальному Prisma + Postgres", () => {
       min: Math.min(...nums),
       max: Math.max(...nums),
     });
-    expect(num.distribution.map((d: any) => d.value)).toEqual([...new Set(nums)].sort((a, b) => a - b));
+    expect(num.distribution.map((d: any) => d.value)).toEqual(
+      [...new Set(nums)].sort((a, b) => a - b),
+    );
 
     const bool = (await getQuestionAnalytics(FORM, Q.bool, USER)) as any;
     expect(bool.trueCount).toBe(BOOLS.filter((v) => v === true).length);

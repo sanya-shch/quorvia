@@ -21,13 +21,11 @@ vi.mock("./asset.storage.js", async (importOriginal) => {
 const { prisma } = await import("../../prisma/prisma.js");
 const { defaultStorage: storage } = await import("./asset.storage.js");
 const { uploadAsset } = await import("./asset.service.js");
-const { updateForm, getFormByShareId, duplicateForm, deleteForm } = await import(
-  "../form/form.service.js"
-);
+const { updateForm, getFormByShareId, duplicateForm, deleteForm } =
+  await import("../form/form.service.js");
 const { submitResponse } = await import("../response/response.service.js");
-const { getFormAnalytics, getQuestionAnalytics } = await import(
-  "../analytics/analytics.service.js"
-);
+const { getFormAnalytics, getQuestionAnalytics } =
+  await import("../analytics/analytics.service.js");
 const { cleanupOrphanAssets } = await import("../maintenance/maintenance.service.js");
 const { makePng } = await import("./testImages.js");
 
@@ -64,7 +62,11 @@ const upload = (formId: string, userId: string, kind: "LOGO" | "OPTION_IMAGE") =
 
 const publicOptions = async () => {
   const form = await getFormByShareId("share-1");
-  return (form.questions[0]!.options ?? []) as { id: string; text: string; imageAssetId?: string }[];
+  return (form.questions[0]!.options ?? []) as {
+    id: string;
+    text: string;
+    imageAssetId?: string;
+  }[];
 };
 
 beforeEach(async () => {
@@ -199,7 +201,9 @@ describe("answering and analytics", () => {
 
     if (!("distribution" in detail)) throw new Error("unreachable");
 
-    expect(detail.distribution.map((d) => ["optionId" in d ? d.optionId : d.value, d.count])).toEqual([
+    expect(
+      detail.distribution.map((d) => ["optionId" in d ? d.optionId : d.value, d.count]),
+    ).toEqual([
       ["a", 2],
       ["b", 1],
     ]);

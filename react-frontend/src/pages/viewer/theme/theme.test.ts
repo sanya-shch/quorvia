@@ -26,7 +26,10 @@ describe("color math", () => {
   });
 
   it("is symmetric", () => {
-    expect(contrastRatio("#123456", "#fedcba")).toBeCloseTo(contrastRatio("#fedcba", "#123456"), 10);
+    expect(contrastRatio("#123456", "#fedcba")).toBeCloseTo(
+      contrastRatio("#fedcba", "#123456"),
+      10,
+    );
   });
 
   it("mixes colors in sRGB", () => {
@@ -48,7 +51,12 @@ describe("resolveTheme", () => {
     const resolved = resolveTheme(null);
 
     expect(resolved.palette).toEqual(DEFAULT_PALETTES.light);
-    expect(resolved).toMatchObject({ isDark: false, surface: "#ffffff", font: "system", radius: "medium" });
+    expect(resolved).toMatchObject({
+      isDark: false,
+      surface: "#ffffff",
+      font: "system",
+      radius: "medium",
+    });
   });
 
   it("uses the dark palette and a lifted surface in dark mode", () => {
@@ -68,17 +76,20 @@ describe("resolveTheme", () => {
   });
 
   it("judges dark from the colors in use, not from the mode", () => {
-    expect(resolveTheme({ mode: "light", backgroundColor: "#000000", textColor: "#ffffff" }).isDark).toBe(true);
-    expect(resolveTheme({ mode: "dark", backgroundColor: "#ffffff", textColor: "#000000" }).isDark).toBe(false);
+    expect(
+      resolveTheme({ mode: "light", backgroundColor: "#000000", textColor: "#ffffff" }).isDark,
+    ).toBe(true);
+    expect(
+      resolveTheme({ mode: "dark", backgroundColor: "#ffffff", textColor: "#000000" }).isDark,
+    ).toBe(false);
   });
 });
 
 describe("themeStyle", () => {
   it("emits only validated hex colors and our own font stacks", () => {
-    const style = themeStyle(resolveTheme({ mode: "dark", font: "lora", primaryColor: "#aabbcc" })) as Record<
-      string,
-      string
-    >;
+    const style = themeStyle(
+      resolveTheme({ mode: "dark", font: "lora", primaryColor: "#aabbcc" }),
+    ) as Record<string, string>;
 
     for (const key of ["--q-primary", "--q-bg", "--q-text", "--q-surface", "--q-on-primary"]) {
       expect(style[key]).toMatch(/^#[0-9a-f]{6}$/);
@@ -101,7 +112,9 @@ describe("getThemeWarnings", () => {
 
   it("warns when the page and cards cannot both show the text", () => {
     // Fine on the page, but the white card makes light gray text unreadable.
-    expect(getThemeWarnings({ backgroundColor: "#1e293b", textColor: "#64748b" })).toContain("textContrast");
+    expect(getThemeWarnings({ backgroundColor: "#1e293b", textColor: "#64748b" })).toContain(
+      "textContrast",
+    );
   });
 
   it("warns when text on a primary button cannot be read", () => {

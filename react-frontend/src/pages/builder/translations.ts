@@ -287,7 +287,10 @@ export const removeLanguage = (form: FormState, language: string): FormState => 
     translations: withLanguageEntry(form.translations, language, undefined),
     questions: form.questions.map((question) =>
       question.translations?.[language]
-        ? { ...question, translations: withLanguageEntry(question.translations, language, undefined) }
+        ? {
+            ...question,
+            translations: withLanguageEntry(question.translations, language, undefined),
+          }
         : question,
     ),
   };

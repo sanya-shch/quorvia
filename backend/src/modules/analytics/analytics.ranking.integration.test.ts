@@ -7,9 +7,8 @@ vi.mock("../../prisma/prisma.js", async () =>
 );
 
 const { prisma } = await import("../../prisma/prisma.js");
-const { getFormAnalytics, getQuestionAnalytics, getResponseById } = await import(
-  "./analytics.service.js"
-);
+const { getFormAnalytics, getQuestionAnalytics, getResponseById } =
+  await import("./analytics.service.js");
 
 const USER = "user-rank";
 const FORM = "form-rank";
@@ -85,9 +84,18 @@ describe("аналітика RANKING", () => {
   });
 
   it("без повних ранжувань avgPosition = null, а не NaN", async () => {
-    await prisma.form.create({ data: { id: "form-rank-empty", title: "E", userId: USER, shareId: "re" } });
+    await prisma.form.create({
+      data: { id: "form-rank-empty", title: "E", userId: USER, shareId: "re" },
+    });
     await prisma.question.create({
-      data: { id: "q-rank-empty", text: "R", type: "RANKING", order: 0, formId: "form-rank-empty", options },
+      data: {
+        id: "q-rank-empty",
+        text: "R",
+        type: "RANKING",
+        order: 0,
+        formId: "form-rank-empty",
+        options,
+      },
     });
 
     const overview = await getFormAnalytics("form-rank-empty", USER);

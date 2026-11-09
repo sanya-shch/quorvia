@@ -78,7 +78,9 @@ const edgePaths = computed(() => {
     .filter((e): e is NonNullable<typeof e> => e !== null);
 });
 
-const svgHeight = computed(() => MARGIN_TOP + (props.nodes.length + 1) * ROW_H - (ROW_H - NODE_H) + 24);
+const svgHeight = computed(
+  () => MARGIN_TOP + (props.nodes.length + 1) * ROW_H - (ROW_H - NODE_H) + 24,
+);
 </script>
 
 <template>
@@ -110,12 +112,25 @@ const svgHeight = computed(() => MARGIN_TOP + (props.nodes.length + 1) * ROW_H -
       </text>
 
       <g v-for="box in nodeBoxes" :key="box.id">
-        <rect :x="box.x" :y="box.y" :width="box.width" :height="box.height" rx="12" class="node-box" />
+        <rect
+          :x="box.x"
+          :y="box.y"
+          :width="box.width"
+          :height="box.height"
+          rx="12"
+          class="node-box"
+        />
         <text :x="box.x + 16" :y="box.y + box.height / 2 - 4" class="node-text">
           {{ box.text.length > 46 ? box.text.slice(0, 46) + "…" : box.text }}
         </text>
         <text :x="box.x + 16" :y="box.y + box.height / 2 + 14" class="node-meta">
-          {{ t("analytics.paths.ofTotal", { count: box.shownCount, total: totalResponses, percent: box.percent }) }}
+          {{
+            t("analytics.paths.ofTotal", {
+              count: box.shownCount,
+              total: totalResponses,
+              percent: box.percent,
+            })
+          }}
         </text>
       </g>
     </svg>

@@ -16,11 +16,11 @@ The package exposes pure functions for:
 For example:
 
 ```ts
-evaluateCondition(condition, answers)
+evaluateCondition(condition, answers);
 
-resolveVisibleQuestionIds(questions, answers)
+resolveVisibleQuestionIds(questions, answers);
 
-validateConditionGraph(questions)
+validateConditionGraph(questions);
 ```
 
 The package is framework-independent and can therefore be used by both the frontend and backend.
@@ -97,15 +97,15 @@ The UI therefore does not expose combinations that the underlying evaluator cann
 
 A condition compares the answer to an earlier question, so the builder only offers sources whose answers map to the simple operators:
 
-| Question type | Operators |
-| --- | --- |
-| `TEXT` | `equals`, `notEquals`, `contains` |
+| Question type                      | Operators                                                                                |
+| ---------------------------------- | ---------------------------------------------------------------------------------------- |
+| `TEXT`                             | `equals`, `notEquals`, `contains`                                                        |
 | `NUMBER`, `RATING`, `SCALE`, `NPS` | `equals`, `notEquals`, `gt`, `lt` (the answer is a plain number, so `0` is a real value) |
-| `DATE` | `equals`, `notEquals` |
-| `BOOLEAN` | `equals` |
-| `CHOICE_SINGLE` | `equals`, `notEquals`, `in` |
-| `CHOICE_MULTI` | `contains` |
-| `RANKING`, `MATRIX` | not available as a condition source |
+| `DATE`                             | `equals`, `notEquals`                                                                    |
+| `BOOLEAN`                          | `equals`                                                                                 |
+| `CHOICE_SINGLE`                    | `equals`, `notEquals`, `in`                                                              |
+| `CHOICE_MULTI`                     | `contains`                                                                               |
+| `RANKING`, `MATRIX`                | not available as a condition source                                                      |
 
 See [question-types.md](question-types.md) and the [API reference](API.md#question-types) for the answer format of each type.
 

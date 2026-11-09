@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
-import { AnimatePresence, LazyMotion, MotionConfig, domAnimation, useIsPresent } from "motion/react";
+import {
+  AnimatePresence,
+  LazyMotion,
+  MotionConfig,
+  domAnimation,
+  useIsPresent,
+} from "motion/react";
 import * as m from "motion/react-m";
 import type { Variants } from "motion/react";
 

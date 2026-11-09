@@ -38,7 +38,8 @@ export default function ImageOptionsEditor({ formId, options, onChange }: ImageO
     onChange(options.map((option) => (option.id === optionId ? { ...option, ...change } : option)));
 
   const upload = useMutation({
-    mutationFn: ({ file }: { optionId: string; file: File }) => assetsApi.uploadOptionImage(formId, file),
+    mutationFn: ({ file }: { optionId: string; file: File }) =>
+      assetsApi.uploadOptionImage(formId, file),
     onSuccess: (asset, { optionId }) => {
       setError(optionId, null);
       patch(optionId, { imageAssetId: asset.id });
@@ -90,7 +91,10 @@ export default function ImageOptionsEditor({ formId, options, onChange }: ImageO
   return (
     <div className="space-y-3">
       <p className="text-xs text-slate-500">
-        {t("builder.imageOptions.hint", { min: IMAGE_CHOICE_LIMITS.minOptions, max: IMAGE_CHOICE_LIMITS.maxOptions })}
+        {t("builder.imageOptions.hint", {
+          min: IMAGE_CHOICE_LIMITS.minOptions,
+          max: IMAGE_CHOICE_LIMITS.maxOptions,
+        })}
       </p>
 
       <ul className="space-y-3">
@@ -104,7 +108,11 @@ export default function ImageOptionsEditor({ formId, options, onChange }: ImageO
               <div className="flex items-start gap-3">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
                   {option.imageAssetId ? (
-                    <img src={assetUrl(option.imageAssetId)} alt="" className="h-full w-full object-cover" />
+                    <img
+                      src={assetUrl(option.imageAssetId)}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
                     <span className="px-1 text-center text-[10px] font-medium text-slate-500">
                       {t("builder.imageOptions.noPicture")}

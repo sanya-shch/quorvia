@@ -92,7 +92,10 @@ describe("neutralizeFormula (CSV injection)", () => {
 
   it("нейтралізує формулу в готовому CSV-файлі", async () => {
     const data = buildExportData();
-    data.responses[0].answers = { ...(data.responses[0].answers as object), [data.questions[0].id]: "=2+2" };
+    data.responses[0].answers = {
+      ...(data.responses[0].answers as object),
+      [data.questions[0].id]: "=2+2",
+    };
 
     const file = await exportToCsv(data);
 

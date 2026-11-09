@@ -110,7 +110,8 @@ export default function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
   // The font is needed in the editor too: the preview shows it.
   useThemeFont(resolved.font);
 
-  const update = (patch: Partial<FormTheme>) => onChange(normalizeTheme({ ...(theme ?? {}), ...patch }));
+  const update = (patch: Partial<FormTheme>) =>
+    onChange(normalizeTheme({ ...(theme ?? {}), ...patch }));
 
   const removeKey = (key: ColorKey) => {
     const next = { ...(theme ?? {}) };
@@ -175,7 +176,9 @@ export default function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
           </div>
 
           <div>
-            <p className="text-xs font-semibold text-slate-600">{t("builder.theme.radius.label")}</p>
+            <p className="text-xs font-semibold text-slate-600">
+              {t("builder.theme.radius.label")}
+            </p>
             <div className="mt-1.5 flex w-fit flex-wrap gap-2 rounded-xl bg-slate-100 p-1">
               {FORM_RADII.map((option) => (
                 <button
@@ -206,7 +209,9 @@ export default function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
 
           {warnings.length > 0 && (
             <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-              <p className="text-xs font-bold text-amber-800">{t("builder.theme.warnings.title")}</p>
+              <p className="text-xs font-bold text-amber-800">
+                {t("builder.theme.warnings.title")}
+              </p>
               <ul className="mt-1 list-disc pl-4 text-xs text-amber-800 space-y-1">
                 {warnings.map((warning) => (
                   <li key={warning}>{t(`builder.theme.warnings.${warning}`)}</li>

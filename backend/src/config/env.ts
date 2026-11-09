@@ -10,22 +10,22 @@ const MIN_PRODUCTION_SECRET_LENGTH = 32;
 
 const envSchema = z
   .object({
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  PORT: z.coerce.number().int().positive().default(5001),
-  JWT_SECRET: z.string().min(1, "JWT_SECRET є обов'язковим"),
-  DATABASE_URL: z.string().min(1, "DATABASE_URL є обов'язковим"),
-  REDIS_URL: z.string().min(1).default("redis://localhost:6379"),
-  CORS_ORIGIN: z.string().default("http://localhost:5173"),
-  // Number of trusted reverse proxies in front of the backend ("1" for one nginx/Render/Railway)
-  // or an Express "trust proxy" value ("loopback", etc.). Without it, behind a proxy req.ip is the
-  // proxy's own address, and the rate limit (shared by all users) trips for everyone at once.
-  TRUST_PROXY: z.string().optional(),
-  // How many days finished exports (file + ExportJob row) are kept.
-  EXPORT_RETENTION_DAYS: z.coerce.number().int().min(1).default(7),
-  // How many days UNFINISHED sessions (ResponseAttempt) are kept. 0 = never delete. Completed
-  // sessions are never deleted: the funnel would lose its completions (see docs/security.md,
-  // "Data retention").
-  ATTEMPT_RETENTION_DAYS: z.coerce.number().int().min(0).default(180),
+    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    PORT: z.coerce.number().int().positive().default(5001),
+    JWT_SECRET: z.string().min(1, "JWT_SECRET є обов'язковим"),
+    DATABASE_URL: z.string().min(1, "DATABASE_URL є обов'язковим"),
+    REDIS_URL: z.string().min(1).default("redis://localhost:6379"),
+    CORS_ORIGIN: z.string().default("http://localhost:5173"),
+    // Number of trusted reverse proxies in front of the backend ("1" for one nginx/Render/Railway)
+    // or an Express "trust proxy" value ("loopback", etc.). Without it, behind a proxy req.ip is the
+    // proxy's own address, and the rate limit (shared by all users) trips for everyone at once.
+    TRUST_PROXY: z.string().optional(),
+    // How many days finished exports (file + ExportJob row) are kept.
+    EXPORT_RETENTION_DAYS: z.coerce.number().int().min(1).default(7),
+    // How many days UNFINISHED sessions (ResponseAttempt) are kept. 0 = never delete. Completed
+    // sessions are never deleted: the funnel would lose its completions (see docs/security.md,
+    // "Data retention").
+    ATTEMPT_RETENTION_DAYS: z.coerce.number().int().min(0).default(180),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV !== "production") return;

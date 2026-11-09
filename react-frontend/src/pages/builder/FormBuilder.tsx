@@ -208,7 +208,6 @@ export default function FormBuilder() {
     );
   }
 
-
   const mainLanguage = getMainLanguage(form);
   // A tab that no longer exists (the language was removed) silently leads to the main one.
   const currentLanguage =
@@ -331,7 +330,10 @@ export default function FormBuilder() {
                     {t("builder.theme.title")}
                   </summary>
                   <div className="mt-4">
-                    <ThemeEditor theme={form.theme} onChange={(theme) => updateFormMeta({ theme })} />
+                    <ThemeEditor
+                      theme={form.theme}
+                      onChange={(theme) => updateFormMeta({ theme })}
+                    />
                   </div>
                 </details>
 

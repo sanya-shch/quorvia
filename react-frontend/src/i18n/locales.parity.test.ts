@@ -8,7 +8,9 @@ const PLURAL_SUFFIX = /_(zero|one|two|few|many|other)$/;
 
 const collectKeys = (value: unknown, prefix = ""): string[] =>
   value && typeof value === "object"
-    ? Object.entries(value).flatMap(([key, child]) => collectKeys(child, prefix ? `${prefix}.${key}` : key))
+    ? Object.entries(value).flatMap(([key, child]) =>
+        collectKeys(child, prefix ? `${prefix}.${key}` : key),
+      )
     : [prefix.replace(PLURAL_SUFFIX, "")];
 
 describe("locale bundles", () => {

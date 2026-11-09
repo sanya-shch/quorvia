@@ -78,7 +78,10 @@ export default function TranslationPanel({
           onChange={(e) =>
             onChange((prev) => setFieldTranslation(prev, language, field, e.target.value))
           }
-          aria-label={t("builder.languages.translationAria", { language: languageName, field: label })}
+          aria-label={t("builder.languages.translationAria", {
+            language: languageName,
+            field: label,
+          })}
           placeholder={field.source}
           {...(field.multiline ? { rows: 2 } : { type: "text" })}
           className={`${inputClass} ${

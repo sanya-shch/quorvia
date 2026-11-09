@@ -45,20 +45,26 @@ const downloadFile = async (file: UploadedFileDto) => {
 };
 
 const formatSize = (bytes: number): string =>
-  bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  bytes >= 1024 * 1024
+    ? `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+    : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
 const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
 </script>
 
 <template>
-  <div v-if="isLoading" class="state-card state-card--muted">{{ t("analytics.common.loading") }}</div>
+  <div v-if="isLoading" class="state-card state-card--muted">
+    {{ t("analytics.common.loading") }}
+  </div>
   <div v-else-if="error" class="state-card state-card--error">{{ t(error) }}</div>
 
   <div v-else-if="data" class="detail">
     <div class="detail-header">
       <div>
         <h3 class="detail-title">{{ t("analytics.responseDetail.title") }}</h3>
-        <p class="detail-subtitle">{{ t("analytics.responseDetail.submittedAt", { date: formatDate(data.createdAt) }) }}</p>
+        <p class="detail-subtitle">
+          {{ t("analytics.responseDetail.submittedAt", { date: formatDate(data.createdAt) }) }}
+        </p>
         <p v-if="data.language" class="detail-subtitle">
           {{ t("analytics.responseDetail.language", { language: data.language.toUpperCase() }) }}
         </p>
@@ -70,10 +76,17 @@ const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
       <div v-for="ans in data.answers" :key="ans.questionId" class="answer-row">
         <label class="answer-label">
           {{ ans.questionText }}
-          <span v-if="ans.questionRequired" class="required-mark" :aria-label="t('analytics.common.requiredAriaLabel')">*</span>
+          <span
+            v-if="ans.questionRequired"
+            class="required-mark"
+            :aria-label="t('analytics.common.requiredAriaLabel')"
+            >*</span
+          >
         </label>
 
-        <span v-if="ans.questionDescription" class="answer-description">{{ ans.questionDescription }}</span>
+        <span v-if="ans.questionDescription" class="answer-description">{{
+          ans.questionDescription
+        }}</span>
 
         <div class="answer-value">
           <ul v-if="ans.questionType === 'FILE'" class="files">
@@ -87,11 +100,19 @@ const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
                 :aria-label="t('analytics.responseDetail.downloadFile', { name: file.name })"
                 @click="downloadFile(file)"
               >
-                {{ downloadingId === file.id ? t("analytics.responseDetail.downloading") : t("analytics.responseDetail.download") }}
+                {{
+                  downloadingId === file.id
+                    ? t("analytics.responseDetail.downloading")
+                    : t("analytics.responseDetail.download")
+                }}
               </button>
             </li>
-            <li v-if="!ans.files || ans.files.length === 0" class="file-empty">{{ t("analytics.responseDetail.noFiles") }}</li>
-            <li v-if="downloadError" class="file-error" role="alert">{{ t("analytics.responseDetail.downloadFailed") }}</li>
+            <li v-if="!ans.files || ans.files.length === 0" class="file-empty">
+              {{ t("analytics.responseDetail.noFiles") }}
+            </li>
+            <li v-if="downloadError" class="file-error" role="alert">
+              {{ t("analytics.responseDetail.downloadFailed") }}
+            </li>
           </ul>
           <div v-else-if="Array.isArray(ans.displayValue)" class="chips">
             <span v-for="(text, idx) in ans.displayValue" :key="idx" class="chip">{{ text }}</span>

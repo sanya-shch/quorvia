@@ -3,7 +3,15 @@ import { parseTrustProxy, validateEnv } from "./env.js";
 
 const withEnv = (vars: Record<string, string | undefined>, fn: () => void) => {
   const saved = { ...process.env };
-  for (const key of ["NODE_ENV", "JWT_SECRET", "DATABASE_URL", "CORS_ORIGIN", "TRUST_PROXY", "EXPORT_RETENTION_DAYS", "ATTEMPT_RETENTION_DAYS"]) {
+  for (const key of [
+    "NODE_ENV",
+    "JWT_SECRET",
+    "DATABASE_URL",
+    "CORS_ORIGIN",
+    "TRUST_PROXY",
+    "EXPORT_RETENTION_DAYS",
+    "ATTEMPT_RETENTION_DAYS",
+  ]) {
     delete process.env[key];
   }
   Object.assign(process.env, vars);
@@ -32,7 +40,9 @@ describe("validateEnv", () => {
   });
 
   it("у production відхиляє секрет коротший за 32 символи", () => {
-    withEnv({ ...prod, JWT_SECRET: "short" }, () => expect(() => validateEnv()).toThrow(/JWT_SECRET/));
+    withEnv({ ...prod, JWT_SECRET: "short" }, () =>
+      expect(() => validateEnv()).toThrow(/JWT_SECRET/),
+    );
   });
 
   it("у production відхиляє значення-приклад з .env.example", () => {
@@ -78,7 +88,7 @@ describe("validateEnv - retention", () => {
     });
   });
 
-  it("ATTEMPT_RETENTION_DAYS=0 дозволено - це \"не видаляти\"", () => {
+  it('ATTEMPT_RETENTION_DAYS=0 дозволено - це "не видаляти"', () => {
     withEnv({ ...base, ATTEMPT_RETENTION_DAYS: "0" }, () =>
       expect(validateEnv().ATTEMPT_RETENTION_DAYS).toBe(0),
     );

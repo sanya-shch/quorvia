@@ -11,9 +11,7 @@ const {
   cleanupOrphanResponseFiles,
   cleanupOrphanExportFiles,
   cleanupStaleAttempts,
-} = await import(
-  "./modules/maintenance/maintenance.service.js"
-);
+} = await import("./modules/maintenance/maintenance.service.js");
 const { startMaintenance } = await import("./modules/maintenance/maintenance.scheduler.js");
 
 const exportWorker = createExportWorker();

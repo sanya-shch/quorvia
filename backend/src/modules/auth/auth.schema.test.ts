@@ -9,15 +9,13 @@ describe("registerSchema", () => {
   });
 
   it("відхиляє невалідний email", () => {
-    expect(registerSchema.safeParse({ email: "not-an-email", password: "Str0ngPass" }).success).toBe(
-      false,
-    );
+    expect(
+      registerSchema.safeParse({ email: "not-an-email", password: "Str0ngPass" }).success,
+    ).toBe(false);
   });
 
   it("відхиляє закороткий пароль (<8 символів)", () => {
-    expect(registerSchema.safeParse({ email: "a@b.com", password: "Str0ng1" }).success).toBe(
-      false,
-    );
+    expect(registerSchema.safeParse({ email: "a@b.com", password: "Str0ng1" }).success).toBe(false);
   });
 
   it("відхиляє пароль без великої літери", () => {
@@ -75,7 +73,9 @@ describe("нормалізація email і межі пароля", () => {
   });
 
   it("loginSchema відхиляє абсурдно довгий пароль", () => {
-    expect(loginSchema.safeParse({ email: "a@b.com", password: "x".repeat(129) }).success).toBe(false);
+    expect(loginSchema.safeParse({ email: "a@b.com", password: "x".repeat(129) }).success).toBe(
+      false,
+    );
   });
 });
 

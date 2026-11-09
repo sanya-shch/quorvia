@@ -52,17 +52,17 @@ cp backend/.env.example backend/.env
 
 Backend variables:
 
-| Variable | Required | Description |
-| --- | --- | --- |
-| `DATABASE_URL` | yes | PostgreSQL connection string |
-| `REDIS_URL` | yes | Redis connection string (BullMQ) |
-| `JWT_SECRET` | yes | Access-token signing secret. In production it must be at least 32 characters and must not be the example value (`openssl rand -base64 48`) |
-| `CORS_ORIGIN` | no | Allowed frontend origin(s), comma-separated. Default `http://localhost:5173`; must not be `localhost` in production |
-| `PORT` | no | API port, default `5001` |
-| `TRUST_PROXY` | no | Number of reverse proxies in front of the API (`1` for one proxy). Required for correct per-IP rate limiting behind a proxy |
-| `NODE_ENV` | no | `production` enables the stricter checks above and `Secure` cookies |
-| `EXPORT_RETENTION_DAYS` | no | How long finished exports (file + `ExportJob` row) are kept. Default `7`, minimum `1` |
-| `ATTEMPT_RETENTION_DAYS` | no | How long **unfinished** attempts are kept. Default `180`; `0` keeps them forever. See [Data retention](security.md#data-retention) |
+| Variable                 | Required | Description                                                                                                                                |
+| ------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `DATABASE_URL`           | yes      | PostgreSQL connection string                                                                                                               |
+| `REDIS_URL`              | yes      | Redis connection string (BullMQ)                                                                                                           |
+| `JWT_SECRET`             | yes      | Access-token signing secret. In production it must be at least 32 characters and must not be the example value (`openssl rand -base64 48`) |
+| `CORS_ORIGIN`            | no       | Allowed frontend origin(s), comma-separated. Default `http://localhost:5173`; must not be `localhost` in production                        |
+| `PORT`                   | no       | API port, default `5001`                                                                                                                   |
+| `TRUST_PROXY`            | no       | Number of reverse proxies in front of the API (`1` for one proxy). Required for correct per-IP rate limiting behind a proxy                |
+| `NODE_ENV`               | no       | `production` enables the stricter checks above and `Secure` cookies                                                                        |
+| `EXPORT_RETENTION_DAYS`  | no       | How long finished exports (file + `ExportJob` row) are kept. Default `7`, minimum `1`                                                      |
+| `ATTEMPT_RETENTION_DAYS` | no       | How long **unfinished** attempts are kept. Default `180`; `0` keeps them forever. See [Data retention](security.md#data-retention)         |
 
 The React application can optionally use:
 

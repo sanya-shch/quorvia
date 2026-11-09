@@ -11,7 +11,10 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-const { jobs, isCreating, createExport, downloadExport } = useExportJobs(props.apiBaseUrl, props.formId);
+const { jobs, isCreating, createExport, downloadExport } = useExportJobs(
+  props.apiBaseUrl,
+  props.formId,
+);
 
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
@@ -31,12 +34,14 @@ const historyStatusLabel = (job: ExportJobDto): string => {
   return statusMeta.value[job.status].label;
 };
 
-const statusMeta = computed<Record<ExportJobDto["status"], { label: string; className: string }>>(() => ({
-  PENDING: { label: t("analytics.export.status.pending"), className: "status-pending" },
-  PROCESSING: { label: t("analytics.export.status.processing"), className: "status-processing" },
-  COMPLETED: { label: t("analytics.export.status.completed"), className: "status-completed" },
-  FAILED: { label: t("analytics.export.status.failed"), className: "status-failed" },
-}));
+const statusMeta = computed<Record<ExportJobDto["status"], { label: string; className: string }>>(
+  () => ({
+    PENDING: { label: t("analytics.export.status.pending"), className: "status-pending" },
+    PROCESSING: { label: t("analytics.export.status.processing"), className: "status-processing" },
+    COMPLETED: { label: t("analytics.export.status.completed"), className: "status-completed" },
+    FAILED: { label: t("analytics.export.status.failed"), className: "status-failed" },
+  }),
+);
 
 const recentJobs = computed(() => jobs.value.slice(0, 5));
 
@@ -62,7 +67,13 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
 <template>
   <div ref="menuRef" class="export-menu">
     <button type="button" class="trigger" @click="isOpen = !isOpen">
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -76,7 +87,7 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
       <p class="section-label">{{ t("analytics.export.newExport") }}</p>
       <div class="format-grid">
         <button
-          v-for="format in (Object.keys(FORMAT_LABELS) as ExportFormat[])"
+          v-for="format in Object.keys(FORMAT_LABELS) as ExportFormat[]"
           :key="format"
           type="button"
           :disabled="isCreating"
@@ -137,7 +148,13 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
             :title="t('analytics.export.download')"
             @click="downloadExport(job)"
           >
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"

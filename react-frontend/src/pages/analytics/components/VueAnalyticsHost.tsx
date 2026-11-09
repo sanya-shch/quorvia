@@ -52,7 +52,9 @@ export default function VueAnalyticsHost({ formId }: VueAnalyticsHostProps) {
       // Federation may return the module as { createAnalyticsI18n } or wrapped in
       // { default: { createAnalyticsI18n } } (see vue-analytics/src/i18n).
       const { createAnalyticsI18n } = (
-        "createAnalyticsI18n" in i18nMod ? i18nMod : (i18nMod as { default: typeof i18nMod }).default
+        "createAnalyticsI18n" in i18nMod
+          ? i18nMod
+          : (i18nMod as { default: typeof i18nMod }).default
       ) as typeof i18nMod;
       app.use(createAnalyticsI18n(vueProps.current.locale));
       app.mount(containerRef.current);

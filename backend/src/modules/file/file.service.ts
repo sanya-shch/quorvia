@@ -1,5 +1,10 @@
 import type { Prisma } from "@prisma/client";
-import { ErrorCode, FILE_LIMITS, type FileMimeType, type UploadedFileDto } from "@quorvia/shared-types";
+import {
+  ErrorCode,
+  FILE_LIMITS,
+  type FileMimeType,
+  type UploadedFileDto,
+} from "@quorvia/shared-types";
 import { prisma } from "../../prisma/prisma.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
 import { newBinaryStorageKey, type Storage } from "../asset/asset.storage.js";
@@ -7,7 +12,12 @@ import { inspectFile } from "./file.content.js";
 import { sanitizeFileName } from "./file.name.js";
 import { defaultFileStorage } from "./file.storage.js";
 
-const toDto = (file: { id: string; originalName: string; size: number; mime: string }): UploadedFileDto => ({
+const toDto = (file: {
+  id: string;
+  originalName: string;
+  size: number;
+  mime: string;
+}): UploadedFileDto => ({
   id: file.id,
   name: file.originalName,
   size: file.size,

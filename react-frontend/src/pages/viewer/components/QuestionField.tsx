@@ -119,7 +119,9 @@ function QuestionControl({
         describedBy={describedBy}
         invalid={invalid}
         minLabel={
-          question.type === "NPS" ? t("viewer.scale.npsLow") : question.config?.minLabel || undefined
+          question.type === "NPS"
+            ? t("viewer.scale.npsLow")
+            : question.config?.minLabel || undefined
         }
         maxLabel={
           question.type === "NPS"
@@ -352,7 +354,13 @@ function QuestionControl({
                   aria-hidden="true"
                   className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-on-primary shadow"
                 >
-                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="currentColor">
+                  <svg
+                    className="h-3.5 w-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="3"
+                    stroke="currentColor"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                   </svg>
                 </span>

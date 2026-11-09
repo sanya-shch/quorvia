@@ -128,7 +128,9 @@ describe("FormBuilder - мови контенту", () => {
 
     expect(screen.getByLabelText("Переклад (Англійська): Заголовок")).toHaveValue("Опитування");
     expect(screen.getByText("Усе перекладено")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Скопіювати відсутні з основної мови" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Скопіювати відсутні з основної мови" }),
+    ).toBeDisabled();
   });
 
   it("зберігання надсилає основну мову, список мов і переклади форми та питання", async () => {

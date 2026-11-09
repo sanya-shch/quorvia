@@ -55,7 +55,9 @@ export const mixColors = (base: string, top: string, amount: number): string => 
 
 // Text color on top of the primary color: whichever of white / near-black reads better.
 export const onColorFor = (background: string): string =>
-  contrastRatio("#ffffff", background) >= contrastRatio("#0f172a", background) ? "#ffffff" : "#0f172a";
+  contrastRatio("#ffffff", background) >= contrastRatio("#0f172a", background)
+    ? "#ffffff"
+    : "#0f172a";
 
 export type ResolvedTheme = {
   palette: Palette;
@@ -119,7 +121,8 @@ export const getThemeWarnings = (theme: FormTheme | null | undefined): ThemeWarn
   );
 
   if (textContrast < MIN_TEXT_CONTRAST) warnings.push("textContrast");
-  if (contrastRatio(onPrimary, palette.primary) < MIN_TEXT_CONTRAST) warnings.push("primaryContrast");
+  if (contrastRatio(onPrimary, palette.primary) < MIN_TEXT_CONTRAST)
+    warnings.push("primaryContrast");
 
   // Buttons, borders and selected states must stand out from what is behind them.
   const primaryVisibility = Math.min(

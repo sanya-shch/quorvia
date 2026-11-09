@@ -324,7 +324,9 @@ describe("buildResponseSchema / cleanAnswers - варіант «Інше»", () 
 describe("buildResponseSchema - RANKING", () => {
   const options = ["a", "b", "c"].map((id) => ({ id, text: id, isDefault: false }));
   const build = (extra: Partial<Question> = {}) =>
-    buildResponseSchema([makeQuestion({ id: "q", type: "RANKING", options, ...extra } as Partial<Question>)]);
+    buildResponseSchema([
+      makeQuestion({ id: "q", type: "RANKING", options, ...extra } as Partial<Question>),
+    ]);
 
   it("приймає будь-яку повну перестановку варіантів", () => {
     const schema = build();

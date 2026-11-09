@@ -18,7 +18,9 @@ describe("answersSchema", () => {
   });
 
   it("відхиляє надто багато ключів", () => {
-    const answers = Object.fromEntries(Array.from({ length: MAX_ANSWER_KEYS + 1 }, (_, i) => [`q${i}`, "x"]));
+    const answers = Object.fromEntries(
+      Array.from({ length: MAX_ANSWER_KEYS + 1 }, (_, i) => [`q${i}`, "x"]),
+    );
     expect(answersSchema.safeParse(answers).success).toBe(false);
   });
 
@@ -31,6 +33,8 @@ describe("answersSchema", () => {
     expect(answersSchema.safeParse({ ["k".repeat(MAX_ANSWER_KEY_LENGTH + 1)]: "x" }).success).toBe(
       false,
     );
-    expect(answersSchema.safeParse({ a: Array.from({ length: 201 }, () => "x") }).success).toBe(false);
+    expect(answersSchema.safeParse({ a: Array.from({ length: 201 }, () => "x") }).success).toBe(
+      false,
+    );
   });
 });

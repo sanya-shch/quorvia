@@ -15,9 +15,8 @@ vi.mock("../../prisma/prisma.js", () => ({
   prisma: { user: { findUnique: vi.fn() } },
 }));
 
-const { registerUser, loginHandler, refreshAccessToken, revokeRefreshToken } = await import(
-  "./auth.service.js"
-);
+const { registerUser, loginHandler, refreshAccessToken, revokeRefreshToken } =
+  await import("./auth.service.js");
 const { prisma } = await import("../../prisma/prisma.js");
 const authRouter = (await import("./auth.routes.js")).default;
 

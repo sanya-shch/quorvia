@@ -47,18 +47,18 @@ The project focuses on a non-trivial form engine rather than plain CRUD: conditi
 
 ## Documentation
 
-| Document | Contents |
-| --- | --- |
-| [Architecture](docs/architecture.md) | Monorepo layout, high-level diagram, data flow, design decisions, trade-offs |
-| [Frontend](docs/frontend.md) | React host, Vue micro-frontend, state management, performance, motion |
-| [Conditional logic](docs/conditional-logic.md) | The condition engine, dependency validation, server-side invariants |
-| [Question types](docs/question-types.md) | Supported types and the checklist for adding a new one |
-| [Content languages](docs/content-languages.md) | Translating forms and how respondents pick a language |
-| [Analytics](docs/analytics.md) | Attempts, reached vs. visible questions, funnel and per-type analytics |
-| [Exports](docs/exports.md) | The asynchronous export pipeline |
-| [Security](docs/security.md) | Implemented measures, data retention, known gaps and deployment notes |
-| [API](docs/API.md) | Endpoint reference |
-| [Local development](docs/development.md) | Setup, environment variables, running and testing |
+| Document                                       | Contents                                                                     |
+| ---------------------------------------------- | ---------------------------------------------------------------------------- |
+| [Architecture](docs/architecture.md)           | Monorepo layout, high-level diagram, data flow, design decisions, trade-offs |
+| [Frontend](docs/frontend.md)                   | React host, Vue micro-frontend, state management, performance, motion        |
+| [Conditional logic](docs/conditional-logic.md) | The condition engine, dependency validation, server-side invariants          |
+| [Question types](docs/question-types.md)       | Supported types and the checklist for adding a new one                       |
+| [Content languages](docs/content-languages.md) | Translating forms and how respondents pick a language                        |
+| [Analytics](docs/analytics.md)                 | Attempts, reached vs. visible questions, funnel and per-type analytics       |
+| [Exports](docs/exports.md)                     | The asynchronous export pipeline                                             |
+| [Security](docs/security.md)                   | Implemented measures, data retention, known gaps and deployment notes        |
+| [API](docs/API.md)                             | Endpoint reference                                                           |
+| [Local development](docs/development.md)       | Setup, environment variables, running and testing                            |
 
 ## Quick start
 
@@ -81,11 +81,10 @@ The Vue analytics remote needs a production build; see [Local development](docs/
 
 ## Technology stack
 
-| Area | Technology |
-| --- | --- |
-| Frontend | React 19, TypeScript, React Router, TanStack Query, Zustand, React Hook Form, Zod, Tailwind CSS, Vite |
-| Analytics UI | Vue 3 via Module Federation |
-| Backend | Node.js, Express, Prisma, PostgreSQL, JWT |
-| Background jobs | BullMQ, Redis |
-| Tooling | pnpm workspaces, Vitest, Testing Library, Docker Compose |
-
+| Area            | Technology                                                                                            |
+| --------------- | ----------------------------------------------------------------------------------------------------- |
+| Frontend        | React 19, TypeScript, React Router, TanStack Query, Zustand, React Hook Form, Zod, Tailwind CSS, Vite |
+| Analytics UI    | Vue 3 via Module Federation                                                                           |
+| Backend         | Node.js, Express, Prisma, PostgreSQL, JWT                                                             |
+| Background jobs | BullMQ, Redis                                                                                         |
+| Tooling         | pnpm workspaces, Vitest, Testing Library, Docker Compose                                              |

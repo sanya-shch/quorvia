@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 import {
   createForm,
   deleteForm,
@@ -9,7 +9,7 @@ import {
   publishForm,
   unpublishForm,
   updateForm,
-} from './form.service.js';
+} from "./form.service.js";
 import {
   CreateFormInput,
   FormDto,
@@ -17,12 +17,12 @@ import {
   UpdateFormInput,
   UserFormDto,
   UserFormsDto,
-} from './form.types.js';
-import { AuthLocals } from '../../shared/middleware/auth.js';
+} from "./form.types.js";
+import { AuthLocals } from "../../shared/middleware/auth.js";
 
 export const createFormHandler = async (
   req: Request<{ formId: string }, {}, CreateFormInput>,
-  res: Response<FormDto>
+  res: Response<FormDto>,
 ) => {
   const { title, description, defaultLanguage } = req.body;
   const userId = (res.locals as AuthLocals).userId;
@@ -39,7 +39,7 @@ export const createFormHandler = async (
 
 export const getUserFormsHandler = async (
   req: Request<{ formId: string }>,
-  res: Response<UserFormsDto>
+  res: Response<UserFormsDto>,
 ) => {
   const userId = (res.locals as AuthLocals).userId;
 
@@ -50,7 +50,7 @@ export const getUserFormsHandler = async (
 
 export const deleteFormHandler = async (
   req: Request<{ formId: string }>,
-  res: Response<{ success: boolean }>
+  res: Response<{ success: boolean }>,
 ) => {
   const { formId } = req.params;
   const userId = (res.locals as AuthLocals).userId;
@@ -62,7 +62,7 @@ export const deleteFormHandler = async (
 
 export const getUserFormHandler = async (
   req: Request<{ formId: string }>,
-  res: Response<UserFormDto>
+  res: Response<UserFormDto>,
 ) => {
   const { formId } = req.params;
   const userId = (res.locals as AuthLocals).userId;
@@ -74,7 +74,7 @@ export const getUserFormHandler = async (
 
 export const publishFormHandler = async (
   req: Request<{ formId: string }>,
-  res: Response<{ success: boolean }>
+  res: Response<{ success: boolean }>,
 ) => {
   const { formId } = req.params;
   const userId = (res.locals as AuthLocals).userId;
@@ -86,7 +86,7 @@ export const publishFormHandler = async (
 
 export const unpublishFormHandler = async (
   req: Request<{ formId: string }>,
-  res: Response<{ success: boolean }>
+  res: Response<{ success: boolean }>,
 ) => {
   const { formId } = req.params;
   const userId = (res.locals as AuthLocals).userId;
@@ -98,7 +98,7 @@ export const unpublishFormHandler = async (
 
 export const updateFormHandler = async (
   req: Request<{ formId: string }, {}, UpdateFormInput>,
-  res: Response<{ success: boolean }>
+  res: Response<{ success: boolean }>,
 ) => {
   const { formId } = req.params;
   const userId = (res.locals as AuthLocals).userId;
@@ -110,7 +110,7 @@ export const updateFormHandler = async (
 
 export const duplicateFormHandler = async (
   req: Request<{ formId: string }>,
-  res: Response<FormDto>
+  res: Response<FormDto>,
 ) => {
   const { formId } = req.params;
   const userId = (res.locals as AuthLocals).userId;
@@ -122,7 +122,7 @@ export const duplicateFormHandler = async (
 
 export const getPublicFormByShareId = async (
   req: Request<{ shareId: string }>,
-  res: Response<PublicFormDto>
+  res: Response<PublicFormDto>,
 ) => {
   const { shareId } = req.params;
 

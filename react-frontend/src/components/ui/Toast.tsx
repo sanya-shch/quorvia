@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { playToastAnimation } from "./toastMotion";
@@ -114,7 +122,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     if (timer) clearTimeout(timer);
     timers.current.delete(id);
     setToasts((current) =>
-      current.map((toast) => (toast.id === id && !toast.leaving ? { ...toast, leaving: true } : toast)),
+      current.map((toast) =>
+        toast.id === id && !toast.leaving ? { ...toast, leaving: true } : toast,
+      ),
     );
   }, []);
 

@@ -7,7 +7,9 @@ const IMAGE_ID = "11111111-1111-4111-8111-111111111111";
 const parse = (options: unknown) =>
   updateFormSchema.safeParse({
     title: "Form",
-    questions: [{ id: "q1", text: "Pick", type: "IMAGE_CHOICE", order: 0, required: false, options }],
+    questions: [
+      { id: "q1", text: "Pick", type: "IMAGE_CHOICE", order: 0, required: false, options },
+    ],
   });
 
 const option = (id: string, extra: Record<string, unknown> = {}) => ({
@@ -21,9 +23,13 @@ const many = (count: number) => Array.from({ length: count }, (_, i) => option(`
 
 describe("updateFormSchema: IMAGE_CHOICE", () => {
   it("accepts options with and without a picture", () => {
-    expect(parse([option("a", { imageAssetId: IMAGE_ID }), option("b"), option("c", { imageAssetId: null })]).success).toBe(
-      true,
-    );
+    expect(
+      parse([
+        option("a", { imageAssetId: IMAGE_ID }),
+        option("b"),
+        option("c", { imageAssetId: null }),
+      ]).success,
+    ).toBe(true);
   });
 
   it("keeps the picture id on the parsed option", () => {
@@ -50,13 +56,19 @@ describe("updateFormSchema: IMAGE_CHOICE", () => {
   });
 
   it("rejects a picture id that is not a uuid", () => {
-    expect(parse([option("a", { imageAssetId: "../../etc/passwd" }), option("b")]).success).toBe(false);
-    expect(parse([option("a", { imageAssetId: "http://evil.test/x.png" }), option("b")]).success).toBe(false);
+    expect(parse([option("a", { imageAssetId: "../../etc/passwd" }), option("b")]).success).toBe(
+      false,
+    );
+    expect(
+      parse([option("a", { imageAssetId: "http://evil.test/x.png" }), option("b")]).success,
+    ).toBe(false);
   });
 
-  it("has no \"Other\" option: the flag is dropped", () => {
+  it('has no "Other" option: the flag is dropped', () => {
     const result = parse([option("a", { isOther: true }), option("b")]);
 
-    expect(result.success && (result.data.questions[0] as { options: object[] }).options[0]).not.toHaveProperty("isOther");
+    expect(
+      result.success && (result.data.questions[0] as { options: object[] }).options[0],
+    ).not.toHaveProperty("isOther");
   });
 });

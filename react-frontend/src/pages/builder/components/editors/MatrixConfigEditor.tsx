@@ -10,13 +10,7 @@ interface MatrixConfigEditorProps {
   onChangeColumns: (columns: QuestionOption[]) => void;
 }
 
-const LIKERT_KEYS = [
-  "stronglyDisagree",
-  "disagree",
-  "neutral",
-  "agree",
-  "stronglyAgree",
-] as const;
+const LIKERT_KEYS = ["stronglyDisagree", "disagree", "neutral", "agree", "stronglyAgree"] as const;
 
 const newId = (prefix: string) =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;

@@ -11,7 +11,13 @@ const initial: QuestionOption[] = [
   { id: "b", text: "Чай", isDefault: false },
 ];
 
-function Harness({ start = initial, spy }: { start?: QuestionOption[]; spy?: (o: QuestionOption[]) => void }) {
+function Harness({
+  start = initial,
+  spy,
+}: {
+  start?: QuestionOption[];
+  spy?: (o: QuestionOption[]) => void;
+}) {
   const [options, setOptions] = useState(start);
 
   return (
@@ -124,7 +130,10 @@ describe("OptionsConfigEditor - RANKING", () => {
     { id: "b", text: "Чай", isDefault: false },
   ];
 
-  const renderRanking = (start: QuestionOption[] = rankingOptions, spy?: (o: QuestionOption[]) => void) => {
+  const renderRanking = (
+    start: QuestionOption[] = rankingOptions,
+    spy?: (o: QuestionOption[]) => void,
+  ) => {
     function RankingHarness() {
       const [options, setOptions] = useState(start);
 

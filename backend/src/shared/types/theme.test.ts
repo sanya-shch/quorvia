@@ -70,7 +70,10 @@ describe("normalizeTheme", () => {
     expect(theme).toBeNull();
   });
 
-  it.each([null, undefined, 0, "dark", [], [{ mode: "dark" }], {}])("returns null for %j", (value) => {
-    expect(normalizeTheme(value)).toBeNull();
-  });
+  it.each([null, undefined, 0, "dark", [], [{ mode: "dark" }], {}])(
+    "returns null for %j",
+    (value) => {
+      expect(normalizeTheme(value)).toBeNull();
+    },
+  );
 });

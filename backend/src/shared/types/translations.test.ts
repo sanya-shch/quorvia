@@ -66,7 +66,11 @@ describe("localizeQuestion", () => {
       { id: "a", text: "Так" },
       { id: "b", text: "Ні" },
     ],
-    config: { minLabel: "Погано", maxLabel: "Чудово", rows: [{ id: "r1", text: "Швидкість" }] } as QuestionConfig,
+    config: {
+      minLabel: "Погано",
+      maxLabel: "Чудово",
+      rows: [{ id: "r1", text: "Швидкість" }],
+    } as QuestionConfig,
     translations: {
       en: {
         text: "Rate us",
@@ -119,7 +123,13 @@ describe("localizeQuestion", () => {
 
   it("питання без options/config не ламається", () => {
     const result = localizeQuestion(
-      { text: "Q", description: null, options: null, config: null, translations: { en: { text: "T" } } },
+      {
+        text: "Q",
+        description: null,
+        options: null,
+        config: null,
+        translations: { en: { text: "T" } },
+      },
       "en",
     );
 

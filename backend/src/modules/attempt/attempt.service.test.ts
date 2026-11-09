@@ -58,7 +58,9 @@ const upsertParams = () => {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  (prisma.$queryRaw as any).mockResolvedValue([{ id: "attempt-1", updatedAt: new Date("2026-01-01") }]);
+  (prisma.$queryRaw as any).mockResolvedValue([
+    { id: "attempt-1", updatedAt: new Date("2026-01-01") },
+  ]);
 });
 
 describe("saveAttempt", () => {
@@ -134,7 +136,10 @@ describe("saveAttempt", () => {
     it("зі списком від клієнта (покроковий режим) - береться саме він, а не всі видимі", async () => {
       // Linear form: q-1 and q-2 are both visible from the start, but the respondent is still on
       // the first step, so q-2 must not count as reached.
-      const linear = { ...publishedForm, questions: [textQuestion("q-1", 0), textQuestion("q-2", 1)] };
+      const linear = {
+        ...publishedForm,
+        questions: [textQuestion("q-1", 0), textQuestion("q-2", 1)],
+      };
       (prisma.form.findUnique as any).mockResolvedValue(linear);
 
       await saveAttempt(SHARE_ID, "session-1", {}, ["q-1"]);

@@ -31,8 +31,7 @@ const {
   listExportJobs,
   getExportJob,
   getExportFileForDownload,
-} =
-  await import("./export.service.js");
+} = await import("./export.service.js");
 
 const OWNER_ID = "user-owner";
 const OTHER_USER_ID = "user-other";

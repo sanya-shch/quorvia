@@ -172,12 +172,7 @@ describe("PublicFormPage - мови форми", () => {
     await user.type(await screen.findByLabelText("Name"), "Olena");
     await user.click(screen.getByRole("button", { name: "Submit answers" }));
 
-    expect(mockedSubmit).toHaveBeenCalledWith(
-      "share-1",
-      { q1: "Olena" },
-      expect.any(String),
-      "en",
-    );
+    expect(mockedSubmit).toHaveBeenCalledWith("share-1", { q1: "Olena" }, expect.any(String), "en");
   });
 
   it("після відправки подяка - мовою форми", async () => {

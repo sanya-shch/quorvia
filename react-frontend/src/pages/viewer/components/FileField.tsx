@@ -33,7 +33,9 @@ const typeOf = (file: File): string =>
   file.type || EXTENSION_TYPES[file.name.split(".").pop()?.toLowerCase() ?? ""] || "";
 
 const formatSize = (bytes: number): string =>
-  bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  bytes >= 1024 * 1024
+    ? `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+    : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
 const ACCEPT = Object.keys(EXTENSION_TYPES)
   .map((extension) => `.${extension}`)
@@ -97,7 +99,9 @@ export default function FileField({
         current.push(uploaded.id);
         onChange([...current]);
       } catch (err) {
-        problems.push(`${file.name}: ${errorText(getApiErrorCode(err) ?? ErrorCode.FILE_UPLOAD_INVALID)}`);
+        problems.push(
+          `${file.name}: ${errorText(getApiErrorCode(err) ?? ErrorCode.FILE_UPLOAD_INVALID)}`,
+        );
       }
     }
 

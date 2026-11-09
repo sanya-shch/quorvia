@@ -17,6 +17,12 @@
     "test:backend": "pnpm --filter survey-saas test",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "docker:reset": "docker compose down -v && docker compose up -d"
+    "docker:reset": "docker compose down -v && docker compose up -d",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
+  },
+  "devDependencies": {
+    "prettier": "3.9.10",
+    "prettier-plugin-prisma": "5.0.0"
   }
 }

@@ -26,8 +26,7 @@ export default function ScaleConfigEditor({ config, onChange }: ScaleConfigEdito
     (_, i) => Math.max(SCALE_LIMITS.scaleEnd.min, min + 1) + i,
   );
 
-  const update = (patch: Partial<QuestionConfig>) =>
-    onChange({ ...config, min, max, ...patch });
+  const update = (patch: Partial<QuestionConfig>) => onChange({ ...config, min, max, ...patch });
 
   const handleStartChange = (start: number) => {
     update({ min: start, max: Math.max(max, start + 1) });

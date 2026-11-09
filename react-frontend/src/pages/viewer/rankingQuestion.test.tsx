@@ -22,7 +22,8 @@ const q = (overrides: Partial<Question> = {}): Question => ({
 });
 
 const SUBMIT = { name: "Надіслати відповіді" };
-const itemTexts = () => screen.getAllByRole("listitem").map((li) => li.textContent?.replace(/[↑↓\d]/g, "").trim());
+const itemTexts = () =>
+  screen.getAllByRole("listitem").map((li) => li.textContent?.replace(/[↑↓\d]/g, "").trim());
 
 describe("FormViewer - RANKING", () => {
   it("показує варіанти у вихідному порядку", () => {

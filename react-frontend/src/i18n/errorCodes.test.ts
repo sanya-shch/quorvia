@@ -22,7 +22,10 @@ describe("getApiErrorCode", () => {
 
 describe("getApiErrorMessage", () => {
   it("перекладає відомий код", () => {
-    const message = getApiErrorMessage(i18n.t.bind(i18n) as never, axiosError({ message: "FORM_VERSION_CONFLICT" }));
+    const message = getApiErrorMessage(
+      i18n.t.bind(i18n) as never,
+      axiosError({ message: "FORM_VERSION_CONFLICT" }),
+    );
 
     expect(message).toContain("Форму змінили");
   });

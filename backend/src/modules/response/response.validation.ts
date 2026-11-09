@@ -141,7 +141,9 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
         // A required matrix needs every row filled; an optional one accepts any subset. strict():
         // a row id that is not in the question is rejected.
         schema = z
-          .object(Object.fromEntries(rows.map((row) => [row.id, q.required ? cell : cell.optional()])))
+          .object(
+            Object.fromEntries(rows.map((row) => [row.id, q.required ? cell : cell.optional()])),
+          )
           .strict();
 
         break;

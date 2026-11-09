@@ -103,7 +103,7 @@ Animations use [`motion`](https://motion.dev) in two weights, chosen by where th
 
 ## Failure handling in the browser
 
-A render or lazy-chunk error on any page shows a localized error screen (router `errorElement`) instead of a blank page; if the Vue remote cannot be loaded the analytics page shows a fallback with a reload button (a failed dynamic `import()` is cached by the browser, so reloading is more reliable than retrying in place). Analytics requests that depend on changing input (page, selected response/question) use a *latest wins* guard with `AbortController`, so a slow old response cannot overwrite a newer one.
+A render or lazy-chunk error on any page shows a localized error screen (router `errorElement`) instead of a blank page; if the Vue remote cannot be loaded the analytics page shows a fallback with a reload button (a failed dynamic `import()` is cached by the browser, so reloading is more reliable than retrying in place). Analytics requests that depend on changing input (page, selected response/question) use a _latest wins_ guard with `AbortController`, so a slow old response cannot overwrite a newer one.
 
 ## Accessibility
 

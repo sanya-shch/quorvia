@@ -136,7 +136,9 @@ describe("Toast", () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
       let finishExit!: () => void;
       mockedPlay.mockImplementation((_el, phase) =>
-        phase === "exit" ? new Promise<void>((resolve) => (finishExit = resolve)) : Promise.resolve(),
+        phase === "exit"
+          ? new Promise<void>((resolve) => (finishExit = resolve))
+          : Promise.resolve(),
       );
       setup();
       act(() => api.success("Збережено"));
@@ -155,7 +157,9 @@ describe("Toast", () => {
     it("автозакриття теж іде через анімацію виходу", async () => {
       let finishExit!: () => void;
       mockedPlay.mockImplementation((_el, phase) =>
-        phase === "exit" ? new Promise<void>((resolve) => (finishExit = resolve)) : Promise.resolve(),
+        phase === "exit"
+          ? new Promise<void>((resolve) => (finishExit = resolve))
+          : Promise.resolve(),
       );
       setup();
       act(() => api.success("Збережено"));

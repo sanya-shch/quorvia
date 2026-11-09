@@ -30,7 +30,12 @@ const selectClass =
 
 // Form languages: the main one (the language the questions are written in) and the additional
 // ones (translations). An additional language's tab shows how many fields are still untranslated.
-export default function LanguageBar({ form, activeLanguage, onSelect, onChange }: LanguageBarProps) {
+export default function LanguageBar({
+  form,
+  activeLanguage,
+  onSelect,
+  onChange,
+}: LanguageBarProps) {
   const { t, i18n } = useTranslation();
   const main = getMainLanguage(form);
   const additional = getAdditionalLanguages(form);
@@ -57,9 +62,7 @@ export default function LanguageBar({ form, activeLanguage, onSelect, onChange }
             className={tabClass(activeLanguage === main)}
           >
             {name(main)}
-            <span className="text-[10px] font-medium">
-              {t("builder.languages.mainBadge")}
-            </span>
+            <span className="text-[10px] font-medium">{t("builder.languages.mainBadge")}</span>
           </button>
 
           {additional.map((language) => {

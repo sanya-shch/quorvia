@@ -75,24 +75,27 @@ describe("PublicFormPage - responseMode визначає режим проход
     expect(screen.getByRole("button", { name: "Далі →" })).toBeInTheDocument();
   });
 
-  it.each(["ALL_AT_ONCE", "STEP_BY_STEP"] as const)("%s: shows the logo above the title when the form has one", async (responseMode) => {
-    mockedFetchPublicForm.mockResolvedValue({
-      id: "form-1",
-      title: "Тестова форма",
-      responseMode,
-      logoAssetId: "asset-7",
-      questions: [baseQuestion],
-    });
+  it.each(["ALL_AT_ONCE", "STEP_BY_STEP"] as const)(
+    "%s: shows the logo above the title when the form has one",
+    async (responseMode) => {
+      mockedFetchPublicForm.mockResolvedValue({
+        id: "form-1",
+        title: "Тестова форма",
+        responseMode,
+        logoAssetId: "asset-7",
+        questions: [baseQuestion],
+      });
 
-    const { container } = renderPage();
+      const { container } = renderPage();
 
-    await screen.findByText("Перше питання");
+      await screen.findByText("Перше питання");
 
-    const logo = container.querySelector("img");
-    expect(logo).toHaveAttribute("src", expect.stringMatching(/\/assets\/asset-7$/));
-    // Decorative: the title next to it already names the form.
-    expect(logo).toHaveAttribute("alt", "");
-  });
+      const logo = container.querySelector("img");
+      expect(logo).toHaveAttribute("src", expect.stringMatching(/\/assets\/asset-7$/));
+      // Decorative: the title next to it already names the form.
+      expect(logo).toHaveAttribute("alt", "");
+    },
+  );
 
   it("applies the form theme to the public page only", async () => {
     mockedFetchPublicForm.mockResolvedValue({

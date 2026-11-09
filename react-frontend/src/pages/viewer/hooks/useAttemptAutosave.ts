@@ -46,8 +46,7 @@ export function useAttemptAutosave(
 
     timeoutRef.current = setTimeout(() => {
       lastSavedRef.current = serialized;
-      saveFormAttempt(shareId, sessionKey, answers, reachedQuestionIds).catch(() => {
-      });
+      saveFormAttempt(shareId, sessionKey, answers, reachedQuestionIds).catch(() => {});
     }, AUTOSAVE_DEBOUNCE_MS);
 
     return () => {

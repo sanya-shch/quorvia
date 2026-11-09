@@ -70,7 +70,12 @@ describe("useAttemptAutosave", () => {
     });
 
     expect(mockedSaveFormAttempt).toHaveBeenCalledTimes(1);
-    expect(mockedSaveFormAttempt).toHaveBeenCalledWith("share-1", "session-1", { q1: "абв" }, undefined);
+    expect(mockedSaveFormAttempt).toHaveBeenCalledWith(
+      "share-1",
+      "session-1",
+      { q1: "абв" },
+      undefined,
+    );
   });
 
   it("не дублює запит, якщо answers не змінились між рендерами", () => {
@@ -148,7 +153,10 @@ describe("useAttemptAutosave", () => {
     });
 
     expect(mockedSaveFormAttempt).toHaveBeenCalledTimes(2);
-    expect(mockedSaveFormAttempt).toHaveBeenLastCalledWith("share-1", "session-1", answers, ["q1", "q2"]);
+    expect(mockedSaveFormAttempt).toHaveBeenLastCalledWith("share-1", "session-1", answers, [
+      "q1",
+      "q2",
+    ]);
   });
 
   it("новий масив з тим самим вмістом НЕ запускає зайвого збереження", () => {

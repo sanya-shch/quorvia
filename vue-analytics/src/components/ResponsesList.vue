@@ -26,7 +26,9 @@ const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
 
     <div v-if="isLoading" class="state-text">{{ t("analytics.responsesList.loading") }}</div>
     <div v-else-if="error" class="state-text state-text--error">{{ t(error) }}</div>
-    <div v-else-if="data?.data.length === 0" class="state-text">{{ t("analytics.responsesList.empty") }}</div>
+    <div v-else-if="data?.data.length === 0" class="state-text">
+      {{ t("analytics.responsesList.empty") }}
+    </div>
 
     <div v-else-if="data" class="items">
       <button
@@ -40,7 +42,9 @@ const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
         <div class="item-id">ID: {{ resp.id }}</div>
         <div class="item-date">
           {{ formatDate(resp.createdAt) }}
-          <span v-if="resp.language" class="item-lang" :title="resp.language">{{ resp.language.toUpperCase() }}</span>
+          <span v-if="resp.language" class="item-lang" :title="resp.language">{{
+            resp.language.toUpperCase()
+          }}</span>
         </div>
       </button>
     </div>

@@ -14,24 +14,29 @@ const { default: ProtectedRoute } = await import("./ProtectedRoute");
 const renderRoute = () =>
   render(
     <MemoryRouter initialEntries={["/secret"]}>
-        <Routes>
-          <Route path="/login" element={<div>login-page</div>} />
-          <Route
-            path="/secret"
-            element={
-              <ProtectedRoute>
-                <div>secret-page</div>
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </MemoryRouter>,
+      <Routes>
+        <Route path="/login" element={<div>login-page</div>} />
+        <Route
+          path="/secret"
+          element={
+            <ProtectedRoute>
+              <div>secret-page</div>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </MemoryRouter>,
   );
 
 describe("ProtectedRoute (токен лише в пам'яті)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useAuthStore.setState({ user: null, token: null, isAuthenticated: false, isInitialized: false });
+    useAuthStore.setState({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isInitialized: false,
+    });
   });
 
   it("після перезавантаження пробує відновити сесію й НЕ редіректить на /login, доки це триває", async () => {

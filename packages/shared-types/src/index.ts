@@ -491,9 +491,38 @@ export interface ExportJobDto {
 // These are NOT the application's interface languages (uk/en). RTL languages (Arabic,
 // Hebrew) are left out on purpose: the viewer does not support dir="rtl" yet.
 export const CONTENT_LOCALES = [
-  "uk", "en", "pl", "de", "fr", "es", "it", "pt", "nl", "cs", "sk", "ro", "bg", "hu",
-  "sv", "da", "fi", "nb", "tr", "el", "lt", "lv", "et", "hr", "sl", "zh", "ja", "ko",
-  "hi", "vi", "id", "ka",
+  "uk",
+  "en",
+  "pl",
+  "de",
+  "fr",
+  "es",
+  "it",
+  "pt",
+  "nl",
+  "cs",
+  "sk",
+  "ro",
+  "bg",
+  "hu",
+  "sv",
+  "da",
+  "fi",
+  "nb",
+  "tr",
+  "el",
+  "lt",
+  "lv",
+  "et",
+  "hr",
+  "sl",
+  "zh",
+  "ja",
+  "ko",
+  "hi",
+  "vi",
+  "id",
+  "ka",
 ] as const;
 
 export type ContentLocale = (typeof CONTENT_LOCALES)[number];
@@ -649,7 +678,10 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 
 // Keeps only non-empty string values whose keys are in `allowedKeys`.
-const cleanStringMap = (value: unknown, allowedKeys?: ReadonlySet<string>): Record<string, string> => {
+const cleanStringMap = (
+  value: unknown,
+  allowedKeys?: ReadonlySet<string>,
+): Record<string, string> => {
   const result: Record<string, string> = {};
 
   if (!isPlainObject(value)) return result;
@@ -698,7 +730,9 @@ export const normalizeQuestionTranslations = (
 ): QuestionTranslations | null => {
   if (!isPlainObject(translations)) return null;
 
-  const optionIds = new Set((Array.isArray(question.options) ? question.options : []).map((o) => o.id));
+  const optionIds = new Set(
+    (Array.isArray(question.options) ? question.options : []).map((o) => o.id),
+  );
   const rowIds = new Set((question.config?.rows ?? []).map((r) => r.id));
   const result: QuestionTranslations = {};
 
@@ -778,7 +812,9 @@ export type FormTheme = {
 };
 
 const oneOf = <T extends string>(allowed: readonly T[], value: unknown): T | undefined =>
-  typeof value === "string" && (allowed as readonly string[]).includes(value) ? (value as T) : undefined;
+  typeof value === "string" && (allowed as readonly string[]).includes(value)
+    ? (value as T)
+    : undefined;
 
 const colorOrUndefined = (value: unknown): string | undefined =>
   typeof value === "string" && THEME_COLOR_PATTERN.test(value) ? value.toLowerCase() : undefined;

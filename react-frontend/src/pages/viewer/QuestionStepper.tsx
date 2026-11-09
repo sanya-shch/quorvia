@@ -215,7 +215,9 @@ export default function QuestionStepper({
                 >
                   {t("viewer.stepper.reviewTitle")}
                 </h2>
-                {formDescription && <p className="text-sm text-slate-500 mt-1">{formDescription}</p>}
+                {formDescription && (
+                  <p className="text-sm text-slate-500 mt-1">{formDescription}</p>
+                )}
               </div>
 
               <ul className="space-y-2">
@@ -227,17 +229,12 @@ export default function QuestionStepper({
                     <span className="text-xs text-slate-500">
                       {q.text || t("viewer.questionFallback", { number: i + 1 })}
                       {" - "}
-                      {formatReviewAnswer(
-                        q,
-                        answers[q.id!],
-                        answers[otherAnswerKey(q.id!)],
-                        {
-                          yes: t("viewer.stepper.booleanYes"),
-                          no: t("viewer.stepper.booleanNo"),
-                          empty: t("viewer.stepper.noAnswer"),
-                          fileName: (id) => uploadedFiles.get(id)?.name,
-                        },
-                      )}
+                      {formatReviewAnswer(q, answers[q.id!], answers[otherAnswerKey(q.id!)], {
+                        yes: t("viewer.stepper.booleanYes"),
+                        no: t("viewer.stepper.booleanNo"),
+                        empty: t("viewer.stepper.noAnswer"),
+                        fileName: (id) => uploadedFiles.get(id)?.name,
+                      })}
                     </span>
 
                     <button
@@ -270,14 +267,8 @@ export default function QuestionStepper({
             </div>
           ) : (
             current && (
-              <div
-                className="bg-surface rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5"
-              >
-                <div
-                  ref={setHeadingRef}
-                  tabIndex={-1}
-                  className="focus:outline-none"
-                >
+              <div className="bg-surface rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5">
+                <div ref={setHeadingRef} tabIndex={-1} className="focus:outline-none">
                   <label
                     id={`${current.id || currentIndex}-label`}
                     htmlFor={current.id || `q-${currentIndex}`}

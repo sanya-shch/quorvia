@@ -12,7 +12,10 @@ vi.mock("../../api/forms", () => ({
   formsApi: { getAdminForm: vi.fn(), update: vi.fn() },
 }));
 
-vi.mock("../viewer/theme/fonts", () => ({ useThemeFont: () => undefined, loadFont: () => Promise.resolve() }));
+vi.mock("../viewer/theme/fonts", () => ({
+  useThemeFont: () => undefined,
+  loadFont: () => Promise.resolve(),
+}));
 
 const mockedGet = vi.mocked(formsApi.getAdminForm);
 const mockedUpdate = vi.mocked(formsApi.update);
@@ -28,7 +31,9 @@ const adminForm = (overrides: Partial<AdminForm> = {}): AdminForm => ({
 
 const renderBuilder = () =>
   render(
-    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+    >
       <ToastProvider>
         <MemoryRouter initialEntries={["/forms/form-1/edit"]}>
           <Routes>
@@ -50,7 +55,9 @@ describe("FormBuilder - appearance", () => {
   });
 
   it("loads the saved theme and logo into the editor", async () => {
-    mockedGet.mockResolvedValue(adminForm({ theme: { mode: "dark", radius: "large" }, logoAssetId: "asset-1" }));
+    mockedGet.mockResolvedValue(
+      adminForm({ theme: { mode: "dark", radius: "large" }, logoAssetId: "asset-1" }),
+    );
     renderBuilder();
 
     await screen.findByDisplayValue("Початкова");
@@ -71,7 +78,9 @@ describe("FormBuilder - appearance", () => {
     await save(user);
 
     expect(mockedUpdate).toHaveBeenCalledTimes(1);
-    expect(mockedUpdate.mock.calls[0]![1]).toMatchObject({ theme: { mode: "dark", radius: "small" } });
+    expect(mockedUpdate.mock.calls[0]![1]).toMatchObject({
+      theme: { mode: "dark", radius: "small" },
+    });
   });
 
   it("sends null when the theme was reset, so the server removes it", async () => {

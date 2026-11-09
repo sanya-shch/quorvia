@@ -58,18 +58,33 @@ onUnmounted(() => {
         <span aria-hidden="true">✕</span>
       </button>
 
-      <div v-if="isLoading" class="state-msg" role="status">{{ t("analytics.common.loading") }}</div>
+      <div v-if="isLoading" class="state-msg" role="status">
+        {{ t("analytics.common.loading") }}
+      </div>
       <div v-else-if="error" class="state-msg state-msg--error" role="alert">{{ t(error) }}</div>
 
       <template v-else-if="data">
-        <h2 id="question-detail-title" class="title">{{ data.question.text || t("analytics.common.untitledQuestion") }}</h2>
+        <h2 id="question-detail-title" class="title">
+          {{ data.question.text || t("analytics.common.untitledQuestion") }}
+        </h2>
         <p v-if="data.question.description" class="description">{{ data.question.description }}</p>
-        <p class="total">{{ t("analytics.detailPanel.totalAnswers", { count: data.totalAnswers }) }}</p>
+        <p class="total">
+          {{ t("analytics.detailPanel.totalAnswers", { count: data.totalAnswers }) }}
+        </p>
 
         <div v-if="data.stats" class="stats-row">
-          <div class="stat"><span class="stat-value">{{ data.stats.avg.toFixed(2) }}</span><span class="stat-label">{{ t("analytics.common.avg") }}</span></div>
-          <div class="stat"><span class="stat-value">{{ data.stats.min }}</span><span class="stat-label">{{ t("analytics.common.min") }}</span></div>
-          <div class="stat"><span class="stat-value">{{ data.stats.max }}</span><span class="stat-label">{{ t("analytics.common.max") }}</span></div>
+          <div class="stat">
+            <span class="stat-value">{{ data.stats.avg.toFixed(2) }}</span
+            ><span class="stat-label">{{ t("analytics.common.avg") }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{{ data.stats.min }}</span
+            ><span class="stat-label">{{ t("analytics.common.min") }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{{ data.stats.max }}</span
+            ><span class="stat-label">{{ t("analytics.common.max") }}</span>
+          </div>
         </div>
 
         <div v-if="data.matrix" class="matrix-wrap">
@@ -88,7 +103,9 @@ onUnmounted(() => {
                 <td
                   v-for="(count, i) in row.counts"
                   :key="data.matrix.columns[i].id"
-                  :style="{ backgroundColor: `rgba(79, 70, 229, ${(row.answered ? count / row.answered : 0) * 0.35})` }"
+                  :style="{
+                    backgroundColor: `rgba(79, 70, 229, ${(row.answered ? count / row.answered : 0) * 0.35})`,
+                  }"
                 >
                   <strong>{{ count }}</strong>
                   <small>{{ row.answered ? Math.round((count / row.answered) * 100) : 0 }}%</small>
@@ -107,17 +124,32 @@ onUnmounted(() => {
             <div class="dist-bar">
               <div class="dist-bar-fill" :style="{ width: rankScore(item) + '%' }" />
             </div>
-            <span class="dist-count" :title="t('analytics.common.rankingFirst') + ': ' + item.positions[0]">
+            <span
+              class="dist-count"
+              :title="t('analytics.common.rankingFirst') + ': ' + item.positions[0]"
+            >
               {{ item.avgPosition === null ? "—" : item.avgPosition.toFixed(2) }}
             </span>
           </div>
         </div>
 
         <div v-if="data.nps" class="stats-row">
-          <div class="stat"><span class="stat-value">{{ data.nps.score ?? "—" }}</span><span class="stat-label">{{ t("analytics.common.nps") }}</span></div>
-          <div class="stat"><span class="stat-value">{{ data.nps.promoters }}</span><span class="stat-label">{{ t("analytics.common.npsPromoters") }}</span></div>
-          <div class="stat"><span class="stat-value">{{ data.nps.passives }}</span><span class="stat-label">{{ t("analytics.common.npsPassives") }}</span></div>
-          <div class="stat"><span class="stat-value">{{ data.nps.detractors }}</span><span class="stat-label">{{ t("analytics.common.npsDetractors") }}</span></div>
+          <div class="stat">
+            <span class="stat-value">{{ data.nps.score ?? "—" }}</span
+            ><span class="stat-label">{{ t("analytics.common.nps") }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{{ data.nps.promoters }}</span
+            ><span class="stat-label">{{ t("analytics.common.npsPromoters") }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{{ data.nps.passives }}</span
+            ><span class="stat-label">{{ t("analytics.common.npsPassives") }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{{ data.nps.detractors }}</span
+            ><span class="stat-label">{{ t("analytics.common.npsDetractors") }}</span>
+          </div>
         </div>
 
         <div v-if="typeof data.trueCount === 'number'" class="bool-legend">
@@ -126,12 +158,21 @@ onUnmounted(() => {
         </div>
 
         <div v-if="data.distribution?.length" class="distribution">
-          <div v-for="row in data.distribution" :key="row.optionId || String(row.value)" class="dist-row">
+          <div
+            v-for="row in data.distribution"
+            :key="row.optionId || String(row.value)"
+            class="dist-row"
+          >
             <span class="dist-label">{{ row.text || row.value }}</span>
             <div class="dist-bar">
               <div
                 class="dist-bar-fill"
-                :style="{ width: (row.count / Math.max(1, ...(data.distribution ?? []).map((d) => d.count))) * 100 + '%' }"
+                :style="{
+                  width:
+                    (row.count / Math.max(1, ...(data.distribution ?? []).map((d) => d.count))) *
+                      100 +
+                    '%',
+                }"
               />
             </div>
             <span class="dist-count">{{ row.count }}</span>

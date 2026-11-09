@@ -29,7 +29,8 @@ const loaders: Record<FormFont, (() => Promise<unknown>) | null> = {
     ]),
 };
 
-export const loadFont = (font: FormFont): Promise<unknown> => loaders[font]?.() ?? Promise.resolve();
+export const loadFont = (font: FormFont): Promise<unknown> =>
+  loaders[font]?.() ?? Promise.resolve();
 
 // Loads the font files for the selected font. The stack has a system fallback, so a failed
 // load only means the fallback stays.

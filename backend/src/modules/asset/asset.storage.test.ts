@@ -63,7 +63,9 @@ describe("DiskStorage", () => {
   });
 
   it("never touches paths outside the root", async () => {
-    await expect(storage.put("../escape.png", Buffer.from("x"))).rejects.toThrow("Invalid storage key");
+    await expect(storage.put("../escape.png", Buffer.from("x"))).rejects.toThrow(
+      "Invalid storage key",
+    );
     await expect(storage.get("../../etc/passwd")).rejects.toThrow("Invalid storage key");
     await expect(storage.remove("../x.png")).rejects.toThrow("Invalid storage key");
   });

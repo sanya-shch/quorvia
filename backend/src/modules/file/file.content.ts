@@ -10,7 +10,8 @@ const IMAGE_ERROR_CODES: Record<string, string> = {
   [ErrorCode.ASSET_TOO_LARGE]: ErrorCode.FILE_TOO_LARGE,
 };
 
-const isPdf = (data: Buffer): boolean => data.length >= 5 && data.subarray(0, 5).toString("latin1") === "%PDF-";
+const isPdf = (data: Buffer): boolean =>
+  data.length >= 5 && data.subarray(0, 5).toString("latin1") === "%PDF-";
 
 // Plain text means valid UTF-8 without NUL bytes or control characters other than tab/newline/
 // carriage return. Anything binary fails one of the two, which keeps disguised executables out.
@@ -49,7 +50,10 @@ export const inspectFile = async (input: Buffer): Promise<InspectedFile> => {
       return { data: image.data, mime: image.mime };
     } catch (err) {
       if (err instanceof AppError) {
-        throw new AppError(IMAGE_ERROR_CODES[err.message] ?? ErrorCode.FILE_INVALID_CONTENT, err.statusCode);
+        throw new AppError(
+          IMAGE_ERROR_CODES[err.message] ?? ErrorCode.FILE_INVALID_CONTENT,
+          err.statusCode,
+        );
       }
 
       throw err;

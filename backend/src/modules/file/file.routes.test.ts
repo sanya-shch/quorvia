@@ -24,7 +24,10 @@ const SESSION = "11111111-1111-4111-8111-111111111111";
 const bytes = Buffer.from("%PDF-1.7 content");
 
 const upload = (shareId = "share-1") =>
-  request(app).post(`/api/forms/${shareId}/files`).field("sessionKey", SESSION).field("questionId", "q1");
+  request(app)
+    .post(`/api/forms/${shareId}/files`)
+    .field("sessionKey", SESSION)
+    .field("questionId", "q1");
 
 beforeAll(() => {
   process.env.JWT_SECRET = TEST_JWT_SECRET;
@@ -38,7 +41,10 @@ describe("POST /api/forms/:shareId/files (anonymous)", () => {
   it("201 without any authentication and passes only the bytes and the claimed name on", async () => {
     (service.uploadResponseFile as any).mockResolvedValue(DTO);
 
-    const res = await upload().attach("file", bytes, { filename: "report.pdf", contentType: "application/zip" });
+    const res = await upload().attach("file", bytes, {
+      filename: "report.pdf",
+      contentType: "application/zip",
+    });
 
     expect(res.status).toBe(201);
     expect(res.body).toEqual(DTO);
@@ -93,7 +99,9 @@ describe("POST /api/forms/:shareId/files (anonymous)", () => {
   });
 
   it("passes service errors through", async () => {
-    (service.uploadResponseFile as any).mockRejectedValue(new AppError(ErrorCode.FILE_LIMIT_REACHED, 409));
+    (service.uploadResponseFile as any).mockRejectedValue(
+      new AppError(ErrorCode.FILE_LIMIT_REACHED, 409),
+    );
 
     const res = await upload().attach("file", bytes, "a.pdf");
 
@@ -120,7 +128,9 @@ describe("DELETE /api/forms/:shareId/files/:fileId (anonymous)", () => {
   });
 
   it("404 for a file that is not the caller's", async () => {
-    (service.deleteUnattachedFile as any).mockRejectedValue(new AppError(ErrorCode.FILE_NOT_FOUND, 404));
+    (service.deleteUnattachedFile as any).mockRejectedValue(
+      new AppError(ErrorCode.FILE_NOT_FOUND, 404),
+    );
 
     const res = await request(app).delete(`/api/forms/share-1/files/file-1?sessionKey=${SESSION}`);
 
@@ -139,9 +149,16 @@ describe("GET /api/forms/:formId/responses/:responseId/files/:fileId (owner)", (
   });
 
   it("serves the bytes as a private, non-sniffable attachment", async () => {
-    (service.getOwnerFile as any).mockResolvedValue({ data: bytes, name: "Звіт.pdf", mime: "application/pdf" });
+    (service.getOwnerFile as any).mockResolvedValue({
+      data: bytes,
+      name: "Звіт.pdf",
+      mime: "application/pdf",
+    });
 
-    const res = await request(app).get(url).set("Authorization", makeAuthHeader("owner-1")).buffer(true);
+    const res = await request(app)
+      .get(url)
+      .set("Authorization", makeAuthHeader("owner-1"))
+      .buffer(true);
 
     expect(res.status).toBe(200);
     expect(service.getOwnerFile).toHaveBeenCalledWith("f1", "r1", "file-1", "owner-1");
@@ -155,7 +172,11 @@ describe("GET /api/forms/:formId/responses/:responseId/files/:fileId (owner)", (
   });
 
   it("serves text with an explicit charset", async () => {
-    (service.getOwnerFile as any).mockResolvedValue({ data: Buffer.from("hi"), name: "a.txt", mime: "text/plain" });
+    (service.getOwnerFile as any).mockResolvedValue({
+      data: Buffer.from("hi"),
+      name: "a.txt",
+      mime: "text/plain",
+    });
 
     const res = await request(app).get(url).set("Authorization", makeAuthHeader("owner-1"));
 

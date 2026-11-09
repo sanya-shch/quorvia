@@ -10,9 +10,8 @@ vi.mock("../../prisma/prisma.js", async () =>
 );
 
 const { prisma } = await import("../../prisma/prisma.js");
-const { cleanupExpiredExports, cleanupOrphanExportFiles, cleanupStaleAttempts } = await import(
-  "./maintenance.service.js"
-);
+const { cleanupExpiredExports, cleanupOrphanExportFiles, cleanupStaleAttempts } =
+  await import("./maintenance.service.js");
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const NOW = new Date("2026-11-01T12:00:00Z");
@@ -113,7 +112,9 @@ describe("cleanupExpiredExports", () => {
   it("прострочені PENDING/PROCESSING (воркер упав) теж прибираються", async () => {
     await createJob(1, 30, { status: "PENDING", filePath: null });
 
-    expect((await cleanupExpiredExports({ retentionDays: 7, now: NOW, exportsDir: dir })).jobs).toBe(1);
+    expect(
+      (await cleanupExpiredExports({ retentionDays: 7, now: NOW, exportsDir: dir })).jobs,
+    ).toBe(1);
   });
 
   it("НЕ виходить за межі каталогу, навіть якщо в БД filePath із ../ (path traversal)", async () => {
@@ -147,7 +148,9 @@ describe("cleanupExpiredExports", () => {
   it("межа retention: рівно N днів ще не прострочено", async () => {
     await createJob(1, 7);
 
-    expect((await cleanupExpiredExports({ retentionDays: 7, now: NOW, exportsDir: dir })).jobs).toBe(0);
+    expect(
+      (await cleanupExpiredExports({ retentionDays: 7, now: NOW, exportsDir: dir })).jobs,
+    ).toBe(0);
   });
 });
 
@@ -165,14 +168,18 @@ describe("cleanupOrphanExportFiles", () => {
     await createJob(1, 1);
     const tracked = await writeExportFile(`${id(1)}-report.csv`, 30);
 
-    expect((await cleanupOrphanExportFiles({ retentionDays: 7, now: NOW, exportsDir: dir })).files).toBe(0);
+    expect(
+      (await cleanupOrphanExportFiles({ retentionDays: 7, now: NOW, exportsDir: dir })).files,
+    ).toBe(0);
     expect(await exists(tracked)).toBe(true);
   });
 
   it("лишає СВІЖИЙ файл без запису: воркер міг щойно його записати", async () => {
     const fresh = await writeExportFile(`${id(9)}-report.csv`, 0);
 
-    expect((await cleanupOrphanExportFiles({ retentionDays: 7, now: NOW, exportsDir: dir })).files).toBe(0);
+    expect(
+      (await cleanupOrphanExportFiles({ retentionDays: 7, now: NOW, exportsDir: dir })).files,
+    ).toBe(0);
     expect(await exists(fresh)).toBe(true);
   });
 
@@ -180,7 +187,9 @@ describe("cleanupOrphanExportFiles", () => {
     const foreign = await writeExportFile("notes.txt", 100);
     const almost = await writeExportFile("not-a-uuid-report.csv", 100);
 
-    expect((await cleanupOrphanExportFiles({ retentionDays: 7, now: NOW, exportsDir: dir })).files).toBe(0);
+    expect(
+      (await cleanupOrphanExportFiles({ retentionDays: 7, now: NOW, exportsDir: dir })).files,
+    ).toBe(0);
     expect(await exists(foreign)).toBe(true);
     expect(await exists(almost)).toBe(true);
   });

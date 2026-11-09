@@ -57,7 +57,9 @@ describe("StepTransition", () => {
 
     await waitFor(() => expect(screen.queryByText("Старий")).not.toBeInTheDocument());
     expect(await screen.findByText("Новий")).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByText("Новий").parentElement).not.toHaveAttribute("inert"));
+    await waitFor(() =>
+      expect(screen.getByText("Новий").parentElement).not.toHaveAttribute("inert"),
+    );
   });
 
   it("два екрани ніколи не стоять разом: новий з'являється лише після виходу старого (mode=wait)", () => {

@@ -49,7 +49,10 @@ export type ProcessImageOptions = { maxBytes?: number; maxDimension?: number };
 
 export const processImage = async (
   input: Buffer,
-  { maxBytes = ASSET_LIMITS.maxBytes, maxDimension = ASSET_LIMITS.maxDimension }: ProcessImageOptions = {},
+  {
+    maxBytes = ASSET_LIMITS.maxBytes,
+    maxDimension = ASSET_LIMITS.maxDimension,
+  }: ProcessImageOptions = {},
 ): Promise<ProcessedImage> => {
   const mime = sniffImageType(input);
 

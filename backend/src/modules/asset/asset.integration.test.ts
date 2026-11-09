@@ -55,8 +55,12 @@ beforeEach(async () => {
       { id: OTHER, email: "d@e.f", password: "x" },
     ],
   });
-  await prisma.form.create({ data: { id: FORM, title: "Form", userId: OWNER, shareId: "share-1", isPublished: true } });
-  await prisma.form.create({ data: { id: OTHER_FORM, title: "Other", userId: OTHER, shareId: "share-2" } });
+  await prisma.form.create({
+    data: { id: FORM, title: "Form", userId: OWNER, shareId: "share-1", isPublished: true },
+  });
+  await prisma.form.create({
+    data: { id: OTHER_FORM, title: "Other", userId: OTHER, shareId: "share-2" },
+  });
 });
 
 afterEach(async () => {
@@ -94,8 +98,14 @@ describe("uploadAsset", () => {
   });
 
   it("404 for an unknown form, 403 for someone else's form", async () => {
-    await rejectsWith(uploadAsset("missing", OWNER, "LOGO", await makePng()), ErrorCode.FORM_NOT_FOUND);
-    await rejectsWith(uploadAsset(OTHER_FORM, OWNER, "LOGO", await makePng()), ErrorCode.FORM_FORBIDDEN);
+    await rejectsWith(
+      uploadAsset("missing", OWNER, "LOGO", await makePng()),
+      ErrorCode.FORM_NOT_FOUND,
+    );
+    await rejectsWith(
+      uploadAsset(OTHER_FORM, OWNER, "LOGO", await makePng()),
+      ErrorCode.FORM_FORBIDDEN,
+    );
 
     expect(await prisma.asset.count()).toBe(0);
     expect(await keysOf()).toEqual([]);
@@ -124,7 +134,10 @@ describe("uploadAsset", () => {
       })),
     });
 
-    await rejectsWith(uploadAsset(FORM, OWNER, "LOGO", await makePng()), ErrorCode.ASSET_LIMIT_REACHED);
+    await rejectsWith(
+      uploadAsset(FORM, OWNER, "LOGO", await makePng()),
+      ErrorCode.ASSET_LIMIT_REACHED,
+    );
     expect(await keysOf()).toEqual([]);
   });
 
@@ -182,7 +195,10 @@ describe("the form logo", () => {
     const foreign = await uploadAsset(OTHER_FORM, OTHER, "LOGO", await makePng());
 
     await rejectsWith(save({ logoAssetId: foreign.id }), ErrorCode.ASSET_NOT_FOUND);
-    await rejectsWith(save({ logoAssetId: "11111111-1111-4111-8111-111111111111" }), ErrorCode.ASSET_NOT_FOUND);
+    await rejectsWith(
+      save({ logoAssetId: "11111111-1111-4111-8111-111111111111" }),
+      ErrorCode.ASSET_NOT_FOUND,
+    );
     expect((await prisma.form.findUniqueOrThrow({ where: { id: FORM } })).logoAssetId).toBeNull();
   });
 });

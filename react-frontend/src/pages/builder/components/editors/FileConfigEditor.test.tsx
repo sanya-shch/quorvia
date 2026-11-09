@@ -16,7 +16,9 @@ describe("FileConfigEditor", () => {
 
     const options = screen.getAllByRole("option").map((option) => option.textContent);
 
-    expect(options).toEqual(Array.from({ length: FILE_LIMITS.maxFilesPerQuestion }, (_, i) => String(i + 1)));
+    expect(options).toEqual(
+      Array.from({ length: FILE_LIMITS.maxFilesPerQuestion }, (_, i) => String(i + 1)),
+    );
   });
 
   it("changes the limit and keeps the rest of the config", async () => {

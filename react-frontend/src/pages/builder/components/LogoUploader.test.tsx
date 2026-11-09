@@ -16,7 +16,9 @@ const upload = vi.mocked(assetsApi.uploadLogo);
 
 const renderUploader = (assetId: string | null | undefined = null, onChange = vi.fn()) => {
   render(
-    <QueryClientProvider client={new QueryClient({ defaultOptions: { mutations: { retry: false } } })}>
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { mutations: { retry: false } } })}
+    >
       <LogoUploader formId="form-1" assetId={assetId} onChange={onChange} />
     </QueryClientProvider>,
   );
@@ -47,7 +49,14 @@ describe("LogoUploader", () => {
   });
 
   it("uploads the chosen image and reports the new asset id", async () => {
-    upload.mockResolvedValue({ id: "asset-9", kind: "LOGO", mime: "image/png", size: 100, width: 8, height: 8 });
+    upload.mockResolvedValue({
+      id: "asset-9",
+      kind: "LOGO",
+      mime: "image/png",
+      size: 100,
+      width: 8,
+      height: 8,
+    });
     const onChange = renderUploader(null);
     const logo = file("logo.png", "image/png");
 
@@ -98,7 +107,14 @@ describe("LogoUploader", () => {
   });
 
   it("clears the error after a successful upload", async () => {
-    upload.mockResolvedValue({ id: "asset-2", kind: "LOGO", mime: "image/png", size: 1, width: 1, height: 1 });
+    upload.mockResolvedValue({
+      id: "asset-2",
+      kind: "LOGO",
+      mime: "image/png",
+      size: 1,
+      width: 1,
+      height: 1,
+    });
     renderUploader(null);
 
     await pick(file("a.svg", "image/svg+xml"));

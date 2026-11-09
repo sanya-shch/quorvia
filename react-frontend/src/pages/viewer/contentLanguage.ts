@@ -14,7 +14,11 @@ export const getRequestedLanguages = (
 export const readBrowserLanguages = (): string[] => {
   if (typeof navigator === "undefined") return [];
 
-  return navigator.languages?.length ? [...navigator.languages] : navigator.language ? [navigator.language] : [];
+  return navigator.languages?.length
+    ? [...navigator.languages]
+    : navigator.language
+      ? [navigator.language]
+      : [];
 };
 
 // Language of service texts (buttons, errors) for a form shown in `contentLanguage`: the same

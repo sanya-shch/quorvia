@@ -8,9 +8,8 @@ vi.mock("../../prisma/prisma.js", async () =>
 );
 
 const { prisma } = await import("../../prisma/prisma.js");
-const { getFormAnalytics, getQuestionAnalytics, getResponses } = await import(
-  "./analytics.service.js"
-);
+const { getFormAnalytics, getQuestionAnalytics, getResponses } =
+  await import("./analytics.service.js");
 const { formatAnswer } = await import("../export/exporters/formatAnswer.js");
 
 const USER = "user-scale";
@@ -126,7 +125,9 @@ describe("аналітика шкальних питань", () => {
   });
 
   it("NPS без відповідей: score null, а не NaN", async () => {
-    await prisma.form.create({ data: { id: "form-empty", title: "E", userId: USER, shareId: "e" } });
+    await prisma.form.create({
+      data: { id: "form-empty", title: "E", userId: USER, shareId: "e" },
+    });
     await prisma.question.create({
       data: { id: "q-empty-nps", text: "NPS", type: "NPS", order: 0, formId: "form-empty" },
     });

@@ -1,6 +1,11 @@
 import { type Question } from "../types/formBuilder";
 import type { FormAnswers } from "../types/formViewer";
-import type { FormTheme, FormTranslations, ResponseMode, UploadedFileDto } from "@quorvia/shared-types";
+import type {
+  FormTheme,
+  FormTranslations,
+  ResponseMode,
+  UploadedFileDto,
+} from "@quorvia/shared-types";
 import { publicApi } from "./axios";
 
 export interface PublicFormFields {

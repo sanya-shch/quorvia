@@ -4,13 +4,7 @@ import { assertNever, type QuestionConfig } from "@quorvia/shared-types";
 // The answer to "Other" is a separate key in answers; the exporter receives it as the third argument.
 
 export type AnswerValue =
-  | string
-  | number
-  | boolean
-  | string[]
-  | Record<string, string>
-  | null
-  | undefined;
+  string | number | boolean | string[] | Record<string, string> | null | undefined;
 
 const optionLabelsById = (question: Question, otherText?: AnswerValue): Record<string, string> => {
   const options = Array.isArray(question.options)

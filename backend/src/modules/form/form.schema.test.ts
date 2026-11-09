@@ -191,9 +191,12 @@ describe("questionSchema — discriminated union за type", () => {
 
     it("валідна: 2-10 колонок і 1-30 рядків", () => {
       expect(matrix(columns, { rows: [row("r1")] })).toBe(true);
-      expect(matrix(Array.from({ length: 10 }, (_, i) => col(`c${i}`)), { rows: [row("r1")] })).toBe(
-        true,
-      );
+      expect(
+        matrix(
+          Array.from({ length: 10 }, (_, i) => col(`c${i}`)),
+          { rows: [row("r1")] },
+        ),
+      ).toBe(true);
       expect(matrix(columns, { rows: Array.from({ length: 30 }, (_, i) => row(`r${i}`)) })).toBe(
         true,
       );
@@ -201,9 +204,12 @@ describe("questionSchema — discriminated union за type", () => {
 
     it("відхиляє замало/забагато колонок і рядків", () => {
       expect(matrix([col("a")], { rows: [row("r1")] })).toBe(false);
-      expect(matrix(Array.from({ length: 11 }, (_, i) => col(`c${i}`)), { rows: [row("r1")] })).toBe(
-        false,
-      );
+      expect(
+        matrix(
+          Array.from({ length: 11 }, (_, i) => col(`c${i}`)),
+          { rows: [row("r1")] },
+        ),
+      ).toBe(false);
       expect(matrix(columns, { rows: [] })).toBe(false);
       expect(matrix(columns, { rows: Array.from({ length: 31 }, (_, i) => row(`r${i}`)) })).toBe(
         false,
@@ -329,9 +335,15 @@ describe("мови контенту у схемах форми", () => {
     updateFormSchema.safeParse({ title: "Форма", questions: [], ...extra }).success;
 
   it("createFormSchema: defaultLanguage - код зі списку, необов'язковий", () => {
-    expect(createFormSchema.safeParse({ title: "Форма", defaultLanguage: "en" }).success).toBe(true);
-    expect(createFormSchema.safeParse({ title: "Форма", defaultLanguage: "xx" }).success).toBe(false);
-    expect(createFormSchema.safeParse({ title: "Форма", defaultLanguage: "en-US" }).success).toBe(false);
+    expect(createFormSchema.safeParse({ title: "Форма", defaultLanguage: "en" }).success).toBe(
+      true,
+    );
+    expect(createFormSchema.safeParse({ title: "Форма", defaultLanguage: "xx" }).success).toBe(
+      false,
+    );
+    expect(createFormSchema.safeParse({ title: "Форма", defaultLanguage: "en-US" }).success).toBe(
+      false,
+    );
   });
 
   it("languages: коди зі списку, без дублікатів, не більше 10", () => {
@@ -339,9 +351,9 @@ describe("мови контенту у схемах форми", () => {
     expect(form({ languages: [] })).toBe(true);
     expect(form({ languages: ["en", "en"] })).toBe(false);
     expect(form({ languages: ["xx"] })).toBe(false);
-    expect(form({ languages: ["en", "pl", "de", "fr", "es", "it", "pt", "nl", "cs", "sk", "ro"] })).toBe(
-      false,
-    );
+    expect(
+      form({ languages: ["en", "pl", "de", "fr", "es", "it", "pt", "nl", "cs", "sk", "ro"] }),
+    ).toBe(false);
   });
 
   it("усі три поля мов необов'язкові (сумісність зі старим клієнтом)", () => {
@@ -362,7 +374,14 @@ describe("мови контенту у схемах форми", () => {
 
     expect(
       question({
-        en: { text: "Q", description: "d", options: { a: "A" }, rows: { r1: "R" }, minLabel: "x", maxLabel: "y" },
+        en: {
+          text: "Q",
+          description: "d",
+          options: { a: "A" },
+          rows: { r1: "R" },
+          minLabel: "x",
+          maxLabel: "y",
+        },
       }),
     ).toBe(true);
     expect(question(null)).toBe(true);

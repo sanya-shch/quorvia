@@ -31,7 +31,10 @@ const matrixSummary = computed(() => {
   if (!matrix) return [];
 
   return matrix.rows.slice(0, 3).map((row) => {
-    const best = row.counts.reduce((bestIndex, count, i, all) => (count > all[bestIndex] ? i : bestIndex), 0);
+    const best = row.counts.reduce(
+      (bestIndex, count, i, all) => (count > all[bestIndex] ? i : bestIndex),
+      0,
+    );
 
     return {
       rowId: row.rowId,
@@ -44,8 +47,8 @@ const matrixSummary = computed(() => {
 
 const topPreview = computed(() => props.question.preview?.slice(0, 3) ?? []);
 const topDistribution = computed(() => props.question.distribution ?? []);
-const maxDistributionCount = computed(
-  () => Math.max(1, ...topDistribution.value.map((d) => d.count)),
+const maxDistributionCount = computed(() =>
+  Math.max(1, ...topDistribution.value.map((d) => d.count)),
 );
 </script>
 
@@ -92,7 +95,10 @@ const maxDistributionCount = computed(
             :title="d.text + ': ' + d.count"
           >
             <div class="hist-bar-wrap">
-              <div class="hist-bar" :style="{ height: (d.count / maxDistributionCount) * 100 + '%' }" />
+              <div
+                class="hist-bar"
+                :style="{ height: (d.count / maxDistributionCount) * 100 + '%' }"
+              />
             </div>
             <span class="hist-label">{{ d.text }}</span>
           </div>
@@ -114,7 +120,9 @@ const maxDistributionCount = computed(
       <template v-else-if="question.type === 'MATRIX' && question.matrix">
         <div v-for="row in matrixSummary" :key="row.rowId" class="dist-row">
           <span class="dist-label">{{ row.text }}</span>
-          <span class="dist-count">{{ row.topText }}<template v-if="row.share"> · {{ row.share }}%</template></span>
+          <span class="dist-count"
+            >{{ row.topText }}<template v-if="row.share"> · {{ row.share }}%</template></span
+          >
         </div>
         <span v-if="question.matrix.rows.length > 3" class="stat-label">
           +{{ question.matrix.rows.length - 3 }}
@@ -139,7 +147,9 @@ const maxDistributionCount = computed(
       </template>
 
       <template v-else-if="question.type === 'FILE'">
-        <p class="file-count">{{ t("analytics.questionCard.filesUploaded", { count: question.fileCount ?? 0 }) }}</p>
+        <p class="file-count">
+          {{ t("analytics.questionCard.filesUploaded", { count: question.fileCount ?? 0 }) }}
+        </p>
       </template>
 
       <template v-else-if="question.type === 'BOOLEAN'">
@@ -148,7 +158,8 @@ const maxDistributionCount = computed(
             class="bool-bar-fill"
             :style="{
               width:
-                ((question.trueCount ?? 0) / Math.max(1, (question.trueCount ?? 0) + (question.falseCount ?? 0))) *
+                ((question.trueCount ?? 0) /
+                  Math.max(1, (question.trueCount ?? 0) + (question.falseCount ?? 0))) *
                   100 +
                 '%',
             }"
@@ -160,17 +171,29 @@ const maxDistributionCount = computed(
         </div>
       </template>
 
-      <template v-else-if="(question.type === 'CHOICE_SINGLE' || question.type === 'CHOICE_MULTI' || question.type === 'IMAGE_CHOICE') && topDistribution.length">
+      <template
+        v-else-if="
+          (question.type === 'CHOICE_SINGLE' ||
+            question.type === 'CHOICE_MULTI' ||
+            question.type === 'IMAGE_CHOICE') &&
+          topDistribution.length
+        "
+      >
         <div v-for="opt in topDistribution" :key="opt.optionId" class="dist-row">
           <span class="dist-label">{{ opt.text }}</span>
           <div class="dist-bar">
-            <div class="dist-bar-fill" :style="{ width: (opt.count / maxDistributionCount) * 100 + '%' }" />
+            <div
+              class="dist-bar-fill"
+              :style="{ width: (opt.count / maxDistributionCount) * 100 + '%' }"
+            />
           </div>
           <span class="dist-count">{{ opt.count }}</span>
         </div>
       </template>
 
-      <template v-else-if="(question.type === 'TEXT' || question.type === 'DATE') && topPreview.length">
+      <template
+        v-else-if="(question.type === 'TEXT' || question.type === 'DATE') && topPreview.length"
+      >
         <div v-for="p in topPreview" :key="p.value" class="preview-row">
           <span class="preview-value">«{{ p.value }}»</span>
           <span class="preview-count">×{{ p.count }}</span>

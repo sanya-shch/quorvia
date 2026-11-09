@@ -79,7 +79,8 @@ export const exportToPdf: Exporter = (data: ExportData): Promise<GeneratedFile> 
       const answers = response.answers as Record<string, AnswerValue>;
 
       questions.forEach((question) => {
-        const value = formatAnswer(question, answers[question.id], answers[otherAnswerKey(question.id)]) || "—";
+        const value =
+          formatAnswer(question, answers[question.id], answers[otherAnswerKey(question.id)]) || "—";
 
         doc.fontSize(10).fillColor("#555").text(question.text);
 

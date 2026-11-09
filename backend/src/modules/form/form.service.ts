@@ -75,7 +75,10 @@ export const deleteForm = async (formId: string, userId: string) => {
   // and remove the files afterwards. A failure there is not an error, the orphan sweep in
   // maintenance finds leftovers.
   const assets = await prisma.asset.findMany({ where: { formId }, select: { storageKey: true } });
-  const files = await prisma.responseFile.findMany({ where: { formId }, select: { storageKey: true } });
+  const files = await prisma.responseFile.findMany({
+    where: { formId },
+    select: { storageKey: true },
+  });
 
   await prisma.form.delete({
     where: { id: formId },
@@ -404,7 +407,9 @@ export const duplicateForm = async (formId: string, userId: string) => {
 
       return options.map((option: { imageAssetId?: string | null }) => ({
         ...option,
-        imageAssetId: option.imageAssetId ? (assetCopies.get(option.imageAssetId)?.id ?? null) : null,
+        imageAssetId: option.imageAssetId
+          ? (assetCopies.get(option.imageAssetId)?.id ?? null)
+          : null,
       })) as Prisma.InputJsonValue;
     };
 

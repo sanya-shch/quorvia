@@ -204,7 +204,10 @@
         "lt": "is less than"
       }
     },
-    "file": {"maxFiles": "Maximum number of files", "hint": "Respondents can attach PDF, PNG, JPEG, WebP or plain text files, up to {{size}} MB each."},
+    "file": {
+      "maxFiles": "Maximum number of files",
+      "hint": "Respondents can attach PDF, PNG, JPEG, WebP or plain text files, up to {{size}} MB each."
+    },
     "rating": {
       "max": "Number of stars"
     },

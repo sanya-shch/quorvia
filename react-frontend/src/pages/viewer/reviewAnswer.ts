@@ -65,9 +65,7 @@ export const formatReviewAnswer = (
     }
 
     case "FILE": {
-      const names = Array.isArray(value)
-        ? value.map((id) => labels.fileName?.(id) ?? id)
-        : [];
+      const names = Array.isArray(value) ? value.map((id) => labels.fileName?.(id) ?? id) : [];
 
       return names.length > 0 ? names.join(", ") : labels.empty;
     }

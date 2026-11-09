@@ -49,12 +49,15 @@ describe("sanitizeFileName", () => {
   });
 
   it("removes characters that are special in headers and file systems", () => {
-    expect(sanitizeFileName('a<b>c:d|e?f*g.txt', "text/plain")).toBe("abcdefg.txt");
+    expect(sanitizeFileName("a<b>c:d|e?f*g.txt", "text/plain")).toBe("abcdefg.txt");
   });
 
-  it.each(["", "   ", ".", "...", ".hidden", undefined])("falls back to a generic name for %j", (raw) => {
-    expect(sanitizeFileName(raw, "text/plain")).toMatch(/^(file|hidden)\.txt$/);
-  });
+  it.each(["", "   ", ".", "...", ".hidden", undefined])(
+    "falls back to a generic name for %j",
+    (raw) => {
+      expect(sanitizeFileName(raw, "text/plain")).toMatch(/^(file|hidden)\.txt$/);
+    },
+  );
 
   it("never exceeds the maximum length and keeps the extension", () => {
     const name = sanitizeFileName(`${"x".repeat(500)}.pdf`, "application/pdf");

@@ -24,9 +24,9 @@ const options = [
 describe("formatReviewAnswer", () => {
   it("простий текст, число, дата, шкали - як є; порожнє - підпис «без відповіді»", () => {
     for (const type of ["TEXT", "NUMBER", "DATE", "RATING", "SCALE", "NPS"] as const) {
-      expect(formatReviewAnswer(q({ type }), type === "TEXT" ? "привіт" : 7, undefined, labels)).toBe(
-        type === "TEXT" ? "привіт" : "7",
-      );
+      expect(
+        formatReviewAnswer(q({ type }), type === "TEXT" ? "привіт" : 7, undefined, labels),
+      ).toBe(type === "TEXT" ? "привіт" : "7");
       expect(formatReviewAnswer(q({ type }), "", undefined, labels)).toBe("Без відповіді");
     }
     // 0 is a real answer (NPS, a scale from zero), not an empty value

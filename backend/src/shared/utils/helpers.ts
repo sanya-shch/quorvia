@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from "@prisma/client";
 
 // For nullable Json columns Prisma does not accept JS `null`: it must be replaced with
 // `Prisma.DbNull` (SQL NULL). `undefined` means "leave untouched".

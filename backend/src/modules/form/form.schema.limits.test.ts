@@ -16,7 +16,9 @@ describe("createFormSchema", () => {
   it("відхиляє відсутній/закороткий/задовгий title", () => {
     expect(createFormSchema.safeParse({}).success).toBe(false);
     expect(createFormSchema.safeParse({ title: "ab" }).success).toBe(false);
-    expect(createFormSchema.safeParse({ title: "x".repeat(FORM_LIMITS.title + 1) }).success).toBe(false);
+    expect(createFormSchema.safeParse({ title: "x".repeat(FORM_LIMITS.title + 1) }).success).toBe(
+      false,
+    );
   });
 
   it("відхиляє надто довгий description", () => {
@@ -40,7 +42,10 @@ describe("updateFormSchema: ліміти та безпечні шаблони", 
   });
 
   it("відхиляє забагато опцій", () => {
-    const options = Array.from({ length: FORM_LIMITS.options + 1 }, (_, i) => ({ id: `o${i}`, text: "x" }));
+    const options = Array.from({ length: FORM_LIMITS.options + 1 }, (_, i) => ({
+      id: `o${i}`,
+      text: "x",
+    }));
     const questions = [{ type: "CHOICE_SINGLE" as const, text: "Q", order: 0, options }];
 
     expect(updateFormSchema.safeParse({ ...base, questions }).success).toBe(false);
@@ -58,15 +63,28 @@ describe("updateFormSchema: ліміти та безпечні шаблони", 
     expect(updateFormSchema.safeParse({ ...base, questions }).success).toBe(true);
   });
 
-  it.each(["(?=a)b", "(a)\\1", "(["])("відхиляє шаблон, який не можна безпечно виконати: %j", (pattern) => {
-    const questions = [textQuestion({ pattern })];
+  it.each(["(?=a)b", "(a)\\1", "(["])(
+    "відхиляє шаблон, який не можна безпечно виконати: %j",
+    (pattern) => {
+      const questions = [textQuestion({ pattern })];
 
-    expect(updateFormSchema.safeParse({ ...base, questions }).success).toBe(false);
-  });
+      expect(updateFormSchema.safeParse({ ...base, questions }).success).toBe(false);
+    },
+  );
 
   it("відхиляє задовгий шаблон і від'ємні/дробові minLength", () => {
-    expect(updateFormSchema.safeParse({ ...base, questions: [textQuestion({ pattern: "a".repeat(201) })] }).success).toBe(false);
-    expect(updateFormSchema.safeParse({ ...base, questions: [textQuestion({ minLength: -1 })] }).success).toBe(false);
-    expect(updateFormSchema.safeParse({ ...base, questions: [textQuestion({ maxLength: 1.5 })] }).success).toBe(false);
+    expect(
+      updateFormSchema.safeParse({
+        ...base,
+        questions: [textQuestion({ pattern: "a".repeat(201) })],
+      }).success,
+    ).toBe(false);
+    expect(
+      updateFormSchema.safeParse({ ...base, questions: [textQuestion({ minLength: -1 })] }).success,
+    ).toBe(false);
+    expect(
+      updateFormSchema.safeParse({ ...base, questions: [textQuestion({ maxLength: 1.5 })] })
+        .success,
+    ).toBe(false);
   });
 });

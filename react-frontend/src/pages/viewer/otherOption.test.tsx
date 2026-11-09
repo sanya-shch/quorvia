@@ -96,11 +96,7 @@ describe("FormViewer - варіант «Інше» (CHOICE_MULTI)", () => {
     const onSubmit = vi.fn();
 
     render(
-      <FormViewer
-        formTitle="Т"
-        questions={[q({ type: "CHOICE_MULTI" })]}
-        onSubmit={onSubmit}
-      />,
+      <FormViewer formTitle="Т" questions={[q({ type: "CHOICE_MULTI" })]} onSubmit={onSubmit} />,
     );
 
     await user.click(screen.getByLabelText("Кава"));

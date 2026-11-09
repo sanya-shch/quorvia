@@ -12,10 +12,7 @@ const el = () => {
 };
 
 const setReducedMotion = (reduce: boolean) =>
-  vi.stubGlobal(
-    "matchMedia",
-    vi.fn().mockReturnValue({ matches: reduce }),
-  );
+  vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches: reduce }));
 
 describe("playToastAnimation", () => {
   beforeEach(() => {

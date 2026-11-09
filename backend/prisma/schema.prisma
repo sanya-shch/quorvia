@@ -33,13 +33,13 @@ enum ResponseMode {
 }
 
 model User {
-  id        String      @id @default(uuid())
-  email     String      @unique
-  password  String
-  forms     Form[]
-  exportJobs ExportJob[]
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  forms         Form[]
+  exportJobs    ExportJob[]
   refreshTokens RefreshToken[]
-  createdAt DateTime    @default(now())
+  createdAt     DateTime       @default(now())
 }
 
 model RefreshToken {
@@ -55,27 +55,27 @@ model RefreshToken {
 }
 
 model Form {
-  id          String      @id @default(uuid())
+  id          String  @id @default(uuid())
   title       String
   description String?
-  user        User        @relation(fields: [userId], references: [id])
+  user        User    @relation(fields: [userId], references: [id])
   userId      String
 
-  questions   Question[]
-  responses   Response[]
-  exportJobs  ExportJob[]
-  attempts    ResponseAttempt[]
+  questions  Question[]
+  responses  Response[]
+  exportJobs ExportJob[]
+  attempts   ResponseAttempt[]
 
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 
   // Counter for optimistic locking: updateForm increments it by 1 and accepts changes
   // only from a client that edited the current version. Without it two open editors would
   // silently overwrite each other (last write wins).
-  version     Int         @default(1)
+  version Int @default(1)
 
-  isPublished Boolean     @default(false)
-  shareId     String      @unique @default(uuid())
+  isPublished Boolean @default(false)
+  shareId     String  @unique @default(uuid())
 
   responseMode ResponseMode @default(ALL_AT_ONCE)
 
@@ -88,13 +88,13 @@ model Form {
   translations    Json?
 
   // Uploaded images of this form (see Asset) and the one currently used as the logo.
-  assets      Asset[]     @relation("FormAssets")
+  assets      Asset[]        @relation("FormAssets")
   files       ResponseFile[]
-  logoAsset   Asset?      @relation("FormLogo", fields: [logoAssetId], references: [id], onDelete: SetNull)
+  logoAsset   Asset?         @relation("FormLogo", fields: [logoAssetId], references: [id], onDelete: SetNull)
   logoAssetId String?
 
   // Appearance of the public page, see FormTheme in shared-types (validated on save).
-  theme       Json?
+  theme Json?
 
   @@index([userId])
   @@index([logoAssetId])
@@ -122,24 +122,24 @@ model Asset {
 }
 
 model Question {
-  id          String   @id @default(uuid())
+  id          String       @id @default(uuid())
   text        String
   description String?
   type        QuestionType
-  required    Boolean  @default(false)
+  required    Boolean      @default(false)
 
-  options     Json?
-  config       Json?
-  condition   Json?
+  options   Json?
+  config    Json?
+  condition Json?
 
   // { [language]: { text?, description?, options?, rows?, minLabel?, maxLabel? } },
   // see QuestionTranslations in shared-types.
   translations Json?
 
-  formId      String
-  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId String
+  form   Form   @relation(fields: [formId], references: [id], onDelete: Cascade)
 
-  order       Int
+  order Int
 
   @@index([formId])
 }
@@ -169,12 +169,12 @@ model ResponseFile {
 }
 
 model Response {
-  id        String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
-  formId    String
+  form   Form   @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId String
 
-  answers   Json
+  answers            Json
   // Questions that were actually shown to the respondent (computed by the server from each
   // question's condition and the submitted answers; the client is not trusted, so hidden
   // answers cannot be forged). Analytics uses it to tell "hidden by a condition" from
@@ -183,11 +183,11 @@ model Response {
 
   // Form language (from form.defaultLanguage/languages) the respondent filled it in;
   // null means unknown (responses from before languages existed, or an unrecognized language).
-  language  String?
+  language String?
 
   createdAt DateTime @default(now())
 
-  files     ResponseFile[]
+  files ResponseFile[]
 
   // Covers both the paged list (ORDER BY createdAt DESC) and the analytics keyset walk
   // (ORDER BY createdAt, id) within a form; the formId prefix replaces a separate formId index.
@@ -195,18 +195,18 @@ model Response {
 }
 
 /**
- * A "draft" of a form session: an autosaved snapshot of the respondent's progress BEFORE
- * the final submit. Unlike Response (created only on a successful full submit), it also
- * exists for abandoned sessions, which is what makes the REAL funnel possible (how many
- * respondents reached each question, including those who never finished) instead of only
- * "branch popularity among completed responses" (what /analytics/paths does from Response).
- *
- * sessionKey is a client UUID generated in the respondent's browser on the first touch
- * (sessionStorage: survives a page reload in the same tab but not a new tab, on purpose:
- * a new tab is a new "visit" for the funnel). The same key is sent with the final submit
- * (submitResponse) to mark the attempt as completedAt; the server upserts by
- * (formId, sessionKey), so it does not create a row per keystroke.
- */
+* A "draft" of a form session: an autosaved snapshot of the respondent's progress BEFORE
+* the final submit. Unlike Response (created only on a successful full submit), it also
+* exists for abandoned sessions, which is what makes the REAL funnel possible (how many
+* respondents reached each question, including those who never finished) instead of only
+* "branch popularity among completed responses" (what /analytics/paths does from Response).
+*
+* sessionKey is a client UUID generated in the respondent's browser on the first touch
+* (sessionStorage: survives a page reload in the same tab but not a new tab, on purpose:
+* a new tab is a new "visit" for the funnel). The same key is sent with the final submit
+* (submitResponse) to mark the attempt as completedAt; the server upserts by
+* (formId, sessionKey), so it does not create a row per keystroke.
+*/
 model ResponseAttempt {
   id     String @id @default(uuid())
   form   Form   @relation(fields: [formId], references: [id], onDelete: Cascade)
@@ -214,7 +214,7 @@ model ResponseAttempt {
 
   sessionKey String
 
-  answers Json
+  answers            Json
   // Same meaning and computation as Response.visibleQuestionIds (resolveVisibleQuestionIds
   // from @quorvia/condition-engine).
   visibleQuestionIds Json?
@@ -226,20 +226,20 @@ model ResponseAttempt {
   // visibleQuestionIds).
   reachedQuestionIds Json?
 
-  startedAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  startedAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   // null = not finished yet (still filling in or abandoned). The funnel does not try to tell
   // these apart with a time threshold, which would be an arbitrary assumption; reports show
   // raw numbers.
   completedAt DateTime?
+  // @@index([formId]) was dropped: the unique (formId, sessionKey) index fully covers it
+  // and also serves the funnel keyset walk.
 
   @@unique([formId, sessionKey])
   // For cleanup (maintenance.service): abandoned attempts are deleted by startedAt. NOT
   // updatedAt on purpose: it changes on every autosave, and an index on it would defeat
   // HOT updates on the hottest table.
   @@index([startedAt])
-  // @@index([formId]) was dropped: the unique (formId, sessionKey) index fully covers it
-  // and also serves the funnel keyset walk.
 }
 
 enum ExportFormat {
@@ -256,25 +256,25 @@ enum ExportStatus {
 }
 
 model ExportJob {
-  id          String       @id @default(uuid())
+  id String @id @default(uuid())
 
-  form        Form         @relation(fields: [formId], references: [id], onDelete: Cascade)
-  formId      String
+  form   Form   @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId String
 
-  user        User         @relation(fields: [userId], references: [id])
-  userId      String
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 
-  format      ExportFormat
-  status      ExportStatus @default(PENDING)
+  format ExportFormat
+  status ExportStatus @default(PENDING)
 
-  filePath    String?
-  fileName    String?
+  filePath String?
+  fileName String?
 
   responseCount Int?
 
-  error       String?
+  error String?
 
-  createdAt   DateTime     @default(now())
+  createdAt   DateTime  @default(now())
   completedAt DateTime?
 
   @@index([formId])

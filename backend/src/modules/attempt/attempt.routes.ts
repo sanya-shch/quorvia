@@ -6,6 +6,11 @@ import { saveAttemptLimiter } from "../../shared/middleware/rateLimiters.js";
 
 const router = Router();
 
-router.put("/:shareId/attempt", saveAttemptLimiter, validate(saveAttemptSchema), saveAttemptHandler);
+router.put(
+  "/:shareId/attempt",
+  saveAttemptLimiter,
+  validate(saveAttemptSchema),
+  saveAttemptHandler,
+);
 
 export default router;

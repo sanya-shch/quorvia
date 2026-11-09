@@ -32,7 +32,9 @@ describe("inspectFile: accepted types", () => {
   });
 
   it("drops EXIF and hidden chunks from images, like for the logo", async () => {
-    const withExif = await sharp({ create: { width: 8, height: 8, channels: 3, background: "#fff" } })
+    const withExif = await sharp({
+      create: { width: 8, height: 8, channels: 3, background: "#fff" },
+    })
       .jpeg()
       .withExif({ IFD0: { Copyright: "secret-owner" } })
       .toBuffer();
@@ -69,7 +71,10 @@ describe("inspectFile: rejected content", () => {
     ["a GIF", GIF],
     ["a ZIP / Office document", Buffer.from([0x50, 0x4b, 0x03, 0x04, 0, 0, 0, 0, 1, 2, 3, 4])],
     ["a Windows executable", Buffer.concat([Buffer.from("MZ"), Buffer.alloc(100, 1)])],
-    ["a Linux executable", Buffer.concat([Buffer.from([0x7f, 0x45, 0x4c, 0x46]), Buffer.alloc(100, 1)])],
+    [
+      "a Linux executable",
+      Buffer.concat([Buffer.from([0x7f, 0x45, 0x4c, 0x46]), Buffer.alloc(100, 1)]),
+    ],
     ["a shell script with NUL bytes", Buffer.from("#!/bin/sh\0echo hi")],
     ["random binary data", Buffer.from(Array.from({ length: 200 }, (_, i) => (i * 37) % 256))],
     ["invalid UTF-8", Buffer.from([0xff, 0xfe, 0xfd, 0x41, 0x42])],
@@ -104,7 +109,9 @@ describe("inspectFile: rejected content", () => {
   });
 
   it("rejects an image bomb", async () => {
-    const bomb = await sharp({ create: { width: 7000, height: 7000, channels: 3, background: "#000" } })
+    const bomb = await sharp({
+      create: { width: 7000, height: 7000, channels: 3, background: "#000" },
+    })
       .png({ compressionLevel: 9 })
       .toBuffer();
 

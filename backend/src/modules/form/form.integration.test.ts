@@ -25,7 +25,8 @@ const q = (id: string, text: string, order: number) => ({
 const save = (version: number | undefined, title: string, questions = [q("q1", "Перше", 0)]) =>
   updateForm(FORM, USER, { title, questions, version } as never);
 
-const readForm = () => prisma.form.findUniqueOrThrow({ where: { id: FORM }, include: { questions: true } });
+const readForm = () =>
+  prisma.form.findUniqueOrThrow({ where: { id: FORM }, include: { questions: true } });
 
 beforeEach(async () => {
   await prisma.form.deleteMany();
@@ -104,7 +105,10 @@ describe("updateForm - optimistic locking", () => {
       save(1, "Цикл", [
         {
           ...q("q1", "Перше", 0),
-          condition: { logic: "AND", rules: [{ questionId: "q1", operator: "equals", value: "x" }] },
+          condition: {
+            logic: "AND",
+            rules: [{ questionId: "q1", operator: "equals", value: "x" }],
+          },
         } as never,
       ]),
     ).rejects.toMatchObject({ statusCode: 400 });

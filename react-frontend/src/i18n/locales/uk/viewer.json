@@ -26,7 +26,14 @@
     "booleanNo": "Ні",
     "noAnswer": "Без відповіді"
   },
-  "file": {"choose": "Виберіть файл", "addMore": "Додати ще файл", "uploading": "Завантаження {{name}}...", "remove": "Видалити {{name}}", "removeShort": "Видалити", "hint": "До {{count}} файл(ів), по {{size}} МБ кожен. PDF, PNG, JPEG, WebP або звичайний текст."},
+  "file": {
+    "choose": "Виберіть файл",
+    "addMore": "Додати ще файл",
+    "uploading": "Завантаження {{name}}...",
+    "remove": "Видалити {{name}}",
+    "removeShort": "Видалити",
+    "hint": "До {{count}} файл(ів), по {{size}} МБ кожен. PDF, PNG, JPEG, WebP або звичайний текст."
+  },
   "validation": {
     "numberMin": "Значення має бути не менше {{min}}",
     "numberMax": "Значення має бути не більше {{max}}",
