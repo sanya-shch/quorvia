@@ -73,5 +73,10 @@
     "redirecting_one": "Redirecting in {{count}} second.",
     "redirecting_other": "Redirecting in {{count}} seconds.",
     "continueNow": "Continue now"
+  },
+  "closed": {
+    "title": "This survey is closed",
+    "byDate": "It is no longer accepting responses: its closing date has passed.",
+    "byLimit": "It is no longer accepting responses: the maximum number of responses has been reached."
   }
 }

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -149,6 +149,46 @@ describe("FormBuilder - appearance", () => {
       welcomeScreen: null,
       endScreen: { text: "Дякуємо" },
     });
+  });
+
+  it("loads the saved closing settings and the number of responses", async () => {
+    mockedGet.mockResolvedValue(adminForm({ maxResponses: 50, responseCount: 12 }));
+    renderBuilder();
+    await screen.findByDisplayValue("Початкова");
+
+    expect(screen.getByLabelText("Максимальна кількість відповідей")).toHaveValue(50);
+    expect(screen.getByText("Зібрано: 12 з 50")).toBeInTheDocument();
+  });
+
+  it("sends the closing limits the author set", async () => {
+    const user = userEvent.setup();
+    mockedGet.mockResolvedValue(adminForm());
+    renderBuilder();
+    await screen.findByDisplayValue("Початкова");
+
+    await user.type(screen.getByLabelText("Максимальна кількість відповідей"), "30");
+    fireEvent.change(screen.getByLabelText("Закрити"), { target: { value: "2030-06-15T10:30" } });
+    await save(user);
+
+    const payload = mockedUpdate.mock.calls[0]![1];
+
+    expect(payload.maxResponses).toBe(30);
+    expect(payload.closesAt).toMatch(/^2030-06-15T\d{2}:\d{2}:00\.000Z$/);
+  });
+
+  it("sends null for a limit the author removed, so the server clears it", async () => {
+    const user = userEvent.setup();
+    mockedGet.mockResolvedValue(
+      adminForm({ maxResponses: 50, closesAt: "2030-06-15T10:30:00.000Z" }),
+    );
+    renderBuilder();
+    await screen.findByDisplayValue("Початкова");
+
+    await user.clear(screen.getByLabelText("Максимальна кількість відповідей"));
+    fireEvent.change(screen.getByLabelText("Закрити"), { target: { value: "" } });
+    await save(user);
+
+    expect(mockedUpdate.mock.calls[0]![1]).toMatchObject({ maxResponses: null, closesAt: null });
   });
 
   it("sends the logo when it is removed", async () => {

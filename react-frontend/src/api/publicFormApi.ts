@@ -1,6 +1,7 @@
 import { type Question } from "../types/formBuilder";
 import type { FormAnswers } from "../types/formViewer";
 import type {
+  FormClosedReason,
   FormEndScreen,
   FormTheme,
   FormTranslations,
@@ -9,6 +10,22 @@ import type {
   UploadedFileDto,
 } from "@quorvia/shared-types";
 import { publicApi } from "./axios";
+
+// What the public GET returns for a form that no longer takes answers (see ClosedPublicFormDto in
+// the backend): enough for a themed "survey closed" page, and no questions.
+export interface ClosedFormFields {
+  closedReason: FormClosedReason;
+  id: string;
+  title: string;
+  description?: string | null;
+  defaultLanguage?: string;
+  languages?: string[];
+  translations?: FormTranslations | null;
+  logoAssetId?: string | null;
+  theme?: FormTheme | null;
+}
+
+export type PublicFormResponse = PublicFormFields | ClosedFormFields;
 
 export interface PublicFormFields {
   id: string;
@@ -27,7 +44,7 @@ export interface PublicFormFields {
   endScreen?: FormEndScreen | null;
 }
 
-export const fetchPublicForm = async (shareId: string): Promise<PublicFormFields> => {
+export const fetchPublicForm = async (shareId: string): Promise<PublicFormResponse> => {
   const response = await publicApi.get(`/forms/public/${shareId}`);
   return response.data;
 };

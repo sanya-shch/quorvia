@@ -29,6 +29,7 @@ import ImageOptionsEditor from "./components/editors/ImageOptionsEditor";
 import ThemeEditor from "./components/ThemeEditor";
 import { normalizeEndScreen, normalizeWelcomeScreen, type FormTheme } from "@quorvia/shared-types";
 import ScreensEditor from "./components/ScreensEditor";
+import ClosingEditor from "./components/ClosingEditor";
 import TranslationPanel from "./components/TranslationPanel";
 import {
   getAdditionalLanguages,
@@ -127,6 +128,9 @@ export default function FormBuilder() {
         theme: (server.theme as FormTheme | null | undefined) ?? null,
         welcomeScreen: normalizeWelcomeScreen(server.welcomeScreen),
         endScreen: normalizeEndScreen(server.endScreen),
+        closesAt: server.closesAt ?? null,
+        maxResponses: server.maxResponses ?? null,
+        responseCount: server.responseCount ?? 0,
       });
       versionRef.current = server.version;
       resetDirty();
@@ -165,6 +169,8 @@ export default function FormBuilder() {
         welcomeScreen:
           form.welcomeScreen === undefined ? undefined : normalizeWelcomeScreen(form.welcomeScreen),
         endScreen: form.endScreen === undefined ? undefined : normalizeEndScreen(form.endScreen),
+        closesAt: form.closesAt,
+        maxResponses: form.maxResponses,
         questions: normalizedQuestions,
         version: versionRef.current,
       });
@@ -341,6 +347,20 @@ export default function FormBuilder() {
                     <ThemeEditor
                       theme={form.theme}
                       onChange={(theme) => updateFormMeta({ theme })}
+                    />
+                  </div>
+                </details>
+
+                <details className="mt-4 pt-4 border-t border-slate-100">
+                  <summary className="cursor-pointer text-xs font-semibold text-slate-600 select-none">
+                    {t("builder.closing.title")}
+                  </summary>
+                  <div className="mt-4">
+                    <ClosingEditor
+                      closesAt={form.closesAt}
+                      maxResponses={form.maxResponses}
+                      responseCount={form.responseCount}
+                      onChange={(change) => updateFormMeta(change)}
                     />
                   </div>
                 </details>

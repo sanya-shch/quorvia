@@ -8,7 +8,7 @@ vi.mock("./form.service.js", () => ({
   getUserForms: vi.fn(),
   deleteForm: vi.fn(),
   getUserForm: vi.fn(),
-  getFormByShareId: vi.fn(),
+  getPublicForm: vi.fn(),
   updateForm: vi.fn(),
   publishForm: vi.fn(),
   unpublishForm: vi.fn(),
@@ -139,16 +139,16 @@ describe("PATCH /api/forms/:formId", () => {
 
 describe("GET /api/forms/public/:shareId", () => {
   it("не потребує автентифікації", async () => {
-    (service.getFormByShareId as any).mockResolvedValue({ id: "form-1" });
+    (service.getPublicForm as any).mockResolvedValue({ id: "form-1" });
 
     const res = await request(app).get("/api/forms/public/share-1");
 
     expect(res.status).toBe(200);
-    expect(service.getFormByShareId).toHaveBeenCalledWith("share-1");
+    expect(service.getPublicForm).toHaveBeenCalledWith("share-1");
   });
 
   it("404, якщо форма неопублікована/не існує", async () => {
-    (service.getFormByShareId as any).mockRejectedValue(new AppError("Form not available", 404));
+    (service.getPublicForm as any).mockRejectedValue(new AppError("Form not available", 404));
 
     const res = await request(app).get("/api/forms/public/share-1");
 

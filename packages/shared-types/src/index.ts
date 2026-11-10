@@ -31,6 +31,9 @@ export const ErrorCode = {
   ASSET_TOO_LARGE: "ASSET_TOO_LARGE",
   ASSET_LIMIT_REACHED: "ASSET_LIMIT_REACHED",
 
+  FORM_CLOSED_BY_DATE: "FORM_CLOSED_BY_DATE",
+  FORM_CLOSED_BY_LIMIT: "FORM_CLOSED_BY_LIMIT",
+
   FILE_NOT_FOUND: "FILE_NOT_FOUND",
   FILE_UPLOAD_INVALID: "FILE_UPLOAD_INVALID",
   FILE_INVALID_TYPE: "FILE_INVALID_TYPE",
@@ -990,4 +993,48 @@ export const normalizeEndScreen = (raw: unknown): FormEndScreen | null => {
   if (isHttpUrl(raw.redirectUrl)) screen.redirectUrl = raw.redirectUrl;
 
   return screen;
+};
+
+// Closing a form: by a date, by a number of responses, or both (whichever comes first).
+export const MAX_RESPONSES_LIMIT = 1_000_000;
+
+export type FormClosedReason = "DATE" | "LIMIT";
+
+// The error code the API answers with when someone tries to answer a closed form.
+export const CLOSED_ERROR_CODES: Record<FormClosedReason, string> = {
+  DATE: ErrorCode.FORM_CLOSED_BY_DATE,
+  LIMIT: ErrorCode.FORM_CLOSED_BY_LIMIT,
+};
+
+export interface ClosableForm {
+  closesAt?: Date | string | null;
+  maxResponses?: number | null;
+  responseCount?: number | null;
+}
+
+/**
+ * Why a form no longer takes answers, or null while it does. The date wins when both apply (it is
+ * the more specific message for the respondent). The server makes the authoritative decision
+ * atomically when it accepts a response; this is the shared, readable form of the same rule, used
+ * for early answers and for showing a form's state to its author.
+ */
+export const getClosedReason = (
+  form: ClosableForm,
+  now: Date = new Date(),
+): FormClosedReason | null => {
+  if (form.closesAt) {
+    const closesAt = new Date(form.closesAt);
+
+    if (!Number.isNaN(closesAt.getTime()) && closesAt.getTime() <= now.getTime()) return "DATE";
+  }
+
+  if (
+    typeof form.maxResponses === "number" &&
+    typeof form.responseCount === "number" &&
+    form.responseCount >= form.maxResponses
+  ) {
+    return "LIMIT";
+  }
+
+  return null;
 };

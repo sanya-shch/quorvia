@@ -9,6 +9,7 @@ import { prisma } from "../../prisma/prisma.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
 import { newBinaryStorageKey, type Storage } from "../asset/asset.storage.js";
 import { inspectFile } from "./file.content.js";
+import { assertFormOpen } from "../form/form.closing.js";
 import { sanitizeFileName } from "./file.name.js";
 import { defaultFileStorage } from "./file.storage.js";
 
@@ -50,12 +51,17 @@ export const uploadResponseFile = async (
     select: {
       id: true,
       isPublished: true,
+      closesAt: true,
+      maxResponses: true,
+      responseCount: true,
       questions: { where: { id: questionId }, select: { type: true, config: true } },
     },
   });
 
   if (!form) throw new AppError(ErrorCode.FORM_NOT_FOUND, 404);
   if (!form.isPublished) throw new AppError(ErrorCode.FORM_NOT_PUBLISHED, 400);
+
+  assertFormOpen(form);
 
   const question = form.questions[0];
 

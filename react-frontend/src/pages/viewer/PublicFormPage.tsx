@@ -3,6 +3,9 @@ import { I18nextProvider, useTranslation } from "react-i18next";
 import { localizeForm, localizeQuestion, pickContentLanguage } from "@quorvia/shared-types";
 import i18n, { createIsolatedI18n, isLocaleLoaded, loadLocale } from "../../i18n";
 import { assetUrl } from "../../api/assets";
+import { isClosedForm } from "./closedForm";
+import ClosedScreen from "./components/ClosedScreen";
+import { CLOSED_ERROR_CODES, type FormClosedReason } from "@quorvia/shared-types";
 import ThemeScope from "./theme/ThemeScope";
 import WelcomeScreen from "./components/WelcomeScreen";
 import EndScreen from "./components/EndScreen";
@@ -41,6 +44,12 @@ export default function PublicFormPage() {
 
   const { data: formData, isLoading, error } = usePublicFormQuery(shareId);
 
+  // A form that no longer takes answers comes back as a "closed" answer instead of an error.
+  const closedForm = formData && isClosedForm(formData) ? formData : undefined;
+  const openForm = formData && !isClosedForm(formData) ? formData : undefined;
+  // Set when a submit is refused because the form closed while the respondent was filling it in.
+  const [closedBySubmit, setClosedBySubmit] = useState<FormClosedReason | null>(null);
+
   // Browser languages are read once: they do not change while viewing.
   const [browserLanguages] = useState(readBrowserLanguages);
 
@@ -70,13 +79,13 @@ export default function PublicFormPage() {
   // The form and questions in the respondent's language; for the main language (and single-language
   // forms) localize* return the same objects, so there are no extra re-renders.
   const localized = useMemo(() => {
-    if (!formData || !isMultilingual) return formData;
+    if (!openForm || !isMultilingual) return openForm;
 
     return {
-      ...localizeForm(formData, language),
-      questions: formData.questions.map((question) => localizeQuestion(question, language)),
+      ...localizeForm(openForm, language),
+      questions: openForm.questions.map((question) => localizeQuestion(question, language)),
     };
-  }, [formData, isMultilingual, language]);
+  }, [openForm, isMultilingual, language]);
 
   // Service texts (buttons, errors) in the form's language, but in a SEPARATE i18n instance
   // without the detector: the respondent's choice does not change the app language and is not
@@ -157,6 +166,16 @@ export default function PublicFormPage() {
 
             const errorResponseBody = err.response?.data || err.data;
 
+            // The form closed while this respondent was filling it in.
+            const closed = (
+              Object.entries(CLOSED_ERROR_CODES) as [FormClosedReason, string][]
+            ).find(([, code]) => code === errorResponseBody?.message);
+
+            if (closed) {
+              setClosedBySubmit(closed[0]);
+              return;
+            }
+
             if (errorResponseBody && Array.isArray(errorResponseBody.errors)) {
               const mappedErrors: Record<string, FieldValidationError> = {};
 
@@ -183,7 +202,8 @@ export default function PublicFormPage() {
       );
   };
 
-  const logoUrl = localized?.logoAssetId ? assetUrl(localized.logoAssetId) : undefined;
+  const logoSource = localized ?? closedForm;
+  const logoUrl = logoSource?.logoAssetId ? assetUrl(logoSource.logoAssetId) : undefined;
 
   if (isLoading || !uiLocaleReady) {
     return (
@@ -196,7 +216,39 @@ export default function PublicFormPage() {
     );
   }
 
-  if (error || !formData || !localized) {
+  const closedReason = closedForm?.closedReason ?? closedBySubmit;
+
+  if (closedReason && (closedForm || openForm)) {
+    const source = (closedForm ?? openForm)!;
+    const closedTitle = isMultilingual ? localizeForm(source, language).title : source.title;
+
+    const closedScreen = (
+      <ThemeScope theme={source.theme}>
+        <>
+          {isMultilingual && (
+            <div className="bg-slate-50 px-4 pt-3">
+              <div className="mx-auto max-w-3xl">
+                <ViewerLanguageSwitcher
+                  languages={formLanguages}
+                  value={language}
+                  onChange={handleLanguageChange}
+                />
+              </div>
+            </div>
+          )}
+          <ClosedScreen title={closedTitle} reason={closedReason} logoUrl={logoUrl} />
+        </>
+      </ThemeScope>
+    );
+
+    return (
+      <I18nextProvider i18n={viewerI18n}>
+        {isMultilingual ? <div lang={language}>{closedScreen}</div> : closedScreen}
+      </I18nextProvider>
+    );
+  }
+
+  if (error || !openForm || !localized) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="max-w-md w-full bg-surface rounded-2xl border border-slate-200 p-6 text-center shadow-sm">

@@ -7,6 +7,7 @@ import {
   FORM_RADII,
   FORM_THEME_MODES,
   isHttpUrl,
+  MAX_RESPONSES_LIMIT,
   IMAGE_CHOICE_LIMITS,
   MATRIX_LIMITS,
   MAX_ADDITIONAL_LANGUAGES,
@@ -394,6 +395,10 @@ export const updateFormSchema = z.object({
   // Appearance of the public page. null removes the theme, omitted leaves it as is.
   theme: themeSchema.nullable().optional(),
   // Screens around the form. null removes a screen, omitted leaves it as is.
+  // Closing: a moment (ISO 8601 with an offset) and/or a number of responses. null removes a limit,
+  // omitted leaves it as is.
+  closesAt: z.iso.datetime({ offset: true }).nullable().optional(),
+  maxResponses: z.number().int().min(1).max(MAX_RESPONSES_LIMIT).nullable().optional(),
   welcomeScreen: welcomeScreenSchema.nullable().optional(),
   endScreen: endScreenSchema.nullable().optional(),
   questions: z.array(questionSchema).max(FORM_LIMITS.questions),

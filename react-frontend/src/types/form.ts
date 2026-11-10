@@ -6,6 +6,9 @@ export interface FormSummary {
   createdAt: string;
   updatedAt: string;
   shareId: string;
+  closesAt?: string | null;
+  maxResponses?: number | null;
+  responseCount?: number;
   _count: {
     questions: number;
     responses: number;

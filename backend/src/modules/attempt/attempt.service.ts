@@ -5,6 +5,7 @@ import { ErrorCode } from "@quorvia/shared-types";
 import { Answers } from "../response/response.types.js";
 import { resolveVisibleQuestionIds, type QuestionLike } from "@quorvia/condition-engine";
 import { buildUpsertAttemptSql } from "./attempt.sql.js";
+import { assertFormOpen } from "../form/form.closing.js";
 
 /**
  * Saves a session "draft". Unlike submitResponse it does NOT validate required fields or
@@ -58,6 +59,9 @@ export const saveAttempt = async (
   if (!form.isPublished) {
     throw new AppError(ErrorCode.FORM_NOT_PUBLISHED, 400);
   }
+
+  // A closed form records no more drafts either: the funnel should not grow after the close.
+  assertFormOpen(form);
 
   const visibleQuestionIds = resolveVisibleQuestionIds(
     form.questions as unknown as QuestionLike[],

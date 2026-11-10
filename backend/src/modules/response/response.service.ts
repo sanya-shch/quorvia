@@ -7,6 +7,7 @@ import { resolveVisibleQuestionIds, type QuestionLike } from "@quorvia/condition
 import { toJson } from "../../shared/utils/helpers.js";
 import { buildCompleteAttemptSql } from "../attempt/attempt.sql.js";
 import { attachFilesToResponse, collectFileClaims } from "../file/file.service.js";
+import { assertFormOpen, claimResponseSlot } from "../form/form.closing.js";
 
 export const submitResponse = async (
   shareId: string,
@@ -28,6 +29,10 @@ export const submitResponse = async (
   if (!form.isPublished) {
     throw new AppError(ErrorCode.FORM_NOT_PUBLISHED, 400);
   }
+
+  // Early answer for a form that is already closed. The authoritative decision is the atomic claim
+  // below; this only avoids validating answers that cannot be accepted anyway.
+  assertFormOpen(form);
 
   const visibleQuestionIds = resolveVisibleQuestionIds(
     form.questions as unknown as QuestionLike[],
@@ -61,21 +66,22 @@ export const submitResponse = async (
   // answers take the plain path.
   const fileClaims = collectFileClaims(form.questions, cleanedAnswers, visibleQuestionIds);
 
-  const response =
-    fileClaims.length === 0
-      ? await prisma.response.create({ data })
-      : await prisma.$transaction(async (tx) => {
-          const created = await tx.response.create({ data });
+  // One transaction: take a place (the atomic closing check), create the response and attach its
+  // files. If any step fails, none of them happened.
+  const response = await prisma.$transaction(async (tx) => {
+    await claimResponseSlot(tx, form.id);
 
-          await attachFilesToResponse(tx, {
-            formId: form.id,
-            responseId: created.id,
-            sessionKey,
-            claims: fileClaims,
-          });
+    const created = await tx.response.create({ data });
 
-          return created;
-        });
+    await attachFilesToResponse(tx, {
+      formId: form.id,
+      responseId: created.id,
+      sessionKey,
+      claims: fileClaims,
+    });
+
+    return created;
+  });
 
   if (sessionKey) {
     // The ResponseAttempt row may not exist at all (the respondent submitted before the first

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createFormSchema, updateFormSchema } from "./form.schema.js";
 import { Prisma, Question, ResponseMode } from "@prisma/client";
-import type { FormEndScreen, FormWelcomeScreen } from "@quorvia/shared-types";
+import type { FormClosedReason, FormEndScreen, FormWelcomeScreen } from "@quorvia/shared-types";
 
 export type UpdateFormInput = z.infer<typeof updateFormSchema>;
 export type CreateFormInput = z.infer<typeof createFormSchema>;
@@ -25,6 +25,23 @@ export type FormDto = {
   theme: Prisma.JsonValue | null;
   welcomeScreen: Prisma.JsonValue | null;
   endScreen: Prisma.JsonValue | null;
+  closesAt: Date | null;
+  maxResponses: number | null;
+  responseCount: number;
+};
+
+// What the public GET returns for a form that no longer takes answers: enough to show a themed
+// "survey closed" page in the form's language, and none of the questions.
+export type ClosedPublicFormDto = {
+  closedReason: FormClosedReason;
+  id: string;
+  title: string;
+  description: string | null;
+  defaultLanguage: string;
+  languages: string[];
+  translations: Prisma.JsonValue | null;
+  logoAssetId: string | null;
+  theme: Prisma.JsonValue | null;
 };
 
 export type PublicFormDto = {

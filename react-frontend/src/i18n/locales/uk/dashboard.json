@@ -23,7 +23,10 @@
     "responsesCount_one": "{{count}} відповідь",
     "responsesCount_few": "{{count}} відповіді",
     "responsesCount_many": "{{count}} відповідей",
-    "responsesCount_other": "{{count}} відповідей"
+    "responsesCount_other": "{{count}} відповідей",
+    "closed": "Закрито",
+    "closedByDate": "Дата закриття минула",
+    "closedByLimit": "Досягнуто максимальної кількості відповідей"
   },
   "menu": {
     "open": "Дії з опитуванням",

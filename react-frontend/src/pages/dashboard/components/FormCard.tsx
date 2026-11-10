@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { getClosedReason } from "@quorvia/shared-types";
 import { type FormSummary } from "../../../types/form";
 import FormCardMenu from "./FormCardMenu";
 
@@ -26,6 +27,8 @@ export default function FormCard({
     navigator.clipboard.writeText(publicUrl);
   };
 
+  const closedReason = getClosedReason(form);
+
   return (
     <div
       onClick={onClick}
@@ -42,6 +45,19 @@ export default function FormCard({
           >
             {form.isPublished ? t("dashboard.card.published") : t("dashboard.card.draft")}
           </span>
+
+          {form.isPublished && closedReason && (
+            <span
+              className="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10"
+              title={t(
+                closedReason === "DATE"
+                  ? "dashboard.card.closedByDate"
+                  : "dashboard.card.closedByLimit",
+              )}
+            >
+              {t("dashboard.card.closed")}
+            </span>
+          )}
 
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500">

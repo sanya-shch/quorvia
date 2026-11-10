@@ -6,7 +6,6 @@
   "AUTH_UNAUTHORIZED": "You need to sign in",
   "AUTH_TOKEN_INVALID": "Your session has expired, please sign in again",
   "AUTH_USER_NOT_FOUND": "User not found",
-
   "FORM_NOT_FOUND": "Form not found",
   "FORM_FORBIDDEN": "You don't have access to this form",
   "FORM_NOT_AVAILABLE": "This form is not available",
@@ -14,14 +13,12 @@
   "FORM_QUESTION_ID_CONFLICT": "A question ID conflicts with another form. Reload the page and try again",
   "FORM_VERSION_CONFLICT": "The form was changed elsewhere. Load the latest version and reapply your changes",
   "FORM_INVALID_CONDITIONS": "Invalid question display conditions",
-
   "ASSET_NOT_FOUND": "Image not found",
   "ASSET_UPLOAD_INVALID": "The upload is invalid. Send one image file",
   "ASSET_INVALID_TYPE": "Unsupported file type. Use PNG, JPEG or WebP",
   "ASSET_INVALID_IMAGE": "The file is not a valid image",
   "ASSET_TOO_LARGE": "The image is too large (512 KB at most)",
   "ASSET_LIMIT_REACHED": "This form has too many uploaded images",
-
   "FILE_NOT_FOUND": "File not found",
   "FILE_UPLOAD_INVALID": "The upload is invalid. Send one file",
   "FILE_INVALID_TYPE": "Unsupported file type. Use PDF, PNG, JPEG, WebP or a plain text file",
@@ -30,17 +27,13 @@
   "FILE_LIMIT_REACHED": "You cannot attach more files here",
   "FILE_QUOTA_EXCEEDED": "This form cannot accept more files right now",
   "VALIDATION_FILES_INVALID": "Some attached files are no longer available. Remove them and upload again",
-
   "EXPORT_JOB_NOT_FOUND": "Export job not found",
   "EXPORT_NOT_READY": "Export isn't ready yet",
   "EXPORT_FILE_MISSING": "Export file is missing on the server",
-
   "RESPONSE_VALIDATION_FAILED": "Please check the form for errors",
-
   "ANALYTICS_QUESTION_NOT_FOUND": "Question not found",
   "ANALYTICS_UNSUPPORTED_TYPE": "This question type isn't supported",
   "ANALYTICS_RESPONSE_NOT_FOUND": "Response not found",
-
   "VALIDATION_EMAIL_REQUIRED": "Email is required",
   "VALIDATION_EMAIL_INVALID": "Invalid email format",
   "VALIDATION_PASSWORD_REQUIRED": "Password is required",
@@ -51,15 +44,15 @@
   "VALIDATION_PASSWORD_TOO_LONG": "Password must be at most 72 bytes long",
   "VALIDATION_CONFIRM_PASSWORD_REQUIRED": "Please confirm your password",
   "VALIDATION_PASSWORDS_DO_NOT_MATCH": "Passwords don't match",
-
   "VALIDATION_FIELD_REQUIRED": "This field is required",
   "VALIDATION_FORMAT_INVALID": "Invalid format",
   "VALIDATION_DATE_INVALID": "Invalid date",
   "VALIDATION_MUST_BE_ACCEPTED": "This field must be accepted",
-
   "REQUEST_BODY_INVALID": "The request could not be read",
   "REQUEST_TOO_LARGE": "The request is too large",
   "RATE_LIMITED": "Too many attempts. Please try again later",
   "INTERNAL_SERVER_ERROR": "Something went wrong. Please try again",
-  "UNKNOWN": "An unknown error occurred"
+  "UNKNOWN": "An unknown error occurred",
+  "FORM_CLOSED_BY_DATE": "This survey is closed: its closing date has passed",
+  "FORM_CLOSED_BY_LIMIT": "This survey is closed: the maximum number of responses has been reached"
 }

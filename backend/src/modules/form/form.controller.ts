@@ -4,7 +4,7 @@ import {
   deleteForm,
   duplicateForm,
   getUserForm,
-  getFormByShareId,
+  getPublicForm,
   getUserForms,
   publishForm,
   unpublishForm,
@@ -14,6 +14,7 @@ import {
   CreateFormInput,
   FormDto,
   PublicFormDto,
+  ClosedPublicFormDto,
   UpdateFormInput,
   UserFormDto,
   UserFormsDto,
@@ -122,11 +123,9 @@ export const duplicateFormHandler = async (
 
 export const getPublicFormByShareId = async (
   req: Request<{ shareId: string }>,
-  res: Response<PublicFormDto>,
+  res: Response<PublicFormDto | ClosedPublicFormDto>,
 ) => {
   const { shareId } = req.params;
 
-  const forms = await getFormByShareId(shareId);
-
-  res.json(forms);
+  res.json(await getPublicForm(shareId));
 };

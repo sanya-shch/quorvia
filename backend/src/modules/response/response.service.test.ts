@@ -1,13 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ErrorCode } from "@quorvia/shared-types";
 
-vi.mock("../../prisma/prisma.js", () => ({
-  prisma: {
-    form: { findUnique: vi.fn() },
-    response: { create: vi.fn() },
-    $executeRaw: vi.fn(),
-  },
-}));
+// The submit runs in a transaction; the mocked one hands the same mocked client to the callback, so
+// the assertions below look at the same functions either way.
+vi.mock("../../prisma/prisma.js", () => {
+  const form = {
+    findUnique: vi.fn(),
+    updateMany: vi.fn(),
+    fields: { maxResponses: "maxResponses" },
+  };
+  const response = { create: vi.fn() };
+  const client: Record<string, unknown> = { form, response, $executeRaw: vi.fn() };
+
+  client.$transaction = vi.fn(async (callback: (tx: unknown) => unknown) => callback(client));
+
+  return { prisma: client };
+});
 
 const { prisma } = await import("../../prisma/prisma.js");
 const { submitResponse } = await import("./response.service.js");
@@ -34,6 +42,8 @@ const publishedForm = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // A place is available unless a test says otherwise.
+  (prisma.form.updateMany as any).mockResolvedValue({ count: 1 });
 });
 
 describe("submitResponse", () => {
@@ -202,5 +212,120 @@ describe("submitResponse", () => {
     await submitResponse(SHARE_ID, { "q-name": "Олександр" });
 
     expect(prisma.$executeRaw).not.toHaveBeenCalled();
+  });
+});
+
+describe("submitResponse: closed forms", () => {
+  const PAST = new Date(Date.now() - 60_000);
+  const FUTURE = new Date(Date.now() + 3_600_000);
+  const valid = { "q-name": "Іра" };
+
+  it("refuses a form whose closing date has passed, before doing anything else", async () => {
+    (prisma.form.findUnique as any).mockResolvedValue({ ...publishedForm, closesAt: PAST });
+
+    await expect(submitResponse(SHARE_ID, valid)).rejects.toMatchObject({
+      statusCode: 410,
+      message: ErrorCode.FORM_CLOSED_BY_DATE,
+    });
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(prisma.response.create).not.toHaveBeenCalled();
+  });
+
+  it("refuses a form that reached its response limit", async () => {
+    (prisma.form.findUnique as any).mockResolvedValue({
+      ...publishedForm,
+      maxResponses: 5,
+      responseCount: 5,
+    });
+
+    await expect(submitResponse(SHARE_ID, valid)).rejects.toMatchObject({
+      statusCode: 410,
+      message: ErrorCode.FORM_CLOSED_BY_LIMIT,
+    });
+    expect(prisma.response.create).not.toHaveBeenCalled();
+  });
+
+  it("reports the date when both rules apply", async () => {
+    (prisma.form.findUnique as any).mockResolvedValue({
+      ...publishedForm,
+      closesAt: PAST,
+      maxResponses: 1,
+      responseCount: 9,
+    });
+
+    await expect(submitResponse(SHARE_ID, valid)).rejects.toMatchObject({
+      message: ErrorCode.FORM_CLOSED_BY_DATE,
+    });
+  });
+
+  it("accepts a form that is still open by both rules", async () => {
+    (prisma.form.findUnique as any).mockResolvedValue({
+      ...publishedForm,
+      closesAt: FUTURE,
+      maxResponses: 5,
+      responseCount: 4,
+    });
+    (prisma.response.create as any).mockResolvedValue({ id: "r1" });
+
+    await expect(submitResponse(SHARE_ID, valid)).resolves.toMatchObject({ id: "r1" });
+  });
+
+  it("takes a place and creates the response in one transaction, place first", async () => {
+    (prisma.form.findUnique as any).mockResolvedValue(publishedForm);
+    (prisma.response.create as any).mockResolvedValue({ id: "r1" });
+
+    await submitResponse(SHARE_ID, valid);
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    const claim = (prisma.form.updateMany as any).mock.invocationCallOrder[0];
+    const create = (prisma.response.create as any).mock.invocationCallOrder[0];
+
+    expect(claim).toBeLessThan(create);
+    expect(prisma.form.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: "form-1" }),
+        data: { responseCount: { increment: 1 } },
+      }),
+    );
+  });
+
+  it("creates nothing when the atomic claim finds the form full (the race for the last place)", async () => {
+    (prisma.form.findUnique as any).mockResolvedValue({
+      ...publishedForm,
+      maxResponses: 5,
+      responseCount: 4,
+    });
+    // Someone else took the last place between the read above and the claim.
+    (prisma.form.updateMany as any).mockResolvedValue({ count: 0 });
+    (prisma.form.findUnique as any).mockResolvedValueOnce({
+      ...publishedForm,
+      maxResponses: 5,
+      responseCount: 4,
+    });
+    (prisma.form.findUnique as any).mockResolvedValueOnce({
+      maxResponses: 5,
+      responseCount: 5,
+      closesAt: null,
+    });
+
+    await expect(submitResponse(SHARE_ID, valid)).rejects.toMatchObject({
+      statusCode: 410,
+      message: ErrorCode.FORM_CLOSED_BY_LIMIT,
+    });
+    expect(prisma.response.create).not.toHaveBeenCalled();
+  });
+
+  it("names the date when the form closed between the read and the claim", async () => {
+    (prisma.form.findUnique as any).mockResolvedValueOnce({ ...publishedForm, closesAt: FUTURE });
+    (prisma.form.updateMany as any).mockResolvedValue({ count: 0 });
+    (prisma.form.findUnique as any).mockResolvedValueOnce({
+      maxResponses: null,
+      responseCount: 3,
+      closesAt: PAST,
+    });
+
+    await expect(submitResponse(SHARE_ID, valid)).rejects.toMatchObject({
+      message: ErrorCode.FORM_CLOSED_BY_DATE,
+    });
   });
 });

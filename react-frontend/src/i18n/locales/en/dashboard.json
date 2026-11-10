@@ -21,7 +21,10 @@
     "draft": "Draft",
     "noDescription": "No description",
     "responsesCount_one": "{{count}} response",
-    "responsesCount_other": "{{count}} responses"
+    "responsesCount_other": "{{count}} responses",
+    "closed": "Closed",
+    "closedByDate": "The closing date has passed",
+    "closedByLimit": "The maximum number of responses has been reached"
   },
   "menu": {
     "open": "Form actions",

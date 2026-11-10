@@ -308,5 +308,18 @@
       "redirectHint": "Respondents are sent here a few seconds after submitting. Only http:// and https:// addresses work.",
       "redirectInvalid": "Use a full address that starts with http:// or https://. Anything else is not saved."
     }
+  },
+  "closing": {
+    "title": "Closing the survey",
+    "label": "Closing",
+    "hint": "The survey stops accepting responses at the date, after the maximum number of responses, or whichever comes first.",
+    "date": "Close at",
+    "dateHint": "In your time zone. Leave empty for no closing date.",
+    "max": "Maximum number of responses",
+    "maxPlaceholder": "No limit",
+    "collected": "Collected: {{count}} of {{max}}",
+    "closedByDate": "The closing date has passed: the survey no longer accepts responses.",
+    "closedByLimit": "The maximum number of responses has been reached: the survey no longer accepts responses.",
+    "pastDateHint": "Choose a later date or clear it to reopen."
   }
 }

@@ -101,6 +101,13 @@ model Form {
   welcomeScreen Json?
   endScreen     Json?
 
+  // Closing. Real columns (not JSON) because the submit transaction compares them atomically.
+  // responseCount is incremented in that same transaction, so two simultaneous submits cannot
+  // both take the last place.
+  closesAt      DateTime?
+  maxResponses  Int?
+  responseCount Int       @default(0)
+
   @@index([userId])
   @@index([logoAssetId])
 }

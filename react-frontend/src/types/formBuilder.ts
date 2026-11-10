@@ -55,6 +55,11 @@ export interface FormState {
   // Screens before and after the form (main language; translations are in `translations`).
   welcomeScreen?: FormWelcomeScreen | null;
   endScreen?: FormEndScreen | null;
+  // Closing: an ISO instant and/or a number of responses; null means no limit.
+  closesAt?: string | null;
+  maxResponses?: number | null;
+  // Read-only: how many responses the form has collected (maintained by the server).
+  responseCount?: number;
 }
 
 // A form from the admin endpoint: FormState plus the version for optimistic locking.

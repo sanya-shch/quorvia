@@ -3,13 +3,21 @@ import { prisma } from "../../prisma/prisma.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
 import {
   ErrorCode,
+  type FormClosedReason,
   normalizeFormTranslations,
+  getClosedReason,
   normalizeEndScreen,
   normalizeTheme,
   normalizeWelcomeScreen,
   normalizeQuestionTranslations,
 } from "@quorvia/shared-types";
-import type { UpdateFormInput, UserFormsDto } from "./form.types.js";
+import type {
+  ClosedPublicFormDto,
+  PublicFormDto,
+  UpdateFormInput,
+  UserFormsDto,
+} from "./form.types.js";
+import { assertFormOpen } from "./form.closing.js";
 import { removeFileObjects } from "../file/file.service.js";
 import {
   assertFormAsset,
@@ -116,7 +124,7 @@ export const getUserForm = async (formId: string, userId: string) => {
   return form;
 };
 
-export const getFormByShareId = async (shareId: string) => {
+const loadPublishedForm = async (shareId: string) => {
   const form = await prisma.form.findUnique({
     where: { shareId },
     include: {
@@ -130,21 +138,60 @@ export const getFormByShareId = async (shareId: string) => {
     throw new AppError(ErrorCode.FORM_NOT_AVAILABLE, 404);
   }
 
-  return {
-    id: form.id,
-    title: form.title,
-    description: form.description,
-    responseMode: form.responseMode,
-    defaultLanguage: form.defaultLanguage,
-    languages: form.languages,
-    translations: form.translations,
-    logoAssetId: form.logoAssetId,
-    // Normalized again on read: only known keys and valid values leave the server.
-    theme: normalizeTheme(form.theme),
-    welcomeScreen: normalizeWelcomeScreen(form.welcomeScreen),
-    endScreen: normalizeEndScreen(form.endScreen),
-    questions: form.questions,
-  };
+  return form;
+};
+
+type LoadedForm = Awaited<ReturnType<typeof loadPublishedForm>>;
+
+const toPublicFormDto = (form: LoadedForm): PublicFormDto => ({
+  id: form.id,
+  title: form.title,
+  description: form.description,
+  responseMode: form.responseMode,
+  defaultLanguage: form.defaultLanguage,
+  languages: form.languages,
+  translations: form.translations,
+  logoAssetId: form.logoAssetId,
+  // Normalized again on read: only known keys and valid values leave the server.
+  theme: normalizeTheme(form.theme),
+  welcomeScreen: normalizeWelcomeScreen(form.welcomeScreen),
+  endScreen: normalizeEndScreen(form.endScreen),
+  questions: form.questions,
+});
+
+const toClosedFormDto = (
+  form: LoadedForm,
+  closedReason: FormClosedReason,
+): ClosedPublicFormDto => ({
+  closedReason,
+  id: form.id,
+  title: form.title,
+  description: form.description,
+  defaultLanguage: form.defaultLanguage,
+  languages: form.languages,
+  translations: form.translations,
+  logoAssetId: form.logoAssetId,
+  theme: normalizeTheme(form.theme),
+});
+
+// The form a respondent can fill in. Throws a 410 for a form that has closed.
+export const getFormByShareId = async (shareId: string): Promise<PublicFormDto> => {
+  const form = await loadPublishedForm(shareId);
+
+  assertFormOpen(form);
+
+  return toPublicFormDto(form);
+};
+
+// What the public GET returns. A closed form answers with its closing reason instead of an error,
+// so the respondent sees a proper "survey closed" page (with the author's branding), not a 404.
+export const getPublicForm = async (
+  shareId: string,
+): Promise<PublicFormDto | ClosedPublicFormDto> => {
+  const form = await loadPublishedForm(shareId);
+  const closedReason = getClosedReason(form);
+
+  return closedReason ? toClosedFormDto(form, closedReason) : toPublicFormDto(form);
 };
 
 export const updateForm = async (formId: string, userId: string, data: UpdateFormInput) => {
@@ -257,6 +304,9 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
         // undefined leaves the logo as is; null removes it.
         logoAssetId: data.logoAssetId,
         // undefined leaves the theme as is; null removes it.
+        closesAt:
+          data.closesAt === undefined ? undefined : data.closesAt && new Date(data.closesAt),
+        maxResponses: data.maxResponses,
         theme: toNullableJson(data.theme === undefined ? undefined : normalizeTheme(data.theme)),
         welcomeScreen: toNullableJson(
           data.welcomeScreen === undefined ? undefined : normalizeWelcomeScreen(data.welcomeScreen),
