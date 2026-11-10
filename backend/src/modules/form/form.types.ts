@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createFormSchema, updateFormSchema } from "./form.schema.js";
 import { Prisma, Question, ResponseMode } from "@prisma/client";
+import type { FormEndScreen, FormWelcomeScreen } from "@quorvia/shared-types";
 
 export type UpdateFormInput = z.infer<typeof updateFormSchema>;
 export type CreateFormInput = z.infer<typeof createFormSchema>;
@@ -22,6 +23,8 @@ export type FormDto = {
   translations: Prisma.JsonValue | null;
   logoAssetId: string | null;
   theme: Prisma.JsonValue | null;
+  welcomeScreen: Prisma.JsonValue | null;
+  endScreen: Prisma.JsonValue | null;
 };
 
 export type PublicFormDto = {
@@ -36,6 +39,8 @@ export type PublicFormDto = {
   // Served by GET /api/assets/:id.
   logoAssetId: string | null;
   theme: Prisma.JsonValue | null;
+  welcomeScreen: FormWelcomeScreen | null;
+  endScreen: FormEndScreen | null;
   questions: Question[];
 };
 

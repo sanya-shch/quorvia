@@ -4,6 +4,8 @@ import { localizeForm, localizeQuestion, pickContentLanguage } from "@quorvia/sh
 import i18n, { createIsolatedI18n, isLocaleLoaded, loadLocale } from "../../i18n";
 import { assetUrl } from "../../api/assets";
 import ThemeScope from "./theme/ThemeScope";
+import WelcomeScreen from "./components/WelcomeScreen";
+import EndScreen from "./components/EndScreen";
 import UploadedFilesProvider from "./UploadedFilesProvider";
 import { type FormAnswers } from "../../types/formViewer";
 import { usePublicFormQuery, useSubmitResponsesMutation } from "./hooks/usePublicForm";
@@ -30,33 +32,11 @@ interface ExpectedError {
   data?: any;
 }
 
-function ThankYou() {
-  const { t } = useTranslation();
-
-  return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-surface rounded-2xl border border-slate-200 p-8 text-center shadow-sm animate-in fade-in zoom-in-95 duration-200">
-        <div className="h-12 w-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="2.5"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-          </svg>
-        </div>
-        <h2 className="text-xl font-bold text-slate-800">{t("viewer.thankYou.title")}</h2>
-        <p className="text-sm text-slate-500 mt-2">{t("viewer.thankYou.subtitle")}</p>
-      </div>
-    </div>
-  );
-}
-
 export default function PublicFormPage() {
   const { t } = useTranslation();
   const { shareId } = useParams<{ shareId: string }>();
+  // The respondent has pressed the button on the welcome screen.
+  const [started, setStarted] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { data: formData, isLoading, error } = usePublicFormQuery(shareId);
@@ -242,8 +222,10 @@ export default function PublicFormPage() {
     );
   }
 
+  const showWelcome = Boolean(localized.welcomeScreen) && !started;
+
   const content = isSubmitted ? (
-    <ThankYou />
+    <EndScreen screen={localized.endScreen} />
   ) : (
     <>
       {isMultilingual && (
@@ -258,33 +240,41 @@ export default function PublicFormPage() {
         </div>
       )}
 
-      <div className={isSubmitting ? "opacity-60 pointer-events-none transition-opacity" : ""}>
-        {localized.responseMode === "STEP_BY_STEP" ? (
-          <QuestionStepper
-            formTitle={localized.title}
-            logoUrl={logoUrl}
-            formDescription={localized.description}
-            questions={localized.questions}
-            serverErrors={formServerErrors}
-            onClearServerError={handleClearServerError}
-            onSubmit={handleFormSubmit}
-            shareId={shareId}
-            sessionKey={sessionKey}
-          />
-        ) : (
-          <FormViewer
-            formTitle={localized.title}
-            logoUrl={logoUrl}
-            formDescription={localized.description}
-            questions={localized.questions}
-            serverErrors={formServerErrors}
-            onClearServerError={handleClearServerError}
-            onSubmit={handleFormSubmit}
-            shareId={shareId}
-            sessionKey={sessionKey}
-          />
-        )}
-      </div>
+      {showWelcome && localized.welcomeScreen ? (
+        <WelcomeScreen
+          screen={localized.welcomeScreen}
+          logoUrl={logoUrl}
+          onStart={() => setStarted(true)}
+        />
+      ) : (
+        <div className={isSubmitting ? "opacity-60 pointer-events-none transition-opacity" : ""}>
+          {localized.responseMode === "STEP_BY_STEP" ? (
+            <QuestionStepper
+              formTitle={localized.title}
+              logoUrl={logoUrl}
+              formDescription={localized.description}
+              questions={localized.questions}
+              serverErrors={formServerErrors}
+              onClearServerError={handleClearServerError}
+              onSubmit={handleFormSubmit}
+              shareId={shareId}
+              sessionKey={sessionKey}
+            />
+          ) : (
+            <FormViewer
+              formTitle={localized.title}
+              logoUrl={logoUrl}
+              formDescription={localized.description}
+              questions={localized.questions}
+              serverErrors={formServerErrors}
+              onClearServerError={handleClearServerError}
+              onSubmit={handleFormSubmit}
+              shareId={shareId}
+              sessionKey={sessionKey}
+            />
+          )}
+        </div>
+      )}
     </>
   );
 

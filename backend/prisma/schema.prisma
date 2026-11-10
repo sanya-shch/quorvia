@@ -96,6 +96,11 @@ model Form {
   // Appearance of the public page, see FormTheme in shared-types (validated on save).
   theme Json?
 
+  // Screens around the form, see FormWelcomeScreen / FormEndScreen in shared-types (validated on
+  // save). Texts are in the main language; translations live in `translations`.
+  welcomeScreen Json?
+  endScreen     Json?
+
   @@index([userId])
   @@index([logoAssetId])
 }

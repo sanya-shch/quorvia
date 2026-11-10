@@ -27,7 +27,8 @@ import LanguageBar from "./components/LanguageBar";
 import LogoUploader from "./components/LogoUploader";
 import ImageOptionsEditor from "./components/editors/ImageOptionsEditor";
 import ThemeEditor from "./components/ThemeEditor";
-import type { FormTheme } from "@quorvia/shared-types";
+import { normalizeEndScreen, normalizeWelcomeScreen, type FormTheme } from "@quorvia/shared-types";
+import ScreensEditor from "./components/ScreensEditor";
 import TranslationPanel from "./components/TranslationPanel";
 import {
   getAdditionalLanguages,
@@ -124,6 +125,8 @@ export default function FormBuilder() {
         translations: server.translations ?? null,
         logoAssetId: server.logoAssetId ?? null,
         theme: (server.theme as FormTheme | null | undefined) ?? null,
+        welcomeScreen: normalizeWelcomeScreen(server.welcomeScreen),
+        endScreen: normalizeEndScreen(server.endScreen),
       });
       versionRef.current = server.version;
       resetDirty();
@@ -157,6 +160,11 @@ export default function FormBuilder() {
         translations: form.translations,
         logoAssetId: form.logoAssetId,
         theme: form.theme,
+        // A screen the author left incomplete (no title / no text) or a redirect that is not
+        // http(s) is not saved; the editor warns about both while typing.
+        welcomeScreen:
+          form.welcomeScreen === undefined ? undefined : normalizeWelcomeScreen(form.welcomeScreen),
+        endScreen: form.endScreen === undefined ? undefined : normalizeEndScreen(form.endScreen),
         questions: normalizedQuestions,
         version: versionRef.current,
       });
@@ -333,6 +341,21 @@ export default function FormBuilder() {
                     <ThemeEditor
                       theme={form.theme}
                       onChange={(theme) => updateFormMeta({ theme })}
+                    />
+                  </div>
+                </details>
+
+                <details className="mt-4 pt-4 border-t border-slate-100">
+                  <summary className="cursor-pointer text-xs font-semibold text-slate-600 select-none">
+                    {t("builder.screens.title")}
+                  </summary>
+                  <div className="mt-4">
+                    <ScreensEditor
+                      formTitle={form.title}
+                      welcomeScreen={form.welcomeScreen}
+                      endScreen={form.endScreen}
+                      onWelcomeChange={(welcomeScreen) => updateFormMeta({ welcomeScreen })}
+                      onEndChange={(endScreen) => updateFormMeta({ endScreen })}
                     />
                   </div>
                 </details>

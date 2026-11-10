@@ -65,5 +65,15 @@
   },
   "language": {
     "label": "Мова"
+  },
+  "welcome": {
+    "start": "Почати"
+  },
+  "endScreen": {
+    "redirecting_one": "Перехід через {{count}} секунду.",
+    "redirecting_few": "Перехід через {{count}} секунди.",
+    "redirecting_many": "Перехід через {{count}} секунд.",
+    "redirecting_other": "Перехід через {{count}} секунди.",
+    "continueNow": "Перейти зараз"
   }
 }

@@ -1,8 +1,10 @@
 import { type Question } from "../types/formBuilder";
 import type { FormAnswers } from "../types/formViewer";
 import type {
+  FormEndScreen,
   FormTheme,
   FormTranslations,
+  FormWelcomeScreen,
   ResponseMode,
   UploadedFileDto,
 } from "@quorvia/shared-types";
@@ -21,6 +23,8 @@ export interface PublicFormFields {
   translations?: FormTranslations | null;
   logoAssetId?: string | null;
   theme?: FormTheme | null;
+  welcomeScreen?: FormWelcomeScreen | null;
+  endScreen?: FormEndScreen | null;
 }
 
 export const fetchPublicForm = async (shareId: string): Promise<PublicFormFields> => {

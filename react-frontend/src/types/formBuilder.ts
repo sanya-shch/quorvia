@@ -1,7 +1,9 @@
 import type {
   ConditionGroup,
+  FormEndScreen,
   FormTheme,
   FormTranslations,
+  FormWelcomeScreen,
   QuestionConfig,
   QuestionOption,
   QuestionTranslations,
@@ -50,6 +52,9 @@ export interface FormState {
   logoAssetId?: string | null;
   // Appearance of the public page (see FormTheme in shared-types); null removes it.
   theme?: FormTheme | null;
+  // Screens before and after the form (main language; translations are in `translations`).
+  welcomeScreen?: FormWelcomeScreen | null;
+  endScreen?: FormEndScreen | null;
 }
 
 // A form from the admin endpoint: FormState plus the version for optimistic locking.

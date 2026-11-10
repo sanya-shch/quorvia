@@ -21,6 +21,10 @@ interface TranslationPanelProps {
 const FIELD_LABEL_KEYS: Record<TranslationFieldKind, string> = {
   formTitle: "builder.languages.fields.formTitle",
   formDescription: "builder.languages.fields.formDescription",
+  welcomeTitle: "builder.languages.fields.welcomeTitle",
+  welcomeText: "builder.languages.fields.welcomeText",
+  welcomeButton: "builder.languages.fields.welcomeButton",
+  endText: "builder.languages.fields.endText",
   questionText: "builder.languages.fields.questionText",
   questionDescription: "builder.languages.fields.questionDescription",
   option: "builder.languages.fields.option",

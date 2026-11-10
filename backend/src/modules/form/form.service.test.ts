@@ -175,6 +175,8 @@ describe("getFormByShareId", () => {
       translations: null,
       logoAssetId: undefined,
       theme: null,
+      welcomeScreen: null,
+      endScreen: null,
       questions: [{ id: "q-1" }],
     });
     expect(result).not.toHaveProperty("userId");

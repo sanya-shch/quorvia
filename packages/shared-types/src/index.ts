@@ -540,6 +540,11 @@ export const isContentLocale = (value: unknown): value is ContentLocale =>
 export interface FormTranslation {
   title?: string;
   description?: string;
+  // Texts of the welcome and end screens (see FormWelcomeScreen / FormEndScreen).
+  welcomeTitle?: string;
+  welcomeText?: string;
+  welcomeButton?: string;
+  endText?: string;
 }
 
 export interface QuestionTranslation {
@@ -667,10 +672,30 @@ export const localizeForm = <
 
   if (!translation) return form;
 
+  const welcome = (form as { welcomeScreen?: FormWelcomeScreen | null }).welcomeScreen;
+  const end = (form as { endScreen?: FormEndScreen | null }).endScreen;
+
   return {
     ...form,
     title: filled(translation.title) ? translation.title : form.title,
     description: filled(translation.description) ? translation.description : form.description,
+    ...(welcome
+      ? {
+          welcomeScreen: {
+            ...welcome,
+            title: filled(translation.welcomeTitle) ? translation.welcomeTitle : welcome.title,
+            text: filled(translation.welcomeText) ? translation.welcomeText : welcome.text,
+            buttonLabel: filled(translation.welcomeButton)
+              ? translation.welcomeButton
+              : welcome.buttonLabel,
+          },
+        }
+      : {}),
+    ...(end
+      ? {
+          endScreen: { ...end, text: filled(translation.endText) ? translation.endText : end.text },
+        }
+      : {}),
   };
 };
 
@@ -710,6 +735,10 @@ export const normalizeFormTranslations = (
     const entry: FormTranslation = {};
     if (filled(source.title)) entry.title = source.title;
     if (filled(source.description)) entry.description = source.description;
+    if (filled(source.welcomeTitle)) entry.welcomeTitle = source.welcomeTitle;
+    if (filled(source.welcomeText)) entry.welcomeText = source.welcomeText;
+    if (filled(source.welcomeButton)) entry.welcomeButton = source.welcomeButton;
+    if (filled(source.endText)) entry.endText = source.endText;
 
     if (Object.keys(entry).length > 0) result[language] = entry;
   }
@@ -874,4 +903,91 @@ export type UploadedFileDto = {
   name: string;
   size: number;
   mime: FileMimeType;
+};
+
+// Screens around the form. The texts are in the form's main language; translations live in
+// Form.translations (welcomeTitle, welcomeText, welcomeButton, endText).
+export const SCREEN_LIMITS = {
+  title: 200,
+  text: 2000,
+  buttonLabel: 40,
+  redirectUrl: 2048,
+} as const;
+
+// Shown before the first question; the respondent starts the form with the button.
+export interface FormWelcomeScreen {
+  title: string;
+  text?: string | null;
+  // Falls back to the application's own "Start" label.
+  buttonLabel?: string | null;
+}
+
+// Shown after a successful submit instead of the default thank-you message.
+export interface FormEndScreen {
+  text: string;
+  // Where to send the respondent afterwards. Only http and https are ever accepted.
+  redirectUrl?: string | null;
+}
+
+/**
+ * True only for an absolute http or https URL. This is the single check behind every redirect:
+ * `javascript:`, `data:`, `vbscript:`, `file:` and relative or malformed values all fail it, so a
+ * form author cannot turn the end screen into a script-execution or phishing-by-scheme vector.
+ */
+export const isHttpUrl = (value: unknown): value is string => {
+  if (typeof value !== "string" || value.length === 0 || value.length > SCREEN_LIMITS.redirectUrl) {
+    return false;
+  }
+
+  // Control characters and whitespace are how scheme-smuggling tricks hide (`java\tscript:`).
+  if (/[\u0000-\u0020\u007f]/.test(value)) return false;
+
+  // The URL parser is lenient (`https:example.com` becomes `https://example.com/`); require the
+  // explicit `//` so what is stored is what will be followed.
+  if (!/^https?:\/\//i.test(value)) return false;
+
+  try {
+    const url = new URL(value);
+
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
+const cut = (value: unknown, max: number): string | undefined =>
+  filled(value) ? value.slice(0, max) : undefined;
+
+// Reduces whatever is stored to a valid welcome screen, or null when there is nothing to show.
+export const normalizeWelcomeScreen = (raw: unknown): FormWelcomeScreen | null => {
+  if (!isPlainObject(raw)) return null;
+
+  const title = cut(raw.title, SCREEN_LIMITS.title);
+
+  if (!title) return null;
+
+  const screen: FormWelcomeScreen = { title };
+  const text = cut(raw.text, SCREEN_LIMITS.text);
+  const buttonLabel = cut(raw.buttonLabel, SCREEN_LIMITS.buttonLabel);
+
+  if (text) screen.text = text;
+  if (buttonLabel) screen.buttonLabel = buttonLabel;
+
+  return screen;
+};
+
+// Reduces whatever is stored to a valid end screen. A redirect that is not http(s) is dropped, not
+// kept: it is never followed.
+export const normalizeEndScreen = (raw: unknown): FormEndScreen | null => {
+  if (!isPlainObject(raw)) return null;
+
+  const text = cut(raw.text, SCREEN_LIMITS.text);
+
+  if (!text) return null;
+
+  const screen: FormEndScreen = { text };
+
+  if (isHttpUrl(raw.redirectUrl)) screen.redirectUrl = raw.redirectUrl;
+
+  return screen;
 };

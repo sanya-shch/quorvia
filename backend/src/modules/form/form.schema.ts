@@ -6,12 +6,14 @@ import {
   FORM_FONTS,
   FORM_RADII,
   FORM_THEME_MODES,
+  isHttpUrl,
   IMAGE_CHOICE_LIMITS,
   MATRIX_LIMITS,
   MAX_ADDITIONAL_LANGUAGES,
   OTHER_ANSWER_SUFFIX,
   RANKING_LIMITS,
   SCALE_LIMITS,
+  SCREEN_LIMITS,
   THEME_COLOR_PATTERN,
 } from "@quorvia/shared-types";
 import { compileSafePattern, MAX_PATTERN_LENGTH } from "../../shared/utils/safeRegex.js";
@@ -63,6 +65,10 @@ const questionTranslationSchema = z.object({
 const formTranslationSchema = z.object({
   title: z.string().max(FORM_LIMITS.title).optional(),
   description: z.string().max(FORM_LIMITS.description).optional(),
+  welcomeTitle: z.string().max(SCREEN_LIMITS.title).optional(),
+  welcomeText: z.string().max(SCREEN_LIMITS.text).optional(),
+  welcomeButton: z.string().max(SCREEN_LIMITS.buttonLabel).optional(),
+  endText: z.string().max(SCREEN_LIMITS.text).optional(),
 });
 
 const translationsOf = <T extends z.ZodTypeAny>(entry: T) =>
@@ -340,6 +346,23 @@ export const questionSchema = z.discriminatedUnion("type", [
   }),
 ]);
 
+// Welcome and end screens. Strict like the theme: unknown keys are rejected. The redirect goes
+// through isHttpUrl, so only absolute http(s) URLs can ever be stored.
+const welcomeScreenSchema = z.strictObject({
+  title: z.string().trim().min(1).max(SCREEN_LIMITS.title),
+  text: z.string().max(SCREEN_LIMITS.text).nullable().optional(),
+  buttonLabel: z.string().max(SCREEN_LIMITS.buttonLabel).nullable().optional(),
+});
+
+const endScreenSchema = z.strictObject({
+  text: z.string().trim().min(1).max(SCREEN_LIMITS.text),
+  redirectUrl: z
+    .string()
+    .refine(isHttpUrl, ErrorCode.VALIDATION_FORMAT_INVALID)
+    .nullable()
+    .optional(),
+});
+
 // Strict: unknown keys are rejected, not silently stored. Colors must be plain hex values.
 const themeColorSchema = z.string().regex(THEME_COLOR_PATTERN, ErrorCode.VALIDATION_FORMAT_INVALID);
 
@@ -370,6 +393,9 @@ export const updateFormSchema = z.object({
   logoAssetId: z.uuid().nullable().optional(),
   // Appearance of the public page. null removes the theme, omitted leaves it as is.
   theme: themeSchema.nullable().optional(),
+  // Screens around the form. null removes a screen, omitted leaves it as is.
+  welcomeScreen: welcomeScreenSchema.nullable().optional(),
+  endScreen: endScreenSchema.nullable().optional(),
   questions: z.array(questionSchema).max(FORM_LIMITS.questions),
   // Form version the client edited (optimistic lock). If sent and no longer equal to the
   // current one: 409 FORM_VERSION_CONFLICT. Without it the version read at the start of the

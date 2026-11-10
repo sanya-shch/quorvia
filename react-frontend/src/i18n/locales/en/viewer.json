@@ -65,5 +65,13 @@
   },
   "language": {
     "label": "Language"
+  },
+  "welcome": {
+    "start": "Start"
+  },
+  "endScreen": {
+    "redirecting_one": "Redirecting in {{count}} second.",
+    "redirecting_other": "Redirecting in {{count}} seconds.",
+    "continueNow": "Continue now"
   }
 }

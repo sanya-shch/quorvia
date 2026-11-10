@@ -95,6 +95,62 @@ describe("FormBuilder - appearance", () => {
     expect(mockedUpdate.mock.calls[0]![1]).toMatchObject({ theme: null });
   });
 
+  it("sends the screens the author set up", async () => {
+    const user = userEvent.setup();
+    mockedGet.mockResolvedValue(adminForm());
+    renderBuilder();
+    await screen.findByDisplayValue("Початкова");
+
+    await user.click(screen.getByRole("checkbox", { name: /привітальний екран/i }));
+    await user.click(screen.getByRole("checkbox", { name: /власне повідомлення/i }));
+    await user.type(screen.getByLabelText("Повідомлення"), "Дякуємо!");
+    await user.type(screen.getByLabelText(/Адреса для переходу/), "https://example.com/next");
+    await save(user);
+
+    expect(mockedUpdate.mock.calls[0]![1]).toMatchObject({
+      welcomeScreen: { title: "Початкова" },
+      endScreen: { text: "Дякуємо!", redirectUrl: "https://example.com/next" },
+    });
+  });
+
+  it("does not save an incomplete screen or a redirect that is not http(s)", async () => {
+    const user = userEvent.setup();
+    mockedGet.mockResolvedValue(adminForm());
+    renderBuilder();
+    await screen.findByDisplayValue("Початкова");
+
+    await user.click(screen.getByRole("checkbox", { name: /привітальний екран/i }));
+    await user.clear(screen.getByLabelText("Заголовок"));
+    await user.click(screen.getByRole("checkbox", { name: /власне повідомлення/i }));
+    await user.type(screen.getByLabelText("Повідомлення"), "Дякуємо!");
+    await user.type(screen.getByLabelText(/Адреса для переходу/), "javascript:alert(1)");
+    await save(user);
+
+    const payload = mockedUpdate.mock.calls[0]![1];
+
+    expect(payload.welcomeScreen).toBeNull();
+    expect(payload.endScreen).toEqual({ text: "Дякуємо!" });
+  });
+
+  it("loads saved screens into the editor and removes one with null", async () => {
+    const user = userEvent.setup();
+    mockedGet.mockResolvedValue(
+      adminForm({ welcomeScreen: { title: "Вітаємо" }, endScreen: { text: "Дякуємо" } }),
+    );
+    renderBuilder();
+    await screen.findByDisplayValue("Початкова");
+
+    expect(screen.getByLabelText("Заголовок")).toHaveValue("Вітаємо");
+
+    await user.click(screen.getByRole("checkbox", { name: /привітальний екран/i }));
+    await save(user);
+
+    expect(mockedUpdate.mock.calls[0]![1]).toMatchObject({
+      welcomeScreen: null,
+      endScreen: { text: "Дякуємо" },
+    });
+  });
+
   it("sends the logo when it is removed", async () => {
     const user = userEvent.setup();
     mockedGet.mockResolvedValue(adminForm({ logoAssetId: "asset-1" }));

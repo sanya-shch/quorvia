@@ -33,6 +33,10 @@ export { getLanguageName } from "../../i18n/languageNames";
 export type TranslationFieldKind =
   | "formTitle"
   | "formDescription"
+  | "welcomeTitle"
+  | "welcomeText"
+  | "welcomeButton"
+  | "endText"
   | "questionText"
   | "questionDescription"
   | "option"
@@ -84,6 +88,44 @@ export const listTranslationFields = (form: FormState, language: string): Transl
     refId: null,
     source: form.description ?? "",
     value: formEntry?.description,
+    multiline: true,
+  });
+
+  // Screens: only the ones the author has turned on (and only the fields that have text).
+  push({
+    key: "form:welcomeTitle",
+    kind: "welcomeTitle",
+    questionIndex: null,
+    refId: null,
+    source: form.welcomeScreen?.title ?? "",
+    value: formEntry?.welcomeTitle,
+    multiline: false,
+  });
+  push({
+    key: "form:welcomeText",
+    kind: "welcomeText",
+    questionIndex: null,
+    refId: null,
+    source: form.welcomeScreen?.text ?? "",
+    value: formEntry?.welcomeText,
+    multiline: true,
+  });
+  push({
+    key: "form:welcomeButton",
+    kind: "welcomeButton",
+    questionIndex: null,
+    refId: null,
+    source: form.welcomeScreen?.buttonLabel ?? "",
+    value: formEntry?.welcomeButton,
+    multiline: false,
+  });
+  push({
+    key: "form:endText",
+    kind: "endText",
+    questionIndex: null,
+    refId: null,
+    source: form.endScreen?.text ?? "",
+    value: formEntry?.endText,
     multiline: true,
   });
 
@@ -201,6 +243,16 @@ const withLanguageEntry = <E extends object>(
   return Object.keys(next).length > 0 ? next : null;
 };
 
+// Which key of a form-level translation each form-level field kind writes to.
+const FORM_FIELD_KEYS: Partial<Record<TranslationFieldKind, keyof FormTranslation>> = {
+  formTitle: "title",
+  formDescription: "description",
+  welcomeTitle: "welcomeTitle",
+  welcomeText: "welcomeText",
+  welcomeButton: "welcomeButton",
+  endText: "endText",
+};
+
 // The new form state where `field` in `language` has the value `value` (empty removes the translation).
 export const setFieldTranslation = (
   form: FormState,
@@ -212,7 +264,9 @@ export const setFieldTranslation = (
 
   if (field.questionIndex === null) {
     const entry: FormTranslation = { ...form.translations?.[language] };
-    const key = field.kind === "formTitle" ? "title" : "description";
+    const key = FORM_FIELD_KEYS[field.kind];
+
+    if (!key) return form;
 
     entry[key] = blank ? undefined : value;
 

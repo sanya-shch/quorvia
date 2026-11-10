@@ -4,7 +4,9 @@ import { AppError } from "../../shared/middleware/errorHandler.js";
 import {
   ErrorCode,
   normalizeFormTranslations,
+  normalizeEndScreen,
   normalizeTheme,
+  normalizeWelcomeScreen,
   normalizeQuestionTranslations,
 } from "@quorvia/shared-types";
 import type { UpdateFormInput, UserFormsDto } from "./form.types.js";
@@ -139,6 +141,8 @@ export const getFormByShareId = async (shareId: string) => {
     logoAssetId: form.logoAssetId,
     // Normalized again on read: only known keys and valid values leave the server.
     theme: normalizeTheme(form.theme),
+    welcomeScreen: normalizeWelcomeScreen(form.welcomeScreen),
+    endScreen: normalizeEndScreen(form.endScreen),
     questions: form.questions,
   };
 };
@@ -254,6 +258,12 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
         logoAssetId: data.logoAssetId,
         // undefined leaves the theme as is; null removes it.
         theme: toNullableJson(data.theme === undefined ? undefined : normalizeTheme(data.theme)),
+        welcomeScreen: toNullableJson(
+          data.welcomeScreen === undefined ? undefined : normalizeWelcomeScreen(data.welcomeScreen),
+        ),
+        endScreen: toNullableJson(
+          data.endScreen === undefined ? undefined : normalizeEndScreen(data.endScreen),
+        ),
         updatedAt: new Date(),
         version: { increment: 1 },
       },
@@ -374,6 +384,8 @@ export const duplicateForm = async (formId: string, userId: string) => {
         languages: form.languages,
         translations: form.translations == null ? undefined : toJson(form.translations),
         theme: form.theme == null ? undefined : toJson(form.theme),
+        welcomeScreen: form.welcomeScreen == null ? undefined : toJson(form.welcomeScreen),
+        endScreen: form.endScreen == null ? undefined : toJson(form.endScreen),
         userId,
         isPublished: false,
       },

@@ -41,7 +41,11 @@
     "useDefault": "Default",
     "colorInvalid": "Use a six-digit hex color, for example #4f46e5.",
     "reset": "Reset to default appearance",
-    "mode": { "label": "Base palette", "light": "Light", "dark": "Dark" },
+    "mode": {
+      "label": "Base palette",
+      "light": "Light",
+      "dark": "Dark"
+    },
     "colors": {
       "primaryColor": "Primary color",
       "backgroundColor": "Background",
@@ -273,13 +277,36 @@
       "option": "Option",
       "row": "Row",
       "minLabel": "Label for the start of the scale",
-      "maxLabel": "Label for the end of the scale"
+      "maxLabel": "Label for the end of the scale",
+      "welcomeTitle": "Welcome screen: title",
+      "welcomeText": "Welcome screen: text",
+      "welcomeButton": "Welcome screen: button",
+      "endText": "End screen: message"
     },
     "removeModal": {
       "title": "Remove language “{{language}}”?",
       "description": "All translations into this language (title, questions and options) will be deleted when you save the form.",
       "confirm": "Remove",
       "cancel": "Cancel"
+    }
+  },
+  "screens": {
+    "title": "Welcome and end screens",
+    "welcome": {
+      "enable": "Show a welcome screen before the first question",
+      "title": "Title",
+      "titleRequired": "Enter a title, otherwise the welcome screen is not saved.",
+      "text": "Text",
+      "button": "Button label",
+      "buttonPlaceholder": "Start"
+    },
+    "end": {
+      "enable": "Show my own message after the form is submitted",
+      "text": "Message",
+      "textRequired": "Enter a message, otherwise the end screen is not saved.",
+      "redirect": "Redirect address (optional)",
+      "redirectHint": "Respondents are sent here a few seconds after submitting. Only http:// and https:// addresses work.",
+      "redirectInvalid": "Use a full address that starts with http:// or https://. Anything else is not saved."
     }
   }
 }
