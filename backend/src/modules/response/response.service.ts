@@ -8,6 +8,7 @@ import { toJson } from "../../shared/utils/helpers.js";
 import { buildCompleteAttemptSql } from "../attempt/attempt.sql.js";
 import { attachFilesToResponse, collectFileClaims } from "../file/file.service.js";
 import { assertFormOpen, claimResponseSlot } from "../form/form.closing.js";
+import { resolveEndScreen } from "../form/form.endRules.js";
 
 export const submitResponse = async (
   shareId: string,
@@ -54,11 +55,23 @@ export const submitResponse = async (
 
   const cleanedAnswers = cleanAnswers(form.questions, result.data as Answers, visibleQuestionIds);
 
+  const responseLanguage = resolveResponseLanguage(language, form.defaultLanguage, form.languages);
+
+  // Decided here, from the answers the server accepted, never from what the client claims. The
+  // winning rule is stored with the response (analytics can tell the outcomes apart).
+  const { endRuleId, screen: endScreen } = resolveEndScreen(
+    form,
+    cleanedAnswers,
+    visibleQuestionIds,
+    responseLanguage,
+  );
+
   const data = {
     formId: form.id,
     answers: toJson(cleanedAnswers),
     visibleQuestionIds: toJson(Array.from(visibleQuestionIds)),
-    language: resolveResponseLanguage(language, form.defaultLanguage, form.languages),
+    language: responseLanguage,
+    endRuleId,
   };
 
   // Files uploaded for FILE questions are attached in the same transaction that creates the
@@ -95,5 +108,5 @@ export const submitResponse = async (
     );
   }
 
-  return response;
+  return { ...response, endScreen };
 };

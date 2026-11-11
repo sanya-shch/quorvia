@@ -1,5 +1,6 @@
 import type {
   ConditionGroup,
+  FormEndRule,
   FormEndScreen,
   FormTheme,
   FormTranslations,
@@ -55,6 +56,8 @@ export interface FormState {
   // Screens before and after the form (main language; translations are in `translations`).
   welcomeScreen?: FormWelcomeScreen | null;
   endScreen?: FormEndScreen | null;
+  // Conditional end screens (checked in order; the first match wins, see FormEndRule).
+  endRules?: FormEndRule[] | null;
   // Closing: an ISO instant and/or a number of responses; null means no limit.
   closesAt?: string | null;
   maxResponses?: number | null;

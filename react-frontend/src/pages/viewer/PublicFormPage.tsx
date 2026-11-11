@@ -1,6 +1,11 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import { I18nextProvider, useTranslation } from "react-i18next";
-import { localizeForm, localizeQuestion, pickContentLanguage } from "@quorvia/shared-types";
+import {
+  localizeForm,
+  localizeQuestion,
+  normalizeEndScreen,
+  pickContentLanguage,
+} from "@quorvia/shared-types";
 import i18n, { createIsolatedI18n, isLocaleLoaded, loadLocale } from "../../i18n";
 import { assetUrl } from "../../api/assets";
 import { isClosedForm } from "./closedForm";
@@ -136,6 +141,7 @@ export default function PublicFormPage() {
 
   const {
     mutate: submitResponses,
+    data: submitResult,
     isSuccess: isSubmitted,
     isPending: isSubmitting,
   } = useSubmitResponsesMutation();
@@ -276,8 +282,17 @@ export default function PublicFormPage() {
 
   const showWelcome = Boolean(localized.welcomeScreen) && !started;
 
+  // The server decides the end screen from the answers (conditional end screens), so what it sent
+  // wins; only a server that sent none at all (an older one) falls back to the form's own screen.
+  // Whatever arrives is normalized again: a message without text or a redirect that is not http(s)
+  // never gets this far.
+  const endScreen =
+    submitResult?.endScreen !== undefined
+      ? normalizeEndScreen(submitResult.endScreen)
+      : localized.endScreen;
+
   const content = isSubmitted ? (
-    <EndScreen screen={localized.endScreen} />
+    <EndScreen screen={endScreen} />
   ) : (
     <>
       {isMultilingual && (

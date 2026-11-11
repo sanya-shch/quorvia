@@ -271,4 +271,94 @@ describe("end screen", () => {
 
     expect(mockedRedirect).not.toHaveBeenCalled();
   });
+
+  describe("the screen the server chose (conditional end screens)", () => {
+    const serverSays = (endScreen: unknown) =>
+      mockedSubmit.mockResolvedValue({
+        id: "response-1",
+        createdAt: "2026-11-11T10:00:00.000Z",
+        endScreen,
+      } as never);
+
+    it("shows the screen of the rule that matched, not the form's own message", async () => {
+      serverSays({ text: "Ви в нашій цільовій групі!" });
+
+      await answerAndSubmit({ endScreen: { text: "Дякуємо за відповіді." } });
+
+      expect(await screen.findByRole("status")).toHaveTextContent("Ви в нашій цільовій групі!");
+      expect(screen.queryByText("Дякуємо за відповіді.")).not.toBeInTheDocument();
+    });
+
+    it("redirects to the address of that screen", async () => {
+      serverSays({ text: "Чудово", redirectUrl: "https://example.com/great" });
+
+      await answerAndSubmit({
+        endScreen: { text: "Дякуємо", redirectUrl: "https://example.com/default" },
+      });
+
+      expect(await screen.findByRole("link", { name: "Перейти зараз" })).toHaveAttribute(
+        "href",
+        "https://example.com/great",
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(REDIRECT_DELAY_SECONDS * 1000 + 1100);
+      });
+
+      expect(mockedRedirect).toHaveBeenCalledTimes(1);
+      expect(mockedRedirect).toHaveBeenCalledWith("https://example.com/great");
+    });
+
+    it("shows the standard thank-you when the server sent no screen", async () => {
+      serverSays(null);
+
+      await answerAndSubmit({});
+
+      expect(await screen.findByText("Дякуємо!")).toBeInTheDocument();
+      expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    });
+
+    it("does not fall back to the form's screen when the server says there is none", async () => {
+      // The server already considered the form's own screen; null is its answer.
+      serverSays(null);
+
+      await answerAndSubmit({ endScreen: { text: "Не має показатись" } });
+
+      expect(await screen.findByText("Дякуємо!")).toBeInTheDocument();
+      expect(screen.queryByText("Не має показатись")).not.toBeInTheDocument();
+    });
+
+    it("falls back to the form's own screen when the server sent nothing (an older server)", async () => {
+      mockedSubmit.mockResolvedValue({ id: "response-1", createdAt: "x" } as never);
+
+      await answerAndSubmit({ endScreen: { text: "Ми з вами зв'яжемося." } });
+
+      expect(await screen.findByRole("status")).toHaveTextContent("Ми з вами зв'яжемося.");
+    });
+
+    it.each(["javascript:alert(1)", "data:text/html,<b>x</b>", "//evil.test/x"])(
+      "never follows %j, even from the server",
+      async (redirectUrl) => {
+        serverSays({ text: "Чудово", redirectUrl });
+
+        await answerAndSubmit({});
+
+        await screen.findByRole("status");
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(REDIRECT_DELAY_SECONDS * 1000 + 2000);
+        });
+
+        expect(mockedRedirect).not.toHaveBeenCalled();
+        expect(screen.queryByRole("link")).not.toBeInTheDocument();
+      },
+    );
+
+    it("ignores a screen of the wrong shape and shows the standard message", async () => {
+      serverSays({ text: 42 });
+
+      await answerAndSubmit({});
+
+      expect(await screen.findByText("Дякуємо!")).toBeInTheDocument();
+    });
+  });
 });

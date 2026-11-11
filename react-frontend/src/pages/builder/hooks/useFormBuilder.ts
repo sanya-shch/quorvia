@@ -4,6 +4,7 @@ import { type FormState, type Question, type QuestionType } from "../../../types
 import { validateConditionGraph } from "@quorvia/condition-engine";
 import { ErrorCode } from "@quorvia/shared-types";
 import { createDefaultOptions, createDefaultQuestionConfig } from "../questionConfig";
+import { findBrokenEndRules } from "../endRules";
 
 const INITIAL_STATE: FormState = {
   title: "",
@@ -58,6 +59,12 @@ export function useFormBuilder(initialData?: FormState) {
           newErrors[`q-${index}-condition`] = `conditionErrors.${err.reason}`;
         }
       }
+    }
+
+    // The server refuses a result rule on a question that was deleted, so the form cannot be saved
+    // until the rule is fixed or removed (the rule's card says which).
+    for (const index of findBrokenEndRules(formData.endRules, formData.questions)) {
+      newErrors[`endRule-${index}`] = `errors.${ErrorCode.FORM_INVALID_END_RULES}`;
     }
 
     return newErrors;

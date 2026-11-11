@@ -27,8 +27,15 @@ import LanguageBar from "./components/LanguageBar";
 import LogoUploader from "./components/LogoUploader";
 import ImageOptionsEditor from "./components/editors/ImageOptionsEditor";
 import ThemeEditor from "./components/ThemeEditor";
-import { normalizeEndScreen, normalizeWelcomeScreen, type FormTheme } from "@quorvia/shared-types";
+import {
+  normalizeEndRules,
+  normalizeEndScreen,
+  normalizeWelcomeScreen,
+  type FormTheme,
+} from "@quorvia/shared-types";
 import ScreensEditor from "./components/ScreensEditor";
+import EndRulesEditor from "./components/EndRulesEditor";
+import { prepareEndRules } from "./endRules";
 import ClosingEditor from "./components/ClosingEditor";
 import TranslationPanel from "./components/TranslationPanel";
 import {
@@ -128,6 +135,7 @@ export default function FormBuilder() {
         theme: (server.theme as FormTheme | null | undefined) ?? null,
         welcomeScreen: normalizeWelcomeScreen(server.welcomeScreen),
         endScreen: normalizeEndScreen(server.endScreen),
+        endRules: normalizeEndRules(server.endRules),
         closesAt: server.closesAt ?? null,
         maxResponses: server.maxResponses ?? null,
         responseCount: server.responseCount ?? 0,
@@ -169,6 +177,8 @@ export default function FormBuilder() {
         welcomeScreen:
           form.welcomeScreen === undefined ? undefined : normalizeWelcomeScreen(form.welcomeScreen),
         endScreen: form.endScreen === undefined ? undefined : normalizeEndScreen(form.endScreen),
+        // Only finished rules are saved (the editor warns about the others); none left -> null.
+        endRules: form.endRules === undefined ? undefined : prepareEndRules(form.endRules),
         closesAt: form.closesAt,
         maxResponses: form.maxResponses,
         questions: normalizedQuestions,
@@ -183,6 +193,10 @@ export default function FormBuilder() {
     onError: (error) => {
       if (getApiErrorCode(error) === "FORM_VERSION_CONFLICT") {
         setIsConflictModalOpen(true);
+        return;
+      }
+      if (getApiErrorCode(error) === "FORM_INVALID_END_RULES") {
+        toast.error(t("errors.FORM_INVALID_END_RULES"));
         return;
       }
       toast.error(t("builder.saveError"));
@@ -377,6 +391,13 @@ export default function FormBuilder() {
                       onWelcomeChange={(welcomeScreen) => updateFormMeta({ welcomeScreen })}
                       onEndChange={(endScreen) => updateFormMeta({ endScreen })}
                     />
+                    <div className="mt-6 border-t border-slate-200 pt-4">
+                      <EndRulesEditor
+                        rules={form.endRules}
+                        questions={form.questions}
+                        onChange={(endRules) => updateFormMeta({ endRules })}
+                      />
+                    </div>
                   </div>
                 </details>
 

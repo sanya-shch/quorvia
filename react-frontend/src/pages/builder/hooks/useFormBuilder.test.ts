@@ -177,4 +177,62 @@ describe("useFormBuilder", () => {
       expect(result.current.isDirty).toBe(true);
     });
   });
+
+  describe("end rules", () => {
+    const rule = (questionId: string) => ({
+      id: "r1",
+      condition: {
+        logic: "AND" as const,
+        rules: [{ questionId, operator: "gt" as const, value: 5 }],
+      },
+      screen: { text: "Дякуємо" },
+    });
+
+    const baseForm = (questionId: string) => ({
+      title: "Форма",
+      description: "",
+      responseMode: "ALL_AT_ONCE" as const,
+      questions: [
+        {
+          id: "q1",
+          text: "Оцінка",
+          type: "NUMBER" as const,
+          required: false,
+          order: 0,
+          options: [],
+          config: null,
+        },
+      ],
+      endRules: [rule(questionId)],
+    });
+
+    it("lets the form be saved when every rule looks at an existing question", () => {
+      const onSuccess = vi.fn();
+      const { result } = renderHook(() => useFormBuilder(baseForm("q1")));
+
+      act(() => result.current.trySave(onSuccess));
+
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+      expect(result.current.errors).toEqual({});
+    });
+
+    it("blocks saving while a rule looks at a question that is gone, and names the rule", () => {
+      const onSuccess = vi.fn();
+      const { result } = renderHook(() => useFormBuilder(baseForm("gone")));
+
+      act(() => result.current.trySave(onSuccess));
+
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(result.current.errors["endRule-0"]).toBe("errors.FORM_INVALID_END_RULES");
+    });
+
+    it("clears the error once the rule is removed", () => {
+      const { result } = renderHook(() => useFormBuilder(baseForm("gone")));
+
+      act(() => result.current.trySave(vi.fn()));
+      act(() => result.current.updateFormMeta({ endRules: null }));
+
+      expect(result.current.errors).toEqual({});
+    });
+  });
 });

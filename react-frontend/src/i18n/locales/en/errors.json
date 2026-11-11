@@ -13,6 +13,7 @@
   "FORM_QUESTION_ID_CONFLICT": "A question ID conflicts with another form. Reload the page and try again",
   "FORM_VERSION_CONFLICT": "The form was changed elsewhere. Load the latest version and reapply your changes",
   "FORM_INVALID_CONDITIONS": "Invalid question display conditions",
+  "FORM_INVALID_END_RULES": "A result rule refers to a question that was removed or cannot be used in conditions",
   "ASSET_NOT_FOUND": "Image not found",
   "ASSET_UPLOAD_INVALID": "The upload is invalid. Send one image file",
   "ASSET_INVALID_TYPE": "Unsupported file type. Use PNG, JPEG or WebP",

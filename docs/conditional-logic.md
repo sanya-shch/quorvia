@@ -109,6 +109,54 @@ A condition compares the answer to an earlier question, so the builder only offe
 
 See [question-types.md](question-types.md) and the [API reference](API.md#question-types) for the answer format of each type.
 
+## Conditional end screens (result rules)
+
+The same condition shape also decides **what the respondent sees after submitting**. A form can have up to 10 _end rules_; each one is a condition (`logic` `AND` / `OR`, up to 50 rules with `questionId`, `operator`, `value`, exactly as for questions) plus an end screen (`text`, optional `redirectUrl`):
+
+```json
+{
+  "endRules": [
+    {
+      "id": "high",
+      "condition": {
+        "logic": "AND",
+        "rules": [{ "questionId": "q-satisfaction", "operator": "gt", "value": 7 }]
+      },
+      "screen": { "text": "Glad you liked it!", "redirectUrl": "https://example.com/thank-you" }
+    },
+    {
+      "id": "low",
+      "condition": {
+        "logic": "AND",
+        "rules": [{ "questionId": "q-satisfaction", "operator": "lt", "value": 5 }]
+      },
+      "screen": {
+        "text": "Sorry to hear that.",
+        "redirectUrl": "https://example.com/contact-support"
+      }
+    }
+  ]
+}
+```
+
+**Which screen is shown.** After a successful submit the server checks the rules **from top to bottom** and uses the first one whose condition holds. If none holds, the form's own `endScreen` applies, and without one the viewer shows its standard thank-you message. The order of the rules therefore matters, and the builder lets the author move them up and down.
+
+**How a condition is evaluated** (`resolveEndScreen` in the backend):
+
+- It is evaluated on the answers the server accepted, that is only the answers of **visible** questions (see below). A rule on a question the respondent was not shown does not hold, whatever the operator (without this, `notEquals` would be true for a hidden question, because there is no answer to be equal to).
+- For a visible question the respondent skipped, the operators behave as for question conditions: `equals`, `gt`, `lt`, `in`, `contains` do not hold, `notEquals` does.
+- Unlike the condition of a question, a rule may look at **any** question: it is evaluated after the whole form was answered, so there is no ordering requirement and no dependency graph or cycle check.
+- Rules on `RANKING`, `MATRIX` and `FILE` questions are not allowed (their answer does not reduce to the simple operators; see the table above).
+
+**Validation on save.** `PATCH /forms/:formId` checks the rules against the question list of the _same_ request. A rule on a question that does not exist, or whose type cannot be compared, is refused with `400 FORM_INVALID_END_RULES` (`errors` lists `{ ruleId, questionId, reason }`, reason `UNKNOWN_QUESTION` or `UNSUPPORTED_QUESTION_TYPE`) and nothing is written. This also means a question that a stored rule still looks at cannot be deleted until the rule is changed or removed. Rules that are malformed by the time of a submit (which validation prevents) are ignored instead of failing the submission.
+
+**What is stored and what is exposed**
+
+- The rules live in `Form.endRules`. The winning rule's id is stored on the response as `Response.endRuleId` (`null` when none matched or for responses from before end rules existed), so the outcomes can be told apart later.
+- The rules are **never part of the public form**, and their translated texts are removed from the public `translations`: the respondent must not be able to read the thresholds (for example `score > 7`) or the other outcomes. Only the chosen screen, in the respondent's language, is returned by `POST /forms/:shareId/responses` as `endScreen`.
+- Duplicating a form copies the rules and points them at the copied questions (the same remapping as for question conditions).
+- In the builder an unfinished rule (no message, or a condition without a value) is not saved, and saving is blocked while a rule points at a deleted question.
+
 ## Server-Side Invariants
 
 Conditional visibility is not treated as a client-only UI concern.
@@ -134,7 +182,10 @@ Validate answers
 Remove answers belonging to hidden questions
       │
       ▼
-Persist response
+resolveEndScreen()
+      │
+      ▼
+Persist response (with endRuleId)
 ```
 
 This is important because the client cannot be trusted to enforce conditional rules.
@@ -145,4 +196,5 @@ The backend remains the source of truth for:
 
 - question visibility;
 - response validation;
-- accepted answers.
+- accepted answers;
+- which end screen (and redirect) the respondent gets.

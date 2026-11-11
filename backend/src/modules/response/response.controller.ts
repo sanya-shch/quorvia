@@ -13,7 +13,7 @@ export const submitResponseHandler = async (
 
     const result = await submitResponse(shareId, answers, sessionKey, language);
 
-    res.json({ id: result.id, createdAt: result.createdAt });
+    res.json({ id: result.id, createdAt: result.createdAt, endScreen: result.endScreen });
   } catch (err) {
     next(err);
   }

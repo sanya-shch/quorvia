@@ -1,5 +1,6 @@
 import { isScaleQuestionType } from "@quorvia/shared-types";
 import { questionTypeSupportsConditions } from "../../questionConfig";
+import { newConditionRule, OPERATORS_BY_TYPE } from "./conditionRules";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import type {
@@ -15,27 +16,12 @@ interface ConditionEditorProps {
   allQuestions: Question[];
   onChange: (next: ConditionGroup | null) => void;
   error?: string;
+  // The condition is not optional (a result rule is nothing without one): no on/off switch, and the
+  // last rule cannot be removed.
+  mandatory?: boolean;
+  // Shown instead of the default hint when no question can be used in the condition.
+  emptyHint?: string;
 }
-
-const OPERATORS_BY_TYPE: Record<Question["type"], ConditionOperator[]> = {
-  TEXT: ["equals", "notEquals", "contains"],
-  NUMBER: ["equals", "notEquals", "gt", "lt"],
-  // gt/lt only for the number type: an ISO date string would not pass such a comparison.
-  DATE: ["equals", "notEquals"],
-  BOOLEAN: ["equals"],
-  RATING: ["equals", "notEquals", "gt", "lt"],
-  SCALE: ["equals", "notEquals", "gt", "lt"],
-  NPS: ["equals", "notEquals", "gt", "lt"],
-  // Ranking is not supported in conditions (see questionTypeSupportsConditions).
-  RANKING: [],
-  MATRIX: [],
-  // Files cannot be compared with a value.
-  FILE: [],
-  CHOICE_SINGLE: ["equals", "notEquals", "in"],
-  // The answer is an option id, exactly like a single choice.
-  IMAGE_CHOICE: ["equals", "notEquals", "in"],
-  CHOICE_MULTI: ["contains"],
-};
 
 const getOperatorLabel = (t: TFunction, op: ConditionOperator): string =>
   t(`builder.editors.condition.operators.${op}`);
@@ -49,6 +35,8 @@ export default function ConditionEditor({
   allQuestions,
   onChange,
   error,
+  mandatory = false,
+  emptyHint,
 }: ConditionEditorProps) {
   const { t } = useTranslation();
   const availableTargets = allQuestions.filter(
@@ -58,7 +46,7 @@ export default function ConditionEditor({
   if (availableTargets.length === 0) {
     return (
       <p className="text-[11px] text-slate-500 italic">
-        {t("builder.editors.condition.noTargetsHint")}
+        {emptyHint ?? t("builder.editors.condition.noTargetsHint")}
       </p>
     );
   }
@@ -70,10 +58,9 @@ export default function ConditionEditor({
       onChange(null);
       return;
     }
-    const target = availableTargets[0];
     onChange({
       logic: "AND",
-      rules: [{ questionId: target.id!, operator: OPERATORS_BY_TYPE[target.type][0], value: "" }],
+      rules: [newConditionRule(availableTargets[0] as Question & { id: string })],
     });
   };
 
@@ -85,6 +72,7 @@ export default function ConditionEditor({
 
   const removeRule = (index: number) => {
     if (!condition) return;
+    if (mandatory && condition.rules.length === 1) return;
     const rules = condition.rules.filter((_, i) => i !== index);
     if (rules.length === 0) {
       onChange(null);
@@ -95,12 +83,11 @@ export default function ConditionEditor({
 
   const addRule = () => {
     if (!condition) return;
-    const target = availableTargets[0];
     onChange({
       ...condition,
       rules: [
         ...condition.rules,
-        { questionId: target.id!, operator: OPERATORS_BY_TYPE[target.type][0], value: "" },
+        newConditionRule(availableTargets[0] as Question & { id: string }),
       ],
     });
   };
@@ -114,17 +101,19 @@ export default function ConditionEditor({
 
   return (
     <div className="space-y-2.5 animate-in fade-in duration-150">
-      <label className="flex items-center gap-2 cursor-pointer select-none w-fit">
-        <input
-          type="checkbox"
-          checked={isEnabled}
-          onChange={(e) => handleToggle(e.target.checked)}
-          className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-        />
-        <span className="text-xs font-semibold text-slate-500">
-          {t("builder.editors.condition.enableLabel")}
-        </span>
-      </label>
+      {!mandatory && (
+        <label className="flex items-center gap-2 cursor-pointer select-none w-fit">
+          <input
+            type="checkbox"
+            checked={isEnabled}
+            onChange={(e) => handleToggle(e.target.checked)}
+            className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+          />
+          <span className="text-xs font-semibold text-slate-500">
+            {t("builder.editors.condition.enableLabel")}
+          </span>
+        </label>
+      )}
 
       {isEnabled && condition && (
         <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3 space-y-2.5">
@@ -199,15 +188,17 @@ export default function ConditionEditor({
                   onChange={(value) => updateRule(index, { value })}
                 />
 
-                <button
-                  type="button"
-                  onClick={() => removeRule(index)}
-                  className="ml-auto text-slate-300 hover:text-rose-500 transition-colors cursor-pointer p-1"
-                  title={t("builder.editors.condition.removeRule")}
-                  aria-label={t("builder.editors.condition.removeRule")}
-                >
-                  <span aria-hidden="true">✕</span>
-                </button>
+                {!(mandatory && condition.rules.length === 1) && (
+                  <button
+                    type="button"
+                    onClick={() => removeRule(index)}
+                    className="ml-auto text-slate-300 hover:text-rose-500 transition-colors cursor-pointer p-1"
+                    title={t("builder.editors.condition.removeRule")}
+                    aria-label={t("builder.editors.condition.removeRule")}
+                  >
+                    <span aria-hidden="true">✕</span>
+                  </button>
+                )}
               </div>
             );
           })}

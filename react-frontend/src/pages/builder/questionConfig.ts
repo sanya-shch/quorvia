@@ -89,30 +89,9 @@ export const createDefaultOptions = (
   }));
 };
 
-// Whether the answer can be used in conditions that show other questions. Ranking and matrix
-// are not supported: an order array / a row -> column object does not reduce to simple
-// operators (equals/gt/...).
-export const questionTypeSupportsConditions = (type: QuestionType): boolean => {
-  switch (type) {
-    case "TEXT":
-    case "NUMBER":
-    case "CHOICE_SINGLE":
-    case "CHOICE_MULTI":
-    case "IMAGE_CHOICE":
-    case "BOOLEAN":
-    case "DATE":
-    case "RATING":
-    case "SCALE":
-    case "NPS":
-      return true;
-    case "RANKING":
-    case "MATRIX":
-    case "FILE":
-      return false;
-    default:
-      return assertNever(type, "question type");
-  }
-};
+// Whether the answer can be used in conditions. The rule lives in shared-types, because the backend
+// checks it too (end rules).
+export { questionTypeSupportsConditions } from "@quorvia/shared-types";
 
 // Whether the question type stores config on the server. For the other types null is sent on
 // save so no config of a previous type stays in the DB.

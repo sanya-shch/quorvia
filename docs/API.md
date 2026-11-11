@@ -42,6 +42,20 @@ Exceeding a limit returns `429 RATE_LIMITED`. Limits are per IP unless noted (in
 | POST 🔒   | `/forms/:formId/duplicate` | Copy (unpublished, `(Copy)` suffix).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | DELETE 🔒 | `/forms/:formId`           | Delete the form with its data.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
+## End screens
+
+`PATCH /forms/:formId` accepts three optional screens (omitting one keeps what is stored, `null` removes it):
+
+- `welcomeScreen`: `{ title, text?, buttonLabel? }`, shown before the first question (title up to 200 chars, text 2000, button label 40).
+- `endScreen`: `{ text, redirectUrl? }`, shown after a successful submit instead of the standard thank-you message (text 1-2000 chars). `redirectUrl` must be an `http(s)` address of up to 2048 chars, otherwise `400 REQUEST_BODY_INVALID`; the viewer redirects after a short countdown and shows a link to go at once.
+- `endRules`: up to 10 conditional end screens, `[{ id, condition, screen }]`, where `condition` has the shape of a question condition and `screen` the shape of `endScreen`. `id` is a string (1-64 chars) that is unique within the form; the translations refer to it. The first rule whose condition holds decides the screen (see [conditional logic](conditional-logic.md#conditional-end-screens-result-rules) for the evaluation rules). A rule on an unknown question or on a `RANKING` / `MATRIX` / `FILE` question is refused with `400 FORM_INVALID_END_RULES` and `errors: [{ ruleId, questionId, reason }]`; the same happens when a question that a stored rule uses is removed.
+
+Translations of the messages: `translations.<lang>.welcomeTitle`, `welcomeText`, `welcomeButton`, `endText` for the form's own screens and `translations.<lang>.endRules[<ruleId>]` for the text of a rule (see [content languages](#content-languages)). Texts of rules that no longer exist are dropped on save.
+
+`GET /forms/:formId/admin` returns all of this. The public form (`GET /forms/public/:shareId`) returns `welcomeScreen` and `endScreen`, but **never `endRules`**, and its `translations` carry no rule texts.
+
+`POST /forms/:shareId/responses` answers `{ id, createdAt, endScreen }`: `endScreen` is `{ text, redirectUrl? }` in the respondent's language (the text of the matching rule, or of the form's own screen), or `null` when the viewer should show the standard thank-you message. The id of the matching rule is stored on the response as `endRuleId`; it is not sent to the respondent.
+
 ## Content languages
 
 A form is written in one **main language** (`defaultLanguage`, default `uk`; ISO 639-1 code from the supported list in `CONTENT_LOCALES`, no regions, no RTL languages yet) and can be translated into up to 10 **additional languages** (`languages`, never containing the main one). The main-language texts are the form's own fields (`title`, `description`, question `text`, option texts, ...); translations are stored next to them:

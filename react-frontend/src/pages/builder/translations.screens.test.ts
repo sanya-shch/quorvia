@@ -115,3 +115,78 @@ describe("screen texts as translatable fields", () => {
     expect(form.translations).toEqual({ en: { title: "Form", description: "About" } });
   });
 });
+
+describe("end rule texts as translatable fields", () => {
+  const rule = (id: string, text: string) => ({
+    id,
+    condition: {
+      logic: "AND" as const,
+      rules: [{ questionId: "q1", operator: "gt" as const, value: 5 }],
+    },
+    screen: { text },
+  });
+
+  it("lists the message of every finished rule after the end screen message", () => {
+    const form = base({
+      endScreen: { text: "Дякуємо" },
+      endRules: [rule("a", "Чудово"), rule("b", "Дякуємо за відгук")],
+    });
+    const fields = listTranslationFields(form, "en");
+
+    expect(fields.map((f) => f.kind)).toEqual([
+      "formTitle",
+      "endText",
+      "endRuleText",
+      "endRuleText",
+    ]);
+    expect(fields.filter((f) => f.kind === "endRuleText").map((f) => f.refId)).toEqual(["a", "b"]);
+  });
+
+  it("skips a rule that is not finished: it is not saved, so there is nothing to translate", () => {
+    const form = base({ endRules: [rule("a", ""), rule("b", "Чудово")] });
+
+    expect(listTranslationFields(form, "en").map((f) => f.refId)).toEqual([null, "b"]);
+  });
+
+  it("shows the current translation of a rule", () => {
+    const form = base({
+      endRules: [rule("a", "Чудово")],
+      translations: { en: { endRules: { a: "Great!" } } },
+    });
+    const field = listTranslationFields(form, "en").find((f) => f.kind === "endRuleText");
+
+    expect(field?.value).toBe("Great!");
+  });
+
+  it("counts an untranslated rule as missing", () => {
+    const form = base({ endRules: [rule("a", "Чудово"), rule("b", "Добре")] });
+
+    // The title and both rules.
+    expect(countMissingTranslations(form, "en")).toBe(3);
+  });
+
+  it("writes and removes the translation of one rule without touching the others", () => {
+    const form = base({
+      endScreen: { text: "Дякуємо" },
+      endRules: [rule("a", "Чудово"), rule("b", "Добре")],
+      translations: { en: { endText: "Thanks" } },
+    });
+    const field = { kind: "endRuleText" as const, questionIndex: null, refId: "a" };
+
+    const added = setFieldTranslation(form, "en", field, "Great!");
+
+    expect(added.translations).toEqual({ en: { endText: "Thanks", endRules: { a: "Great!" } } });
+
+    const both = setFieldTranslation(added, "en", { ...field, refId: "b" }, "Good");
+
+    expect(both.translations?.en?.endRules).toEqual({ a: "Great!", b: "Good" });
+
+    const removed = setFieldTranslation(both, "en", field, "  ");
+
+    expect(removed.translations?.en?.endRules).toEqual({ b: "Good" });
+    expect(
+      setFieldTranslation(setFieldTranslation(added, "en", field, ""), "en", { ...field }, "")
+        .translations,
+    ).toEqual({ en: { endText: "Thanks" } });
+  });
+});

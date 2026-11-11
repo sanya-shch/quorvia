@@ -95,6 +95,7 @@ describe("submitResponse", () => {
         answers: { "q-name": "Олександр" },
         visibleQuestionIds: ["q-name"],
         language: null,
+        endRuleId: null,
       },
     });
     expect(result.id).toBe("resp-1");
@@ -160,6 +161,7 @@ describe("submitResponse", () => {
         answers: { "q-name": "Олександр" },
         visibleQuestionIds: ["q-name"],
         language: null,
+        endRuleId: null,
       },
     });
   });

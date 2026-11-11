@@ -101,6 +101,11 @@ model Form {
   welcomeScreen Json?
   endScreen     Json?
 
+  // Conditional end screens, see FormEndRule in shared-types (validated on save). Checked in
+  // order after a submit; the first match wins, otherwise `endScreen` applies. Never part of the
+  // public form: only the chosen screen is sent to the respondent.
+  endRules Json?
+
   // Closing. Real columns (not JSON) because the submit transaction compares them atomically.
   // responseCount is incremented in that same transaction, so two simultaneous submits cannot
   // both take the last place.
@@ -196,6 +201,10 @@ model Response {
   // Form language (from form.defaultLanguage/languages) the respondent filled it in;
   // null means unknown (responses from before languages existed, or an unrecognized language).
   language String?
+
+  // Id of the end rule that decided this respondent's end screen; null when none matched (or for
+  // responses from before end rules existed). Not a foreign key: rules live in Form.endRules.
+  endRuleId String?
 
   createdAt DateTime @default(now())
 

@@ -8,6 +8,7 @@ import {
   type QuestionTranslations,
 } from "@quorvia/shared-types";
 import type { FormState, Question } from "../../types/formBuilder";
+import { isEndRuleComplete } from "./endRules";
 import { questionTypeUsesOptions } from "./questionConfig";
 
 // Everything about translating a form in the builder: pure functions over FormState (no
@@ -37,6 +38,7 @@ export type TranslationFieldKind =
   | "welcomeText"
   | "welcomeButton"
   | "endText"
+  | "endRuleText"
   | "questionText"
   | "questionDescription"
   | "option"
@@ -128,6 +130,20 @@ export const listTranslationFields = (form: FormState, language: string): Transl
     value: formEntry?.endText,
     multiline: true,
   });
+
+  // The message of each end rule (the rule's id is the translation's key). Unfinished rules are
+  // not saved, so they are not translatable either.
+  for (const rule of form.endRules ?? []) {
+    push({
+      key: `form:endRule:${rule.id}`,
+      kind: "endRuleText",
+      questionIndex: null,
+      refId: rule.id,
+      source: isEndRuleComplete(rule) ? rule.screen.text : "",
+      value: formEntry?.endRules?.[rule.id],
+      multiline: true,
+    });
+  }
 
   form.questions.forEach((question, index) => {
     const entry: QuestionTranslation | undefined = question.translations?.[language];
@@ -264,6 +280,17 @@ export const setFieldTranslation = (
 
   if (field.questionIndex === null) {
     const entry: FormTranslation = { ...form.translations?.[language] };
+    if (field.kind === "endRuleText") {
+      if (!field.refId) return form;
+
+      entry.endRules = withMapValue(entry.endRules, field.refId, value);
+
+      return {
+        ...form,
+        translations: withLanguageEntry(form.translations, language, compact(entry)),
+      };
+    }
+
     const key = FORM_FIELD_KEYS[field.kind];
 
     if (!key) return form;

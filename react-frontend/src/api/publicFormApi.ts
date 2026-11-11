@@ -72,13 +72,22 @@ export const deleteResponseFile = async (
   await publicApi.delete(`/forms/${shareId}/files/${fileId}`, { params: { sessionKey } });
 };
 
+// What the server answers to a submit. `endScreen` is the screen it chose for these answers (a
+// matching end rule, else the form's own screen) in the respondent's language; null means "use the
+// standard thank-you message". Absent when the server predates conditional end screens.
+export interface SubmitResponseResult {
+  id: string;
+  createdAt: string;
+  endScreen?: FormEndScreen | null;
+}
+
 export const submitFormResponses = async (
   shareId: string,
   answers: FormAnswers,
   sessionKey?: string,
   language?: string,
-): Promise<void> => {
-  const response = await publicApi.post(`/forms/${shareId}/responses`, {
+): Promise<SubmitResponseResult> => {
+  const response = await publicApi.post<SubmitResponseResult>(`/forms/${shareId}/responses`, {
     answers,
     sessionKey,
     language,

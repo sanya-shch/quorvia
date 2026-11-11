@@ -6,10 +6,12 @@ import {
   type FormClosedReason,
   normalizeFormTranslations,
   getClosedReason,
+  normalizeEndRules,
   normalizeEndScreen,
   normalizeTheme,
   normalizeWelcomeScreen,
   normalizeQuestionTranslations,
+  stripEndRuleTranslations,
 } from "@quorvia/shared-types";
 import type {
   ClosedPublicFormDto,
@@ -18,6 +20,7 @@ import type {
   UserFormsDto,
 } from "./form.types.js";
 import { assertFormOpen } from "./form.closing.js";
+import { assertEndRulesValid } from "./form.endRules.js";
 import { removeFileObjects } from "../file/file.service.js";
 import {
   assertFormAsset,
@@ -150,7 +153,8 @@ const toPublicFormDto = (form: LoadedForm): PublicFormDto => ({
   responseMode: form.responseMode,
   defaultLanguage: form.defaultLanguage,
   languages: form.languages,
-  translations: form.translations,
+  // The end rule texts stay on the server: only the screen chosen on submit is sent.
+  translations: stripEndRuleTranslations(form.translations) as Prisma.JsonValue | null,
   logoAssetId: form.logoAssetId,
   // Normalized again on read: only known keys and valid values leave the server.
   theme: normalizeTheme(form.theme),
@@ -169,7 +173,8 @@ const toClosedFormDto = (
   description: form.description,
   defaultLanguage: form.defaultLanguage,
   languages: form.languages,
-  translations: form.translations,
+  // The end rule texts stay on the server: only the screen chosen on submit is sent.
+  translations: stripEndRuleTranslations(form.translations) as Prisma.JsonValue | null,
   logoAssetId: form.logoAssetId,
   theme: normalizeTheme(form.theme),
 });
@@ -222,10 +227,17 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
     throw new AppError(ErrorCode.REQUEST_BODY_INVALID, 400);
   }
 
+  // End rules as they will be after this save: the ones sent, or the stored ones when none were
+  // sent. They are checked against the questions below, so deleting a question that a stored rule
+  // still looks at is refused as well.
+  const endRules = normalizeEndRules(data.endRules !== undefined ? data.endRules : form.endRules);
+
   // Normalize the stored ones too (when the client sent none): the language list may have shrunk.
+  // Texts of rules that no longer exist are dropped with them.
   const formTranslations = normalizeFormTranslations(
     data.translations !== undefined ? data.translations : form.translations,
     languages,
+    (endRules ?? []).map((rule) => rule.id),
   );
   const previousQuestionById = new Map(existingQuestions.map((q) => [q.id, q]));
 
@@ -279,6 +291,11 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
     throw new AppError(ErrorCode.FORM_INVALID_CONDITIONS, 400, graphValidation.errors);
   }
 
+  assertEndRulesValid(
+    endRules,
+    withResolvedIds.map((q) => ({ id: q.id, type: q.type })),
+  );
+
   const incomingIds = new Set(withResolvedIds.map((q) => q.id));
   const toDelete = existingQuestions.filter((q) => !incomingIds.has(q.id)).map((q) => q.id);
 
@@ -314,6 +331,7 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
         endScreen: toNullableJson(
           data.endScreen === undefined ? undefined : normalizeEndScreen(data.endScreen),
         ),
+        endRules: toNullableJson(data.endRules === undefined ? undefined : endRules),
         updatedAt: new Date(),
         version: { increment: 1 },
       },
@@ -424,6 +442,11 @@ export const duplicateForm = async (formId: string, userId: string) => {
   const sourceAssets = await prisma.asset.findMany({ where: { id: { in: usedAssetIds } } });
   const assetCopies = await copyAssetFiles(sourceAssets);
 
+  // Copied questions get new ids (the old ones belong to the original); conditions, in questions and
+  // in end rules, must be remapped to them, or the copy would point at the original's questions.
+  const idMap = new Map(form.questions.map((q) => [q.id, crypto.randomUUID()]));
+  const sourceEndRules = normalizeEndRules(form.endRules);
+
   return prisma.$transaction(async (tx) => {
     const newForm = await tx.form.create({
       data: {
@@ -436,6 +459,22 @@ export const duplicateForm = async (formId: string, userId: string) => {
         theme: form.theme == null ? undefined : toJson(form.theme),
         welcomeScreen: form.welcomeScreen == null ? undefined : toJson(form.welcomeScreen),
         endScreen: form.endScreen == null ? undefined : toJson(form.endScreen),
+        // Rule ids stay the same (they only have to be unique within a form), so the translated
+        // texts copied above keep matching.
+        endRules: sourceEndRules
+          ? toJson(
+              sourceEndRules.map((rule) => ({
+                ...rule,
+                condition: {
+                  ...rule.condition,
+                  rules: rule.condition.rules.map((r) => ({
+                    ...r,
+                    questionId: idMap.get(r.questionId) ?? r.questionId,
+                  })),
+                },
+              })),
+            )
+          : undefined,
         userId,
         isPublished: false,
       },
@@ -474,11 +513,6 @@ export const duplicateForm = async (formId: string, userId: string) => {
           : null,
       })) as Prisma.InputJsonValue;
     };
-
-    // Copied questions get new ids (the old ones belong to the original), so
-    // condition.rules[].questionId must be remapped to them; otherwise the duplicate's
-    // conditions would point at questions of the original form.
-    const idMap = new Map(form.questions.map((q) => [q.id, crypto.randomUUID()]));
 
     const remapCondition = (condition: unknown): Prisma.InputJsonValue | undefined => {
       if (!condition || typeof condition !== "object") return undefined;

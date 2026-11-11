@@ -21,6 +21,7 @@ export const ErrorCode = {
   FORM_NOT_AVAILABLE: "FORM_NOT_AVAILABLE",
   FORM_NOT_PUBLISHED: "FORM_NOT_PUBLISHED",
   FORM_INVALID_CONDITIONS: "FORM_INVALID_CONDITIONS",
+  FORM_INVALID_END_RULES: "FORM_INVALID_END_RULES",
   FORM_QUESTION_ID_CONFLICT: "FORM_QUESTION_ID_CONFLICT",
   FORM_VERSION_CONFLICT: "FORM_VERSION_CONFLICT",
 
@@ -310,7 +311,34 @@ export function assertNever(value: never, context = "value"): never {
   throw new Error(`Unhandled ${context}: ${JSON.stringify(value)}`);
 }
 
-export type ConditionOperator = "equals" | "notEquals" | "contains" | "in" | "gt" | "lt";
+export const CONDITION_OPERATORS = ["equals", "notEquals", "contains", "in", "gt", "lt"] as const;
+
+export type ConditionOperator = (typeof CONDITION_OPERATORS)[number];
+
+// Whether the answer can be used in conditions (of questions, end rules, ...). Ranking and matrix
+// answers (an order array, a row -> column object) do not reduce to simple operators such as
+// equals/gt, and a file answer is not a value to compare.
+export const questionTypeSupportsConditions = (type: QuestionType): boolean => {
+  switch (type) {
+    case "TEXT":
+    case "NUMBER":
+    case "CHOICE_SINGLE":
+    case "CHOICE_MULTI":
+    case "IMAGE_CHOICE":
+    case "BOOLEAN":
+    case "DATE":
+    case "RATING":
+    case "SCALE":
+    case "NPS":
+      return true;
+    case "RANKING":
+    case "MATRIX":
+    case "FILE":
+      return false;
+    default:
+      return assertNever(type, "question type");
+  }
+};
 
 export type ConditionValue = string | number | boolean | string[];
 
@@ -548,6 +576,8 @@ export interface FormTranslation {
   welcomeText?: string;
   welcomeButton?: string;
   endText?: string;
+  // End rule id -> text of that rule's end screen (see FormEndRule).
+  endRules?: Record<string, string>;
 }
 
 export interface QuestionTranslation {
@@ -723,9 +753,13 @@ const cleanStringMap = (
 
 // Brings form translations into a valid state before saving: only languages from
 // `languages`, only title/description, no empty values. Returns null when nothing is left.
+//
+// `endRuleIds`: ids of the form's current end rules. Texts of rules that no longer exist are
+// dropped; when the argument is omitted, rule texts are kept as they are.
 export const normalizeFormTranslations = (
   translations: unknown,
   languages: readonly string[],
+  endRuleIds?: readonly string[],
 ): FormTranslations | null => {
   if (!isPlainObject(translations)) return null;
 
@@ -742,6 +776,10 @@ export const normalizeFormTranslations = (
     if (filled(source.welcomeText)) entry.welcomeText = source.welcomeText;
     if (filled(source.welcomeButton)) entry.welcomeButton = source.welcomeButton;
     if (filled(source.endText)) entry.endText = source.endText;
+
+    const endRules = cleanStringMap(source.endRules, endRuleIds ? new Set(endRuleIds) : undefined);
+
+    if (Object.keys(endRules).length > 0) entry.endRules = endRules;
 
     if (Object.keys(entry).length > 0) result[language] = entry;
   }
@@ -993,6 +1031,128 @@ export const normalizeEndScreen = (raw: unknown): FormEndScreen | null => {
   if (isHttpUrl(raw.redirectUrl)) screen.redirectUrl = raw.redirectUrl;
 
   return screen;
+};
+
+// Conditional end screens. The rules are checked in order after a successful submit and the first
+// one whose condition holds decides which screen (and redirect) the respondent gets; when none
+// matches, the form's own `endScreen` applies, and without it the built-in thank-you message.
+//
+// The rules are decided on the server and are not part of the public form (the respondent must not
+// see thresholds such as "score >= 8"), so only the chosen screen leaves the server.
+export const END_RULE_LIMITS = {
+  rules: 10,
+  id: 64,
+  // Same bounds as the conditions of questions (see FORM_LIMITS in the backend).
+  conditionRules: 50,
+  conditionValueItems: 100,
+  conditionValueText: 500,
+} as const;
+
+export interface FormEndRule {
+  id: string;
+  condition: ConditionGroup;
+  screen: FormEndScreen;
+}
+
+const isConditionValue = (value: unknown): value is ConditionValue => {
+  if (typeof value === "string") return value.length <= END_RULE_LIMITS.conditionValueText;
+  if (typeof value === "number") return Number.isFinite(value);
+  if (typeof value === "boolean") return true;
+
+  return (
+    Array.isArray(value) &&
+    value.length <= END_RULE_LIMITS.conditionValueItems &&
+    value.every(
+      (item) => typeof item === "string" && item.length <= END_RULE_LIMITS.conditionValueText,
+    )
+  );
+};
+
+// Shape of a condition only. That the referenced questions exist and can be used in conditions is
+// checked where the questions are known (when the form is saved).
+const normalizeEndRuleCondition = (raw: unknown): ConditionGroup | null => {
+  if (!isPlainObject(raw)) return null;
+  if (raw.logic !== "AND" && raw.logic !== "OR") return null;
+  if (!Array.isArray(raw.rules)) return null;
+  if (raw.rules.length === 0 || raw.rules.length > END_RULE_LIMITS.conditionRules) return null;
+
+  const rules: ConditionRule[] = [];
+
+  for (const item of raw.rules) {
+    if (!isPlainObject(item)) return null;
+    if (!filled(item.questionId) || item.questionId.length > END_RULE_LIMITS.id) return null;
+    if (!(CONDITION_OPERATORS as readonly unknown[]).includes(item.operator)) return null;
+    if (!isConditionValue(item.value)) return null;
+
+    rules.push({
+      questionId: item.questionId,
+      operator: item.operator as ConditionOperator,
+      value: item.value,
+    });
+  }
+
+  return { logic: raw.logic, rules };
+};
+
+// Reduces whatever is stored to a valid list of end rules, or null when none is left. A rule that
+// is malformed (no id, no usable condition, no screen text) or repeats an id is dropped, as are
+// rules beyond the limit. The order of the rules is kept: it is the order they are checked in.
+export const normalizeEndRules = (raw: unknown): FormEndRule[] | null => {
+  if (!Array.isArray(raw)) return null;
+
+  const rules: FormEndRule[] = [];
+  const seen = new Set<string>();
+
+  for (const item of raw) {
+    if (rules.length >= END_RULE_LIMITS.rules) break;
+    if (!isPlainObject(item)) continue;
+    if (!filled(item.id) || item.id.length > END_RULE_LIMITS.id || seen.has(item.id)) continue;
+
+    const condition = normalizeEndRuleCondition(item.condition);
+    const screen = normalizeEndScreen(item.screen);
+
+    if (!condition || !screen) continue;
+
+    seen.add(item.id);
+    rules.push({ id: item.id, condition, screen });
+  }
+
+  return rules.length > 0 ? rules : null;
+};
+
+// The screen of a rule in the respondent's language: the translated text when there is one,
+// otherwise the main-language text. Without a language (or without translations) it is unchanged.
+export const localizeEndRuleScreen = (
+  rule: FormEndRule,
+  translations: unknown,
+  language?: string | null,
+): FormEndScreen => {
+  if (!language || !isPlainObject(translations)) return rule.screen;
+
+  const translation = translations[language];
+  const text = isPlainObject(translation)
+    ? cleanStringMap(translation.endRules)[rule.id]
+    : undefined;
+
+  return text ? { ...rule.screen, text } : rule.screen;
+};
+
+// Form translations as the public form may carry them: without the end rule texts. The rules (and
+// so what each outcome says) are decided on the server; only the chosen screen is sent.
+export const stripEndRuleTranslations = (translations: unknown): FormTranslations | null => {
+  if (!isPlainObject(translations)) return null;
+
+  const result: FormTranslations = {};
+
+  for (const [language, entry] of Object.entries(translations)) {
+    if (!isPlainObject(entry)) continue;
+
+    const { endRules: _omitted, ...rest } = entry as FormTranslation;
+
+    if (Object.keys(rest).length > 0) result[language] = rest;
+  }
+
+  return Object.keys(result).length > 0 ? result : null;
 };
 
 // Closing a form: by a date, by a number of responses, or both (whichever comes first).

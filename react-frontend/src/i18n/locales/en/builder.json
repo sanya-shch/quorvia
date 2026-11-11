@@ -281,7 +281,8 @@
       "welcomeTitle": "Welcome screen: title",
       "welcomeText": "Welcome screen: text",
       "welcomeButton": "Welcome screen: button",
-      "endText": "End screen: message"
+      "endText": "End screen: message",
+      "endRuleText": "Result rule: message"
     },
     "removeModal": {
       "title": "Remove language “{{language}}”?",
@@ -307,6 +308,22 @@
       "redirect": "Redirect address (optional)",
       "redirectHint": "Respondents are sent here a few seconds after submitting. Only http:// and https:// addresses work.",
       "redirectInvalid": "Use a full address that starts with http:// or https://. Anything else is not saved."
+    },
+    "rules": {
+      "title": "Result rules",
+      "hint": "Show a different end screen depending on the answers. Rules are checked from top to bottom and the first one that matches is used. If none matches, the message above (or the standard thank-you) is shown.",
+      "add": "Add a rule",
+      "ruleTitle": "Rule {{number}}",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "remove": "Remove the rule",
+      "text": "Message",
+      "textRequired": "Enter a message, otherwise this rule is not saved.",
+      "valueRequired": "Fill in the value of every condition, otherwise this rule is not saved.",
+      "broken": "This rule uses a question that was deleted or cannot be used in conditions. Fix or remove the rule to save the form.",
+      "noQuestions": "Add a question that can be used in conditions (not ranking, matrix or file) to create a rule.",
+      "noTargets": "There is no question left to build this condition on.",
+      "limit": "At most {{count}} rules."
     }
   },
   "closing": {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   CONTENT_LOCALES,
+  END_RULE_LIMITS,
   ErrorCode,
   FILE_LIMITS,
   FORM_FONTS,
@@ -70,6 +71,14 @@ const formTranslationSchema = z.object({
   welcomeText: z.string().max(SCREEN_LIMITS.text).optional(),
   welcomeButton: z.string().max(SCREEN_LIMITS.buttonLabel).optional(),
   endText: z.string().max(SCREEN_LIMITS.text).optional(),
+  // End rule id -> text of that rule's end screen.
+  endRules: z
+    .record(z.string().max(END_RULE_LIMITS.id), z.string().max(SCREEN_LIMITS.text))
+    .refine(
+      (map) => Object.keys(map).length <= END_RULE_LIMITS.rules,
+      ErrorCode.REQUEST_BODY_INVALID,
+    )
+    .optional(),
 });
 
 const translationsOf = <T extends z.ZodTypeAny>(entry: T) =>
@@ -364,6 +373,15 @@ const endScreenSchema = z.strictObject({
     .optional(),
 });
 
+// Conditional end screens: the first rule whose condition holds decides the screen. That the
+// questions in the conditions exist and can be compared is checked when the form is saved (see
+// form.endRules.ts), because the question types are only known there.
+const endRuleSchema = z.strictObject({
+  id: z.string().min(1).max(END_RULE_LIMITS.id),
+  condition: conditionSchema,
+  screen: endScreenSchema,
+});
+
 // Strict: unknown keys are rejected, not silently stored. Colors must be plain hex values.
 const themeColorSchema = z.string().regex(THEME_COLOR_PATTERN, ErrorCode.VALIDATION_FORMAT_INVALID);
 
@@ -401,6 +419,16 @@ export const updateFormSchema = z.object({
   maxResponses: z.number().int().min(1).max(MAX_RESPONSES_LIMIT).nullable().optional(),
   welcomeScreen: welcomeScreenSchema.nullable().optional(),
   endScreen: endScreenSchema.nullable().optional(),
+  // Conditional end screens, checked in order. null or [] removes them, omitted leaves them as is.
+  endRules: z
+    .array(endRuleSchema)
+    .max(END_RULE_LIMITS.rules)
+    .refine(
+      (rules) => new Set(rules.map((rule) => rule.id)).size === rules.length,
+      ErrorCode.REQUEST_BODY_INVALID,
+    )
+    .nullable()
+    .optional(),
   questions: z.array(questionSchema).max(FORM_LIMITS.questions),
   // Form version the client edited (optimistic lock). If sent and no longer equal to the
   // current one: 409 FORM_VERSION_CONFLICT. Without it the version read at the start of the

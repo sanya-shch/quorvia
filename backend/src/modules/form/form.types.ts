@@ -25,6 +25,7 @@ export type FormDto = {
   theme: Prisma.JsonValue | null;
   welcomeScreen: Prisma.JsonValue | null;
   endScreen: Prisma.JsonValue | null;
+  endRules: Prisma.JsonValue | null;
   closesAt: Date | null;
   maxResponses: number | null;
   responseCount: number;

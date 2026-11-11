@@ -8,7 +8,7 @@ This is separate from the **interface language** of the application (`uk`/`en`, 
 
 - `Form.defaultLanguage` - the main language (ISO 639-1, no regions, default `uk`).
 - `Form.languages` - additional languages (never contains the main one).
-- `translations` (JSON) on the form and on every question: title/description, question text and description, option and matrix column texts, matrix row texts, scale labels.
+- `translations` (JSON) on the form and on every question: title/description, welcome and end screen texts, the message of every end rule (keyed by the rule's id, see [conditional logic](conditional-logic.md#conditional-end-screens-result-rules)), question text and description, option and matrix column texts, matrix row texts, scale labels.
 
 The main-language texts stay in the form's own fields; a missing or blank translation means “show the main language”, so a partly translated form never shows empty labels. Answers are stored by option id, so they do not depend on the language. Analytics, exports and the response view use the main language.
 
@@ -23,6 +23,8 @@ The exact JSON shape, the normalization rules applied on save and the response `
 ## Public form
 
 The language is picked in this order: the `?lang=` query parameter, the browser's languages (`Accept-Language`), the language switcher, then the main language. The switcher is shown only when the form has at least one additional language, and the choice is written back to `?lang=`.
+
+The texts of end rules are not sent with the public form (the rules stay on the server). The end screen, with the matching rule's text in the respondent's language, comes back in the response to the submit.
 
 Buttons and validation messages use the form language when the application has it (`uk`/`en`), otherwise English. The respondent's language is stored on the response (`language`) when it is one of the form's languages; anything else is stored as `null` and never rejects a submission.
 
