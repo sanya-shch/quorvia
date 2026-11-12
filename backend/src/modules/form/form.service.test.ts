@@ -11,6 +11,7 @@ vi.mock("../../prisma/prisma.js", () => ({
       update: vi.fn(),
     },
     question: { count: vi.fn() },
+    formQuota: { findMany: vi.fn().mockResolvedValue([]), createMany: vi.fn() },
     asset: { findMany: vi.fn(), findUnique: vi.fn() },
     responseFile: { findMany: vi.fn().mockResolvedValue([]) },
     $transaction: vi.fn(),
@@ -43,6 +44,8 @@ const mockForm = (overrides: Record<string, unknown> = {}) => ({
   defaultLanguage: "uk",
   languages: [] as string[],
   translations: null,
+  // What duplicateForm loads along with the form.
+  quotas: [] as unknown[],
   ...overrides,
 });
 

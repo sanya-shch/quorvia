@@ -9,6 +9,7 @@ import { buildCompleteAttemptSql } from "../attempt/attempt.sql.js";
 import { attachFilesToResponse, collectFileClaims } from "../file/file.service.js";
 import { assertFormOpen, claimResponseSlot } from "../form/form.closing.js";
 import { resolveEndScreen } from "../form/form.endRules.js";
+import { assertQuotasOpen, claimQuotaPlaces, matchingQuotas } from "../form/form.quotas.js";
 
 export const submitResponse = async (
   shareId: string,
@@ -20,6 +21,7 @@ export const submitResponse = async (
     where: { shareId },
     include: {
       questions: true,
+      quotas: true,
     },
   });
 
@@ -55,6 +57,12 @@ export const submitResponse = async (
 
   const cleanedAnswers = cleanAnswers(form.questions, result.data as Answers, visibleQuestionIds);
 
+  // The quotas these answers fall into. A full one turns the respondent away now, before the files
+  // are attached; the claim in the transaction below is what actually decides.
+  assertQuotasOpen(form.quotas, cleanedAnswers, visibleQuestionIds);
+
+  const counted = matchingQuotas(form.quotas, cleanedAnswers, visibleQuestionIds);
+
   const responseLanguage = resolveResponseLanguage(language, form.defaultLanguage, form.languages);
 
   // Decided here, from the answers the server accepted, never from what the client claims. The
@@ -79,12 +87,17 @@ export const submitResponse = async (
   // answers take the plain path.
   const fileClaims = collectFileClaims(form.questions, cleanedAnswers, visibleQuestionIds);
 
-  // One transaction: take a place (the atomic closing check), create the response and attach its
-  // files. If any step fails, none of them happened.
+  // One transaction: take a place (the atomic closing check) and a place in every quota the answers
+  // fall into, create the response and attach its files. If any step fails (the form closed, a
+  // quota filled up), none of them happened.
   const response = await prisma.$transaction(async (tx) => {
     await claimResponseSlot(tx, form.id);
 
-    const created = await tx.response.create({ data });
+    const quotaIds = await claimQuotaPlaces(tx, counted);
+
+    const created = await tx.response.create({
+      data: { ...data, quotaIds: quotaIds.length > 0 ? quotaIds : undefined },
+    });
 
     await attachFilesToResponse(tx, {
       formId: form.id,

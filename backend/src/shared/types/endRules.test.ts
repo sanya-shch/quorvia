@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   END_RULE_LIMITS,
+  isQuotaFull,
   localizeEndRuleScreen,
+  normalizeConditionGroup,
   normalizeEndRules,
   normalizeFormTranslations,
   questionTypeSupportsConditions,
@@ -225,5 +227,23 @@ describe("questionTypeSupportsConditions", () => {
     expect(questionTypeSupportsConditions("RANKING")).toBe(false);
     expect(questionTypeSupportsConditions("MATRIX")).toBe(false);
     expect(questionTypeSupportsConditions("FILE")).toBe(false);
+  });
+});
+
+describe("normalizeConditionGroup", () => {
+  it("is the shape check the end rules use, available to quotas too", () => {
+    const group = { logic: "OR", rules: [{ questionId: "q1", operator: "in", value: ["a", "b"] }] };
+
+    expect(normalizeConditionGroup(group)).toEqual(group);
+    expect(normalizeConditionGroup({ logic: "OR", rules: [] })).toBeNull();
+    expect(normalizeConditionGroup("x")).toBeNull();
+  });
+});
+
+describe("quota helpers", () => {
+  it("a quota is full when its count reaches the limit, or passes it after the limit was lowered", () => {
+    expect(isQuotaFull({ count: 1, limit: 2 })).toBe(false);
+    expect(isQuotaFull({ count: 2, limit: 2 })).toBe(true);
+    expect(isQuotaFull({ count: 9, limit: 2 })).toBe(true);
   });
 });

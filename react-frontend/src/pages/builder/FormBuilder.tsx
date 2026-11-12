@@ -35,6 +35,7 @@ import {
 } from "@quorvia/shared-types";
 import ScreensEditor from "./components/ScreensEditor";
 import EndRulesEditor from "./components/EndRulesEditor";
+import QuotasEditor from "./components/QuotasEditor";
 import { prepareEndRules } from "./endRules";
 import ClosingEditor from "./components/ClosingEditor";
 import TranslationPanel from "./components/TranslationPanel";
@@ -197,6 +198,10 @@ export default function FormBuilder() {
       }
       if (getApiErrorCode(error) === "FORM_INVALID_END_RULES") {
         toast.error(t("errors.FORM_INVALID_END_RULES"));
+        return;
+      }
+      if (getApiErrorCode(error) === "FORM_INVALID_QUOTAS") {
+        toast.error(t("errors.FORM_INVALID_QUOTAS"));
         return;
       }
       toast.error(t("builder.saveError"));
@@ -398,6 +403,15 @@ export default function FormBuilder() {
                         onChange={(endRules) => updateFormMeta({ endRules })}
                       />
                     </div>
+                  </div>
+                </details>
+
+                <details className="mt-4 pt-4 border-t border-slate-100">
+                  <summary className="cursor-pointer text-xs font-semibold text-slate-600 select-none">
+                    {t("builder.quotas.summary")}
+                  </summary>
+                  <div className="mt-4">
+                    <QuotasEditor formId={formId!} questions={form.questions} />
                   </div>
                 </details>
 

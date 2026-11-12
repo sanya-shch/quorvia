@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useReportQuotaStatus } from "../quotaWarning";
 import { saveFormAttempt } from "../../../api/publicFormApi";
 import type { FormAnswers } from "../../../types/formViewer";
 
@@ -23,6 +24,11 @@ const AUTOSAVE_DEBOUNCE_MS = 1200;
  * pause too, which records "reached at least the first question" for someone who saw the form and
  * left without typing anything.
  *
+ * The answer to a save may say that the answers so far fall into a quota that is full; that is
+ * reported (and cleared again when a later save says otherwise) so the page can warn the
+ * respondent before they reach the end. Only the answer to the latest request counts: a slower,
+ * older one must not bring back a warning that a newer one has already cleared.
+ *
  * Known limitation: there is no sendBeacon flush on beforeunload/pagehide, so the last few seconds
  * before closing the tab may miss the draft if the respondent left faster than the debounce pause.
  * Periodic autosave still gives meaningful funnel data; this is a deliberate trade-off.
@@ -35,6 +41,8 @@ export function useAttemptAutosave(
 ) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRef = useRef<string>("");
+  const requestRef = useRef(0);
+  const reportQuotaStatus = useReportQuotaStatus();
 
   useEffect(() => {
     if (!shareId) return;
@@ -46,11 +54,17 @@ export function useAttemptAutosave(
 
     timeoutRef.current = setTimeout(() => {
       lastSavedRef.current = serialized;
-      saveFormAttempt(shareId, sessionKey, answers, reachedQuestionIds).catch(() => {});
+      const request = ++requestRef.current;
+
+      saveFormAttempt(shareId, sessionKey, answers, reachedQuestionIds)
+        .then((result) => {
+          if (request === requestRef.current) reportQuotaStatus(result?.quotaFull ?? null);
+        })
+        .catch(() => {});
     }, AUTOSAVE_DEBOUNCE_MS);
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [shareId, sessionKey, answers, reachedQuestionIds]);
+  }, [shareId, sessionKey, answers, reachedQuestionIds, reportQuotaStatus]);
 }

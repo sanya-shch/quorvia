@@ -78,5 +78,10 @@
     "title": "This survey is closed",
     "byDate": "It is no longer accepting responses: its closing date has passed.",
     "byLimit": "It is no longer accepting responses: the maximum number of responses has been reached."
+  },
+  "quotaFull": {
+    "title": "No places left",
+    "text": "This survey is no longer accepting answers from your group of respondents. Thank you for your interest.",
+    "warning": "There are no places left for your group of respondents, so you will not be able to submit your answers."
   }
 }

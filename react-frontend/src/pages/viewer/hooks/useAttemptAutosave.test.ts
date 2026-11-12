@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { act } from "react";
+import { createElement, type ReactNode } from "react";
 import { useAttemptAutosave } from "./useAttemptAutosave";
+import { QuotaWarningContext, type QuotaFullInfo } from "../quotaWarning";
 import { saveFormAttempt } from "../../../api/publicFormApi";
 
 vi.mock("../../../api/publicFormApi", () => ({
@@ -175,5 +177,106 @@ describe("useAttemptAutosave", () => {
     });
 
     expect(mockedSaveFormAttempt).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("useAttemptAutosave: news about a full quota", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    mockedSaveFormAttempt.mockReset();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const setup = () => {
+    const report = vi.fn<(info: QuotaFullInfo | null) => void>();
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QuotaWarningContext.Provider, { value: report }, children);
+
+    return { report, wrapper };
+  };
+
+  const settle = async () => {
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1300);
+    });
+  };
+
+  it("reports the quota the server found full, with the owner's message", async () => {
+    const { report, wrapper } = setup();
+
+    mockedSaveFormAttempt.mockResolvedValue({
+      id: "a",
+      updatedAt: "x",
+      quotaFull: { message: "Київ заповнено" },
+    });
+    renderHook(() => useAttemptAutosave("share-1", "session-1", { q1: "а" }), { wrapper });
+    await settle();
+
+    expect(report).toHaveBeenCalledTimes(1);
+    expect(report).toHaveBeenCalledWith({ message: "Київ заповнено" });
+  });
+
+  it("reports null when no quota is full, and when the server says nothing about it", async () => {
+    const { report, wrapper } = setup();
+
+    mockedSaveFormAttempt.mockResolvedValue({ id: "a", updatedAt: "x", quotaFull: null });
+    renderHook(() => useAttemptAutosave("share-1", "session-1", { q1: "а" }), { wrapper });
+    await settle();
+
+    mockedSaveFormAttempt.mockResolvedValue(undefined as never);
+    renderHook(() => useAttemptAutosave("share-1", "session-2", { q1: "б" }), { wrapper });
+    await settle();
+
+    expect(report.mock.calls).toEqual([[null], [null]]);
+  });
+
+  it("reports nothing when the save fails", async () => {
+    const { report, wrapper } = setup();
+
+    mockedSaveFormAttempt.mockRejectedValue(new Error("offline"));
+    renderHook(() => useAttemptAutosave("share-1", "session-1", { q1: "а" }), { wrapper });
+    await settle();
+
+    expect(report).not.toHaveBeenCalled();
+  });
+
+  it("only the answer to the latest save counts: a slower, older one cannot bring a warning back", async () => {
+    const { report, wrapper } = setup();
+    let finishFirst!: (value: { id: string; updatedAt: string; quotaFull: QuotaFullInfo }) => void;
+
+    mockedSaveFormAttempt
+      .mockImplementationOnce(() => new Promise((resolve) => (finishFirst = resolve)))
+      .mockResolvedValueOnce({ id: "a", updatedAt: "x", quotaFull: null });
+
+    const { rerender } = renderHook(
+      ({ answers }) => useAttemptAutosave("share-1", "session-1", answers),
+      { wrapper, initialProps: { answers: { q1: "а" } } },
+    );
+
+    await settle();
+    rerender({ answers: { q1: "аб" } });
+    await settle();
+
+    expect(report).toHaveBeenCalledTimes(1);
+    expect(report).toHaveBeenLastCalledWith(null);
+
+    // The first request answers last, with a warning that the newer save has already replaced.
+    await act(async () => finishFirst({ id: "a", updatedAt: "x", quotaFull: { message: null } }));
+
+    expect(report).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not need anyone to listen", async () => {
+    mockedSaveFormAttempt.mockResolvedValue({
+      id: "a",
+      updatedAt: "x",
+      quotaFull: { message: null },
+    });
+
+    expect(() => renderHook(() => useAttemptAutosave("share-1", "session-1", {}))).not.toThrow();
+    await settle();
   });
 });

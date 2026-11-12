@@ -21,6 +21,7 @@ import type {
 } from "./form.types.js";
 import { assertFormOpen } from "./form.closing.js";
 import { assertEndRulesValid } from "./form.endRules.js";
+import { assertQuotasValid } from "./form.quotas.js";
 import { removeFileObjects } from "../file/file.service.js";
 import {
   assertFormAsset,
@@ -296,6 +297,12 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
     withResolvedIds.map((q) => ({ id: q.id, type: q.type })),
   );
 
+  // Same for the quotas of the form: a question that a quota still looks at cannot be deleted.
+  assertQuotasValid(
+    await prisma.formQuota.findMany({ where: { formId }, select: { id: true, condition: true } }),
+    withResolvedIds.map((q) => ({ id: q.id, type: q.type })),
+  );
+
   const incomingIds = new Set(withResolvedIds.map((q) => q.id));
   const toDelete = existingQuestions.filter((q) => !incomingIds.has(q.id)).map((q) => q.id);
 
@@ -427,7 +434,7 @@ const collectOptionImageIds = (questions: { type: string; options?: unknown }[])
 export const duplicateForm = async (formId: string, userId: string) => {
   const form = await prisma.form.findUnique({
     where: { id: formId },
-    include: { questions: true },
+    include: { questions: true, quotas: true },
   });
 
   if (!form) throw new AppError(ErrorCode.FORM_NOT_FOUND, 404);
@@ -543,6 +550,28 @@ export const duplicateForm = async (formId: string, userId: string) => {
         formId: newForm.id,
       })),
     });
+
+    // Quotas are limits on this form's responses, and the copy has none yet: they come along with
+    // an empty count, pointing at the copied questions. (A quota with a damaged condition is not
+    // worth copying; it could never match.)
+    const quotaCopies = form.quotas.flatMap((quota) => {
+      const condition = remapCondition(quota.condition);
+
+      return condition
+        ? [
+            {
+              formId: newForm.id,
+              name: quota.name,
+              condition,
+              limit: quota.limit,
+              count: 0,
+              message: quota.message,
+            },
+          ]
+        : [];
+    });
+
+    if (quotaCopies.length > 0) await tx.formQuota.createMany({ data: quotaCopies });
 
     return newForm;
   });

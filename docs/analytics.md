@@ -89,6 +89,8 @@ Answers that no longer fit the current configuration (for example the scale was 
 
 A completed `Response` stores `endRuleId`: the id of the end rule that decided the respondent's end screen (see [conditional logic](conditional-logic.md#conditional-end-screens-result-rules)), or `null` when none matched. It is recorded so outcomes can be told apart; no analytics view uses it yet.
 
+Likewise `quotaIds` records the quotas the response was counted in (see [conditional logic](conditional-logic.md#quotas)); drafts (`ResponseAttempt`) never count in a quota.
+
 ## Performance notes
 
 - **Analytics reads responses in batches, not all at once.** Overview, paths, funnel and per-question analytics walk a form's responses with keyset pagination (2,000 rows per query, ordered by `createdAt, id` and served by the `(formId, createdAt, id)` index) and aggregate incrementally, so memory is bounded by the batch size. Time is still linear in the number of responses, because every request re-scans them; for very large forms the next step is caching with a short TTL or pre-aggregated counters. Free-text questions are capped (top 5 / top 100 values and the first 1,000 raw answers, flagged by `answersTruncated`), and at most 10,000 distinct text values per question are tracked.

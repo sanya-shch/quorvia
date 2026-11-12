@@ -26,6 +26,8 @@ The language is picked in this order: the `?lang=` query parameter, the browser'
 
 The texts of end rules are not sent with the public form (the rules stay on the server). The end screen, with the matching rule's text in the respondent's language, comes back in the response to the submit.
 
+The message of a quota (shown to a respondent it turns away) is not translated: it is a single text, written in the language of the respondents.
+
 Buttons and validation messages use the form language when the application has it (`uk`/`en`), otherwise English. The respondent's language is stored on the response (`language`) when it is one of the form's languages; anything else is stored as `null` and never rejects a submission.
 
 Machine translation is not part of the product.

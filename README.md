@@ -22,6 +22,7 @@ The project focuses on a non-trivial form engine rather than plain CRUD: conditi
 - 11 question types: text, number, boolean, date, single and multiple choice (with an optional “Other” answer), star rating, linear scale, NPS, ranking, and matrix (including Likert statements)
 - Conditional question visibility with `AND` / `OR` rules, graph validation and cycle detection
 - Welcome and end screens, with conditional end screens (result rules): a different message and redirect depending on the answers, decided on the server
+- Quotas: a limit of completed responses per group of respondents, kept atomically on the server, with an early warning while the form is being filled
 - Drag-and-drop reordering of questions and options, optimistic locking against concurrent edits
 - Form content in several languages: a main language plus up to 10 translations, with missing-translation indicators
 

@@ -95,11 +95,27 @@ export const submitFormResponses = async (
   return response.data;
 };
 
+// What the server answers to an autosave. `quotaFull` is set when the answers so far fall into a
+// quota that is full: the respondent will be turned away at the submit, so they are told now.
+// `message` is the owner's text for the respondent (null: the standard one). Absent when the server
+// predates quotas.
+export interface SaveAttemptResult {
+  id: string;
+  updatedAt: string;
+  quotaFull?: { message: string | null } | null;
+}
+
 export const saveFormAttempt = async (
   shareId: string,
   sessionKey: string,
   answers: FormAnswers,
   reachedQuestionIds?: string[],
-): Promise<void> => {
-  await publicApi.put(`/forms/${shareId}/attempt`, { sessionKey, answers, reachedQuestionIds });
+): Promise<SaveAttemptResult> => {
+  const response = await publicApi.put<SaveAttemptResult>(`/forms/${shareId}/attempt`, {
+    sessionKey,
+    answers,
+    reachedQuestionIds,
+  });
+
+  return response.data;
 };

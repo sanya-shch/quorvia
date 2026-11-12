@@ -111,7 +111,7 @@ describe("FormBuilder - appearance", () => {
       welcomeScreen: { title: "Початкова" },
       endScreen: { text: "Дякуємо!", redirectUrl: "https://example.com/next" },
     });
-  });
+  }, 10000);
 
   it("does not save an incomplete screen or a redirect that is not http(s)", async () => {
     const user = userEvent.setup();

@@ -27,6 +27,8 @@ const publishedForm = {
   isPublished: true,
   defaultLanguage: "uk",
   languages: ["en"] as string[],
+  // What submitResponse loads along with the form.
+  quotas: [] as unknown[],
   questions: [
     {
       id: "q-name",

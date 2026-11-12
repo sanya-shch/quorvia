@@ -19,6 +19,12 @@ vi.mock("../viewer/theme/fonts", () => ({
   loadFont: () => Promise.resolve(),
 }));
 
+// The quotas section loads its own data; these tests are about something else.
+vi.mock("../../api/quotasApi", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../api/quotasApi")>()),
+  quotasApi: { list: vi.fn().mockResolvedValue([]) },
+}));
+
 const mockedGet = vi.mocked(formsApi.getAdminForm);
 const mockedUpdate = vi.mocked(formsApi.update);
 

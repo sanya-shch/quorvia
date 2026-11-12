@@ -65,6 +65,7 @@ model Form {
   responses  Response[]
   exportJobs ExportJob[]
   attempts   ResponseAttempt[]
+  quotas     FormQuota[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
@@ -185,6 +186,29 @@ model ResponseFile {
   @@index([createdAt])
 }
 
+// A limit on how many completed responses may match a condition ("at most 50 answers from Kyiv").
+// A response is counted in every quota whose condition it satisfies; when one of them is full the
+// submit is refused for that respondent only (the form stays open for everyone else). `count` is
+// maintained by the server with an atomic conditional UPDATE, see the submit transaction.
+model FormQuota {
+  id String @id @default(uuid())
+
+  form   Form   @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId String
+
+  name      String
+  // ConditionGroup over the form's questions (validated on save).
+  condition Json
+  limit     Int
+  count     Int     @default(0)
+  // Shown to a respondent who is turned away; null means the standard text.
+  message   String?
+
+  createdAt DateTime @default(now())
+
+  @@index([formId])
+}
+
 model Response {
   id String @id @default(uuid())
 
@@ -205,6 +229,10 @@ model Response {
   // Id of the end rule that decided this respondent's end screen; null when none matched (or for
   // responses from before end rules existed). Not a foreign key: rules live in Form.endRules.
   endRuleId String?
+
+  // Ids of the quotas (see FormQuota) this response was counted in; null when it matched none (or
+  // for responses from before quotas existed). Not a foreign key: a quota can be deleted later.
+  quotaIds Json?
 
   createdAt DateTime @default(now())
 

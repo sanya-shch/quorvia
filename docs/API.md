@@ -56,6 +56,20 @@ Translations of the messages: `translations.<lang>.welcomeTitle`, `welcomeText`,
 
 `POST /forms/:shareId/responses` answers `{ id, createdAt, endScreen }`: `endScreen` is `{ text, redirectUrl? }` in the respondent's language (the text of the matching rule, or of the form's own screen), or `null` when the viewer should show the standard thank-you message. The id of the matching rule is stored on the response as `endRuleId`; it is not sent to the respondent.
 
+## Quotas
+
+Limits on the completed responses of a group of respondents (see [conditional logic](conditional-logic.md#quotas)). All of these are owner-only 🔒 and take the form id from the path; a quota of another form answers `404 QUOTA_NOT_FOUND`.
+
+- `GET /forms/:formId/quotas`: the quotas, oldest first: `[{ id, name, condition, limit, count, message }]`.
+- `POST /forms/:formId/quotas`: create one. Body: `{ name, condition, limit, message? }` (name 1-100 chars, `limit` an integer from 1 to 1,000,000, `message` up to 500 chars, empty or `null` for none, unknown fields rejected). Answers `201` with the quota; its `count` starts from the responses that already match. At most 20 per form (`409 QUOTA_LIMIT_REACHED`).
+- `PATCH /forms/:formId/quotas/:quotaId`: change any of the same fields (at least one). A different `condition` counts the responses again; the other fields leave `count` alone, and a limit below the count is allowed (the quota is then full).
+- `DELETE /forms/:formId/quotas/:quotaId`: remove it. The responses keep the id in `quotaIds`.
+- `POST /forms/:formId/quotas/:quotaId/recount`: count again from the responses.
+
+A condition on an unknown question or on a `RANKING` / `MATRIX` / `FILE` question is refused with `400 FORM_INVALID_QUOTAS` and `errors: [{ quotaId, questionId, reason }]` (`quotaId` is `"new"` for a quota that is being created). The same code is answered by `PATCH /forms/:formId` when it would delete a question that a quota still looks at.
+
+For respondents: `POST /forms/:shareId/responses` answers `409 QUOTA_FULL` with `{ message: "QUOTA_FULL", errors: { message } }` when their group is full, where `errors.message` is the owner's text for the respondent or `null`; and `PUT /forms/:shareId/attempt` answers `{ id, updatedAt, quotaFull }`, where `quotaFull` is `{ message }` when the answers so far fall into a full quota and `null` otherwise.
+
 ## Content languages
 
 A form is written in one **main language** (`defaultLanguage`, default `uk`; ISO 639-1 code from the supported list in `CONTENT_LOCALES`, no regions, no RTL languages yet) and can be translated into up to 10 **additional languages** (`languages`, never containing the main one). The main-language texts are the form's own fields (`title`, `description`, question `text`, option texts, ...); translations are stored next to them:

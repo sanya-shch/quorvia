@@ -22,6 +22,10 @@ export const ErrorCode = {
   FORM_NOT_PUBLISHED: "FORM_NOT_PUBLISHED",
   FORM_INVALID_CONDITIONS: "FORM_INVALID_CONDITIONS",
   FORM_INVALID_END_RULES: "FORM_INVALID_END_RULES",
+  FORM_INVALID_QUOTAS: "FORM_INVALID_QUOTAS",
+  QUOTA_FULL: "QUOTA_FULL",
+  QUOTA_NOT_FOUND: "QUOTA_NOT_FOUND",
+  QUOTA_LIMIT_REACHED: "QUOTA_LIMIT_REACHED",
   FORM_QUESTION_ID_CONFLICT: "FORM_QUESTION_ID_CONFLICT",
   FORM_VERSION_CONFLICT: "FORM_VERSION_CONFLICT",
 
@@ -1069,8 +1073,9 @@ const isConditionValue = (value: unknown): value is ConditionValue => {
 };
 
 // Shape of a condition only. That the referenced questions exist and can be used in conditions is
-// checked where the questions are known (when the form is saved).
-const normalizeEndRuleCondition = (raw: unknown): ConditionGroup | null => {
+// checked where the questions are known (when the form is saved). Used for every condition that is
+// not a question's own: end rules and quotas (the bounds are the ones of END_RULE_LIMITS).
+export const normalizeConditionGroup = (raw: unknown): ConditionGroup | null => {
   if (!isPlainObject(raw)) return null;
   if (raw.logic !== "AND" && raw.logic !== "OR") return null;
   if (!Array.isArray(raw.rules)) return null;
@@ -1108,7 +1113,7 @@ export const normalizeEndRules = (raw: unknown): FormEndRule[] | null => {
     if (!isPlainObject(item)) continue;
     if (!filled(item.id) || item.id.length > END_RULE_LIMITS.id || seen.has(item.id)) continue;
 
-    const condition = normalizeEndRuleCondition(item.condition);
+    const condition = normalizeConditionGroup(item.condition);
     const screen = normalizeEndScreen(item.screen);
 
     if (!condition || !screen) continue;
@@ -1154,6 +1159,38 @@ export const stripEndRuleTranslations = (translations: unknown): FormTranslation
 
   return Object.keys(result).length > 0 ? result : null;
 };
+
+// Quotas: a limit on the completed responses that satisfy a condition. A response counts in every
+// quota it matches; when one is full the respondent is turned away (the form stays open for others).
+export const QUOTA_LIMITS = {
+  perForm: 20,
+  name: 100,
+  limit: { min: 1, max: 1_000_000 },
+  message: 500,
+} as const;
+
+// A quota as the owner sees it.
+export interface FormQuota {
+  id: string;
+  name: string;
+  condition: ConditionGroup;
+  limit: number;
+  // Completed responses counted so far; may exceed `limit` after the limit was lowered.
+  count: number;
+  // Shown to a respondent who is turned away; null means the standard text.
+  message?: string | null;
+}
+
+// What the owner sends to create or change a quota.
+export interface FormQuotaInput {
+  name: string;
+  condition: ConditionGroup;
+  limit: number;
+  message?: string | null;
+}
+
+export const isQuotaFull = (quota: Pick<FormQuota, "count" | "limit">): boolean =>
+  quota.count >= quota.limit;
 
 // Closing a form: by a date, by a number of responses, or both (whichever comes first).
 export const MAX_RESPONSES_LIMIT = 1_000_000;

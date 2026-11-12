@@ -27,6 +27,8 @@ const textQuestion = (id: string, order: number, condition?: unknown) => ({
 const publishedForm = {
   id: "form-1",
   isPublished: true,
+  // What saveAttempt loads along with the form.
+  quotas: [] as unknown[],
   questions: [{ ...textQuestion("q-1", 0), text: "Ім'я", required: true }],
 };
 

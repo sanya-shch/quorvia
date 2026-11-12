@@ -2,6 +2,7 @@ import {
   END_RULE_LIMITS,
   normalizeEndRules,
   questionTypeSupportsConditions,
+  type ConditionGroup,
   type ConditionRule,
   type FormEndRule,
 } from "@quorvia/shared-types";
@@ -43,8 +44,11 @@ export const isConditionValueFilled = (value: ConditionRule["value"]): boolean =
   return Array.isArray(value) && value.length > 0;
 };
 
+export const conditionHasEmptyValue = (condition: ConditionGroup): boolean =>
+  condition.rules.some((r) => !isConditionValueFilled(r.value));
+
 export const hasEmptyConditionValue = (rule: FormEndRule): boolean =>
-  rule.condition.rules.some((r) => !isConditionValueFilled(r.value));
+  conditionHasEmptyValue(rule.condition);
 
 // A rule the author has not finished (no message, or a condition without a value) is not saved,
 // like an unfinished welcome or end screen; the editor warns about it while typing.

@@ -5,7 +5,9 @@ import { ErrorCode } from "@quorvia/shared-types";
 import { Answers } from "../response/response.types.js";
 import { resolveVisibleQuestionIds, type QuestionLike } from "@quorvia/condition-engine";
 import { buildUpsertAttemptSql } from "./attempt.sql.js";
+import type { SaveAttemptDto } from "./attempt.types.js";
 import { assertFormOpen } from "../form/form.closing.js";
+import { fullMatchingQuota } from "../form/form.quotas.js";
 
 /**
  * Saves a session "draft". Unlike submitResponse it does NOT validate required fields or
@@ -46,10 +48,10 @@ export const saveAttempt = async (
   sessionKey: string,
   answers: Answers,
   reachedQuestionIds?: string[],
-): Promise<{ id: string; updatedAt: Date }> => {
+): Promise<SaveAttemptDto> => {
   const form = await prisma.form.findUnique({
     where: { shareId },
-    include: { questions: true },
+    include: { questions: true, quotas: true },
   });
 
   if (!form) {
@@ -89,5 +91,15 @@ export const saveAttempt = async (
     }),
   );
 
-  return { id: attempt.id, updatedAt: attempt.updatedAt };
+  // Tells the respondent early that these answers fall into a quota that is full, so they do not
+  // fill in the rest of the form just to be refused at the end. The draft is saved all the same
+  // (they did reach these questions); the submit is what refuses. Only the owner's message for the
+  // respondent is sent, never the quota itself.
+  const full = fullMatchingQuota(form.quotas, cleanedAnswers, visibleQuestionIds);
+
+  return {
+    id: attempt.id,
+    updatedAt: attempt.updatedAt,
+    quotaFull: full ? { message: full.message ?? null } : null,
+  };
 };

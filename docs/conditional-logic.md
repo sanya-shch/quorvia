@@ -157,6 +157,48 @@ The same condition shape also decides **what the respondent sees after submittin
 - Duplicating a form copies the rules and points them at the copied questions (the same remapping as for question conditions).
 - In the builder an unfinished rule (no message, or a condition without a value) is not saved, and saving is blocked while a rule points at a deleted question.
 
+## Quotas
+
+A quota limits how many **completed responses** can come from a group of respondents, for example "at most 50 answers from Kyiv". A form can have up to 20 quotas. Each has a name (for the owner), a condition, a limit from 1 to 1,000,000 and an optional message for the respondent:
+
+```json
+{
+  "name": "Kyiv",
+  "condition": {
+    "logic": "AND",
+    "rules": [{ "questionId": "q-city", "operator": "equals", "value": "kyiv" }]
+  },
+  "limit": 50,
+  "message": "The places for Kyiv are taken. Thank you for your interest."
+}
+```
+
+**What a quota does.** A response counts in **every** quota whose condition its answers satisfy. When one of them is full, the submit is refused for that respondent with `409 QUOTA_FULL`, and the form stays open for everybody else. The condition has the same shape as an end rule's and is evaluated the same way (see above): on the answers of visible questions only, so an answer to a hidden question never counts.
+
+**How the limit is kept.** The counter is maintained by the server, not recounted from the responses:
+
+- The submit transaction first takes a place in the form itself (`maxResponses`), then, for each matching quota in a fixed order (by id), runs `UPDATE ... SET count = count + 1 WHERE id = ? AND count < limit`. Postgres locks the row for the statement, so two respondents racing for the last place are serialized and the second one matches no row. Reading the count and writing it back separately would let both through.
+- If any quota is full, the whole transaction fails and rolls back every place already taken (in the other quotas and in the form), so a refused respondent leaves no response and uses up nothing. Quotas are always taken in the same order, so parallel submits cannot wait for each other's locks in opposite orders.
+- A quota that is deleted while a submit is running is skipped; one whose limit was raised meanwhile is tried again (up to 3 times); a limit lowered below the count makes the quota simply full.
+- The ids of the quotas a response was counted in are stored as `Response.quotaIds` (`null` when none).
+
+**Telling the respondent.** Two checks come before the transaction, but only the transaction decides:
+
+- After the answers are validated (and before files are attached) the server refuses answers that already fall into a full quota (`assertQuotasOpen`).
+- While the respondent is still filling the form, `PUT /forms/:shareId/attempt` returns `quotaFull: { message } | null`, and the viewer shows a warning (the form stays usable: they may change an answer). The draft is saved either way, and a draft never counts in a quota.
+
+Only the owner's message for the respondent is ever sent (`null` means the standard text); the name and the condition of the quota stay on the server. The message is not translated.
+
+**Counts.** A quota created on a form that already has responses starts from the number of responses that match it, not from zero. Changing its condition counts again (the old count belonged to the old condition); changing only the name, the limit or the message does not. `POST /forms/:formId/quotas/:quotaId/recount` counts again from the responses when the counter cannot be trusted. Counting reads the responses in pages and holds the quota's row lock, so a submit into that quota waits for it.
+
+**Validation on save** is the same as for end rules: a condition on an unknown question, or on a `RANKING` / `MATRIX` / `FILE` question, is refused with `400 FORM_INVALID_QUOTAS`, and a question that a quota still looks at cannot be deleted while saving the form.
+
+**Known limits**
+
+- Only completed responses count. Several respondents who are filling the form at the same time can all be told there is room and the last ones refused at the submit; the autosave warning reduces that, but places are not reserved.
+- There is no endpoint to delete a response, so the counter only goes down by recounting after a change made outside the API.
+- Duplicating a form copies its quotas with an empty count, pointing at the copied questions.
+
 ## Server-Side Invariants
 
 Conditional visibility is not treated as a client-only UI concern.
@@ -182,10 +224,14 @@ Validate answers
 Remove answers belonging to hidden questions
       │
       ▼
+assertQuotasOpen()   (early refusal)
+      │
+      ▼
 resolveEndScreen()
       │
       ▼
-Persist response (with endRuleId)
+Transaction: take a place in the form and in every matching quota,
+persist the response (with endRuleId and quotaIds)
 ```
 
 This is important because the client cannot be trusted to enforce conditional rules.
@@ -197,4 +243,5 @@ The backend remains the source of truth for:
 - question visibility;
 - response validation;
 - accepted answers;
-- which end screen (and redirect) the respondent gets.
+- which end screen (and redirect) the respondent gets;
+- whether the respondent's group still has a place (quotas).

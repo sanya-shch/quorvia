@@ -10,6 +10,8 @@ import i18n, { createIsolatedI18n, isLocaleLoaded, loadLocale } from "../../i18n
 import { assetUrl } from "../../api/assets";
 import { isClosedForm } from "./closedForm";
 import ClosedScreen from "./components/ClosedScreen";
+import QuotaFullScreen from "./components/QuotaFullScreen";
+import { QuotaWarningContext, type QuotaFullInfo } from "./quotaWarning";
 import { CLOSED_ERROR_CODES, type FormClosedReason } from "@quorvia/shared-types";
 import ThemeScope from "./theme/ThemeScope";
 import WelcomeScreen from "./components/WelcomeScreen";
@@ -54,6 +56,12 @@ export default function PublicFormPage() {
   const openForm = formData && !isClosedForm(formData) ? formData : undefined;
   // Set when a submit is refused because the form closed while the respondent was filling it in.
   const [closedBySubmit, setClosedBySubmit] = useState<FormClosedReason | null>(null);
+  // Set when a submit is refused because this respondent's group is full (a quota): the form is
+  // still open for everybody else.
+  const [quotaFullBySubmit, setQuotaFullBySubmit] = useState<QuotaFullInfo | null>(null);
+  // Set while the respondent is filling the form: the autosave found that their answers so far fall
+  // into a quota that is full. Cleared when the answers change to something that does not.
+  const [quotaWarning, setQuotaWarning] = useState<QuotaFullInfo | null>(null);
 
   // Browser languages are read once: they do not change while viewing.
   const [browserLanguages] = useState(readBrowserLanguages);
@@ -177,6 +185,12 @@ export default function PublicFormPage() {
               Object.entries(CLOSED_ERROR_CODES) as [FormClosedReason, string][]
             ).find(([, code]) => code === errorResponseBody?.message);
 
+            // This respondent's group is full: the form is open, but not for them.
+            if (errorResponseBody?.message === "QUOTA_FULL") {
+              setQuotaFullBySubmit({ message: errorResponseBody.errors?.message ?? null });
+              return;
+            }
+
             if (closed) {
               setClosedBySubmit(closed[0]);
               return;
@@ -254,6 +268,39 @@ export default function PublicFormPage() {
     );
   }
 
+  if (quotaFullBySubmit && openForm) {
+    const quotaTitle = isMultilingual ? localizeForm(openForm, language).title : openForm.title;
+
+    const quotaScreen = (
+      <ThemeScope theme={openForm.theme}>
+        <>
+          {isMultilingual && (
+            <div className="bg-slate-50 px-4 pt-3">
+              <div className="mx-auto max-w-3xl">
+                <ViewerLanguageSwitcher
+                  languages={formLanguages}
+                  value={language}
+                  onChange={handleLanguageChange}
+                />
+              </div>
+            </div>
+          )}
+          <QuotaFullScreen
+            title={quotaTitle}
+            message={quotaFullBySubmit.message}
+            logoUrl={logoUrl}
+          />
+        </>
+      </ThemeScope>
+    );
+
+    return (
+      <I18nextProvider i18n={viewerI18n}>
+        {isMultilingual ? <div lang={language}>{quotaScreen}</div> : quotaScreen}
+      </I18nextProvider>
+    );
+  }
+
   if (error || !openForm || !localized) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
@@ -307,6 +354,17 @@ export default function PublicFormPage() {
         </div>
       )}
 
+      {quotaWarning && (
+        <div className="bg-slate-50 px-4 pt-3">
+          <div
+            role="alert"
+            className="mx-auto max-w-3xl whitespace-pre-line rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800"
+          >
+            {quotaWarning.message?.trim() ? quotaWarning.message : t("viewer.quotaFull.warning")}
+          </div>
+        </div>
+      )}
+
       {showWelcome && localized.welcomeScreen ? (
         <WelcomeScreen
           screen={localized.welcomeScreen}
@@ -348,7 +406,9 @@ export default function PublicFormPage() {
   // The theme applies to the public page only (a form without one renders unchanged).
   const themed = (
     <ThemeScope theme={localized.theme}>
-      <UploadedFilesProvider>{content}</UploadedFilesProvider>
+      <QuotaWarningContext.Provider value={setQuotaWarning}>
+        <UploadedFilesProvider>{content}</UploadedFilesProvider>
+      </QuotaWarningContext.Provider>
     </ThemeScope>
   );
 
