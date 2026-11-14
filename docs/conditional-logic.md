@@ -157,6 +157,20 @@ The same condition shape also decides **what the respondent sees after submittin
 - Duplicating a form copies the rules and points them at the copied questions (the same remapping as for question conditions).
 - In the builder an unfinished rule (no message, or a condition without a value) is not saved, and saving is blocked while a rule points at a deleted question.
 
+## Scoring
+
+A form with scoring switched on gives every response a **score**: the points of its answers added up (see [question types](question-types.md#scoring)), the **best total possible** for that respondent, and a **category** of the total (`Form.scoring.categories`: inclusive ranges such as 0-30 "Beginner", at most 10, not overlapping).
+
+**Where it is computed.** On submit, after the hidden questions' answers were removed, the server scores the visible questions only. The result is stored with the response (`Response.score`, `maxScore`, `scoreCategoryId`; all `null` for a form that does not score) and is never recomputed: changing the points of an answer later does not touch what was already stored. `Float` columns are enough because the engine's sums are exact to 2 decimals.
+
+**On the end screen.** The score joins the end-rule evaluation:
+
+- An end rule's condition may look at `$score` (the total) and `$percent` (the total as a percentage of the maximum). They are only available **while scoring is on** (`400 FORM_INVALID_END_RULES` otherwise, and the same when scoring is switched off while a rule uses them). When the maximum is not positive there is no percentage, so a rule on `$percent` does not hold. They are **not** allowed in quotas (`FORM_INVALID_QUOTAS`) or in the condition of a question: a question's visibility must not depend on a total that depends on which questions are shown.
+- The text of any end screen (a rule's or the form's own) may contain `{{score}}`, `{{maxScore}}`, `{{percent}}` (the number only, write the % sign yourself) and `{{category}}`. The server replaces them before the screen is sent, in plain text, with numbers written in the respondent's language (or the form's main one) and the category label translated; a placeholder with nothing to show (no percentage, no category) becomes empty. On a form that does not score they stay as written.
+- The respondent therefore gets only the sentence the author wrote. The raw numbers, the other categories and the points never leave the server.
+
+**Validation on save.** Points are checked with the same limits as above; categories must have a label (up to 100 characters), unique ids, bounds with at most 2 decimals and `min <= max`, and must not overlap (each other's ends included). Switching scoring off keeps the categories, so they survive a toggle.
+
 ## Quotas
 
 A quota limits how many **completed responses** can come from a group of respondents, for example "at most 50 answers from Kyiv". A form can have up to 20 quotas. Each has a name (for the owner), a condition, a limit from 1 to 1,000,000 and an optional message for the respondent:
@@ -227,7 +241,10 @@ Remove answers belonging to hidden questions
 assertQuotasOpen()   (early refusal)
       │
       ▼
-resolveEndScreen()
+scoreSubmission()    (only if the form scores)
+      │
+      ▼
+resolveEndScreen()   (rules may look at $score / $percent)
       │
       ▼
 Transaction: take a place in the form and in every matching quota,
@@ -243,5 +260,5 @@ The backend remains the source of truth for:
 - question visibility;
 - response validation;
 - accepted answers;
-- which end screen (and redirect) the respondent gets;
+- which end screen (and redirect) the respondent gets, and the score it is chosen by;
 - whether the respondent's group still has a place (quotas).

@@ -409,9 +409,42 @@ export interface QuestionOverview extends Partial<QuestionVisibilityStats> {
   fileCount?: number;
 }
 
+// How the responses scored (see FormScoring), built from what was stored with each response:
+// responses are never rescored, so a later change of the points does not rewrite them.
+export interface ScoreAnalyticsDto {
+  // Scoring is switched on now (it may have been switched off after responses were scored).
+  enabled: boolean;
+  // Responses that have a score.
+  scoredCount: number;
+  // Over the raw totals, 2 decimals; 0 without scored responses.
+  average: number;
+  min: number;
+  max: number;
+  // The average of score / maximum in percent; null when no response has a positive maximum.
+  averagePercent: number | null;
+  // 10 buckets of percent of the maximum, 0-10 ... 90-100 (100 is in the last one).
+  histogram: { fromPercent: number; toPercent: number; count: number }[];
+  // The categories as they are now, each with the responses counted in it.
+  categories: { id: string; label: string; min: number; max: number; count: number }[];
+  // Scored responses in no category now: the total fell in none, or the category was deleted.
+  uncategorizedCount: number;
+}
+
+// The score of one response, for the owner.
+export interface ResponseScoreDto {
+  score: number;
+  maxScore: number | null;
+  percent: number | null;
+  categoryId: string | null;
+  // By name as it is now; null when the response has no category or it was deleted.
+  categoryLabel: string | null;
+}
+
 export interface FormAnalyticsDto {
   totalResponses: number;
   questions: QuestionOverview[];
+  // null: the form never scored.
+  scoring: ScoreAnalyticsDto | null;
 }
 
 export interface QuestionAnalyticsDto {
@@ -482,6 +515,8 @@ export interface ResponseSummary {
   createdAt: string;
   // Form language the respondent used (null/absent: unknown).
   language?: string | null;
+  // null or absent: the response was not scored.
+  score?: ResponseScoreDto | null;
 }
 
 export interface ResponseListDto {
@@ -509,6 +544,8 @@ export interface ResponseDetailsDto {
   createdAt: string;
   // Form language the respondent used (null: unknown, e.g. older responses).
   language: string | null;
+  // null or absent: the response was not scored.
+  score?: ResponseScoreDto | null;
   answers: EnrichedAnswer[];
 }
 

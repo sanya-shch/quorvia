@@ -91,6 +91,17 @@ A completed `Response` stores `endRuleId`: the id of the end rule that decided t
 
 Likewise `quotaIds` records the quotas the response was counted in (see [conditional logic](conditional-logic.md#quotas)); drafts (`ResponseAttempt`) never count in a quota.
 
+## Scores
+
+For a form that scores (see [conditional logic](conditional-logic.md#scoring)) `GET /forms/:formId/analytics` returns `scoring`, built from what was **stored** with each response, so a later change of the points does not rewrite history:
+
+- `scoredCount`, `average`, `min`, `max` of the raw totals (2 decimals), and `averagePercent`, the average of score / maximum in percent (`null` when no response has a positive maximum);
+- `histogram`: 10 buckets of **percent of the maximum** (0-10 ... 90-100, 100 in the last one, values outside are clamped). Percent rather than raw totals, because the maximum differs between respondents (a branch they did not see is not in it);
+- `categories`: the categories as they are now (current labels), each with the responses counted in it, and `uncategorizedCount` for scored responses in no category now (the total fell in none, or the category was deleted);
+- `enabled`: whether scoring is on now. It may have been switched off after responses were scored; their scores are still shown.
+
+It is accumulated one response at a time, like the other statistics. The Vue overview shows it as a "Scores" section (the numbers, the histogram and the categories), the list of responses and the details of a response show the score and the category.
+
 ## Performance notes
 
 - **Analytics reads responses in batches, not all at once.** Overview, paths, funnel and per-question analytics walk a form's responses with keyset pagination (2,000 rows per query, ordered by `createdAt, id` and served by the `(formId, createdAt, id)` index) and aggregate incrementally, so memory is bounded by the batch size. Time is still linear in the number of responses, because every request re-scans them; for very large forms the next step is caching with a short TTL or pre-aggregated counters. Free-text questions are capped (top 5 / top 100 values and the first 1,000 raw answers, flagged by `answersTruncated`), and at most 10,000 distinct text values per question are tracked.

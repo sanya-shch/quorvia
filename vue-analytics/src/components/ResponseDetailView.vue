@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import type { ResponseDetailsDto, UploadedFileDto } from "@quorvia/shared-types";
 import { apiDownload } from "../api/client";
@@ -50,6 +50,29 @@ const formatSize = (bytes: number): string =>
     : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
 const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
+
+const formatNumber = (value: number) =>
+  value.toLocaleString(locale.value, { maximumFractionDigits: 2, useGrouping: false });
+
+// "Score: 15 of 20 (75%) · Expert"; the maximum, the percentage and the category are left out when
+// there are none. null for a response that was not scored.
+const scoreLine = computed(() => {
+  const score = props.data?.score;
+
+  if (!score) return null;
+
+  const points =
+    score.maxScore === null
+      ? t("analytics.responseDetail.score", { score: formatNumber(score.score) })
+      : t("analytics.responseDetail.scoreOf", {
+          score: formatNumber(score.score),
+          max: formatNumber(score.maxScore),
+        });
+  const percent = score.percent === null ? "" : ` (${formatNumber(score.percent)}%)`;
+  const category = score.categoryLabel ? ` · ${score.categoryLabel}` : "";
+
+  return `${points}${percent}${category}`;
+});
 </script>
 
 <template>
@@ -67,6 +90,9 @@ const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
         </p>
         <p v-if="data.language" class="detail-subtitle">
           {{ t("analytics.responseDetail.language", { language: data.language.toUpperCase() }) }}
+        </p>
+        <p v-if="scoreLine" class="detail-subtitle detail-score" data-test="detail-score">
+          {{ scoreLine }}
         </p>
       </div>
       <span class="detail-id">ID: {{ data.id }}</span>
@@ -302,5 +328,9 @@ const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
 .value-box--false {
   background: #fff1f299;
   border-color: #ffe4e6;
+}
+.detail-score {
+  font-weight: 600;
+  color: #4f46e5;
 }
 </style>

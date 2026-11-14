@@ -56,6 +56,19 @@ Translations of the messages: `translations.<lang>.welcomeTitle`, `welcomeText`,
 
 `POST /forms/:shareId/responses` answers `{ id, createdAt, endScreen }`: `endScreen` is `{ text, redirectUrl? }` in the respondent's language (the text of the matching rule, or of the form's own screen), or `null` when the viewer should show the standard thank-you message. The id of the matching rule is stored on the response as `endRuleId`; it is not sent to the respondent.
 
+## Scoring
+
+Scoring is part of the form (see [conditional logic](conditional-logic.md#scoring)). `PATCH /forms/:formId` accepts:
+
+- `scoring`: `{ enabled, categories: [{ id, label, min, max }] }`, or `null` to remove it (omitted leaves it as it is). `id` is a string of 1-64 characters, unique within the form, and the translations refer to it; `label` is 1-100 characters; `min` and `max` are numbers from -1,000,000 to 1,000,000 with at most 2 decimals, `min <= max`; up to 10 categories, ranges must not overlap. Anything else is `400 REQUEST_BODY_INVALID`.
+- Points inside the questions: `options[].score` for `CHOICE_SINGLE`, `CHOICE_MULTI` and `IMAGE_CHOICE` (a ranking or matrix option that arrives with a `score` has it dropped), `config.score = { true, false }` for `BOOLEAN` (both required), `config.scoreMultiplier` for `NUMBER`, `RATING`, `SCALE` and `NPS`. All are numbers from -1000 to 1000 with at most 2 decimals, `null` or absent for none. A `NUMBER` with a non-zero `scoreMultiplier` must have `min` and `max`.
+- `translations.<lang>.scoreCategories[<categoryId>]`: the label of a category in another language. Labels of categories that no longer exist are dropped on save.
+- End rules may look at `$score` and `$percent` (`endRules[].condition.rules[].questionId`) while `scoring.enabled` is true; `{{score}}`, `{{maxScore}}`, `{{percent}}` and `{{category}}` work in end screen texts.
+
+`GET /forms/:formId/admin` returns all of it. The public form (`GET /forms/public/:shareId`) returns the questions **without** any points, never `scoring`, and its `translations` carry no category labels. The response to a submit is unchanged (`{ id, createdAt, endScreen }`): the score only reaches the respondent as text in `endScreen`.
+
+For the owner: `GET /forms/:formId/analytics` has a `scoring` object (`null` when the form never scored), the list of responses (`GET /forms/:formId/responses`) and one response (`GET /forms/:formId/responses/:responseId`) have `score` (`{ score, maxScore, percent, categoryId, categoryLabel }`, `null` when the response was not scored). See [analytics.md](analytics.md#scores) and [exports.md](exports.md).
+
 ## Quotas
 
 Limits on the completed responses of a group of respondents (see [conditional logic](conditional-logic.md#quotas)). All of these are owner-only 🔒 and take the form id from the path; a quota of another form answers `404 QUOTA_NOT_FOUND`.

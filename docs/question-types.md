@@ -18,6 +18,22 @@ The scale types (`RATING`, `SCALE`, `NPS`) answer with plain numbers, so validat
 
 Full per-type configuration, limits and answer formats are in the [API reference](API.md#question-types). Per-type analytics are described in [analytics.md](analytics.md#per-question-analytics).
 
+## Scoring
+
+A form can score its responses (switched on in the builder, `Form.scoring.enabled`). The points live in the questions themselves, and only some types give points:
+
+| Type                                            | Where the points are                                                                    |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `CHOICE_SINGLE`, `CHOICE_MULTI`, `IMAGE_CHOICE` | `option.score` for every option; a multiple choice adds up the options that were picked |
+| `BOOLEAN`                                       | `config.score = { true, false }`                                                        |
+| `NUMBER`, `RATING`, `SCALE`, `NPS`              | `config.scoreMultiplier`: the points are the answer times the factor                    |
+
+`TEXT`, `DATE`, `RANKING`, `MATRIX` and `FILE` give no points. Points are numbers from -1000 to 1000 with at most 2 decimals, and an absent value means 0. A `NUMBER` that is scored must have both `min` and `max`, because the best possible score (and so the percentage) is otherwise unknown.
+
+The total and the best total possible are computed on the server by `@quorvia/calculation-engine` (`computeScore`) from the questions the respondent was **shown**; a branch they never saw is neither in their total nor in their maximum. A question that may be skipped is worth at least 0, a required one its best answer even if that is negative. Sums are exact (the engine works in hundredths, so `0.1 + 0.2` is `0.3`).
+
+The points and the categories never reach respondents: the public form carries the questions without `score`, `scoreMultiplier` and `config.score`, and without the scoring settings. See [conditional logic](conditional-logic.md#scoring) for how the score drives the end screen and [API.md](API.md#scoring) for the fields.
+
 # Adding a New Question Type
 
 The single source of truth is `QUESTION_TYPES` in `packages/shared-types/src/index.ts`. After adding a value there, the compiler points out some of the missing places and guard tests point out others. The rest has to be done by hand, following the checklist below.

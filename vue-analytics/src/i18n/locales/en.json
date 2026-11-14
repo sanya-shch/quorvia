@@ -71,11 +71,28 @@
       "allAnswers": "All answers:",
       "otherAnswers": "Answers for “Other”:"
     },
+    "scoring": {
+      "sectionTitle": "Scores",
+      "sectionHint": "How respondents scored, as it was calculated when they answered. Changing the points later does not change these numbers.",
+      "disabledNote": "Scoring is switched off now. These are the responses that were scored while it was on.",
+      "empty": "No scored responses yet",
+      "scored": "scored responses",
+      "average": "average score",
+      "averagePercent": "average of the maximum",
+      "range": "lowest to highest",
+      "histogramTitle": "Scores, % of the maximum",
+      "bucket": "{from}–{to}%: {count}",
+      "categoriesTitle": "Categories",
+      "categoryCount": "{count} ({percent}%)",
+      "noCategory": "No category"
+    },
     "responsesList": {
       "title": "All responses",
       "loading": "Loading responses...",
       "empty": "No responses yet",
       "back": "Back",
+      "score": "{score}",
+      "scoreOf": "{score} of {max}",
       "pageLabel": "Page {page}",
       "next": "Next"
     },
@@ -83,6 +100,8 @@
       "placeholder": "Select a response from the list on the left to view its details",
       "title": "Response details",
       "submittedAt": "Submitted: {date}",
+      "score": "Score: {score}",
+      "scoreOf": "Score: {score} of {max}",
       "language": "Form language: {language}",
       "download": "Download",
       "downloading": "Downloading...",

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import type { ResponseListDto } from "@quorvia/shared-types";
+import type { ResponseListDto, ResponseScoreDto } from "@quorvia/shared-types";
 
 defineProps<{
   data: ResponseListDto | null;
@@ -18,6 +18,22 @@ const emit = defineEmits<{
 const { t, locale } = useI18n();
 
 const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
+
+const formatNumber = (value: number) =>
+  value.toLocaleString(locale.value, { maximumFractionDigits: 2, useGrouping: false });
+
+// "15 of 20 · Expert"; the maximum and the category are left out when there are none.
+const scoreText = (score: ResponseScoreDto) => {
+  const points =
+    score.maxScore === null
+      ? t("analytics.responsesList.score", { score: formatNumber(score.score) })
+      : t("analytics.responsesList.scoreOf", {
+          score: formatNumber(score.score),
+          max: formatNumber(score.maxScore),
+        });
+
+  return score.categoryLabel ? `${points} · ${score.categoryLabel}` : points;
+};
 </script>
 
 <template>
@@ -45,6 +61,9 @@ const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
           <span v-if="resp.language" class="item-lang" :title="resp.language">{{
             resp.language.toUpperCase()
           }}</span>
+        </div>
+        <div v-if="resp.score" class="item-score" data-test="item-score">
+          {{ scoreText(resp.score) }}
         </div>
       </button>
     </div>
@@ -175,5 +194,11 @@ const formatDate = (iso: string) => new Date(iso).toLocaleString(locale.value);
 .page-label {
   color: #94a3b8;
   font-weight: 500;
+}
+.item-score {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4f46e5;
 }
 </style>

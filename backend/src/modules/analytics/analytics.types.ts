@@ -2,8 +2,12 @@ import type {
   MatrixStats,
   NpsBreakdown,
   RankingOptionStats,
+  ResponseScoreDto,
+  ScoreAnalyticsDto,
   UploadedFileDto,
 } from "@quorvia/shared-types";
+
+export type { ResponseScoreDto, ScoreAnalyticsDto };
 import type { Answer, Answers } from "../response/response.types.js";
 
 /**
@@ -82,40 +86,6 @@ export type QuestionOverview =
       trueCount: number;
       falseCount: number;
     } & QuestionVisibilityStats);
-
-/**
- * How the responses scored (see FormScoring). Built from what was stored with each response:
- * responses are never rescored, so a change of the points does not rewrite history. null when the
- * form never scored.
- */
-export type ScoreAnalyticsDto = {
-  // Scoring is switched on now (it may have been switched off after responses were scored).
-  enabled: boolean;
-  // Responses that have a score.
-  scoredCount: number;
-  // Over the raw totals, 2 decimals; 0 without scored responses.
-  average: number;
-  min: number;
-  max: number;
-  // The average of score / maximum in percent; null when no response has a positive maximum.
-  averagePercent: number | null;
-  // 10 buckets of percent of the maximum, 0-10 ... 90-100 (100 is in the last one).
-  histogram: { fromPercent: number; toPercent: number; count: number }[];
-  // The categories as they are now, each with the responses counted in it.
-  categories: { id: string; label: string; min: number; max: number; count: number }[];
-  // Scored responses in no category now: the total fell in none, or the category was deleted.
-  uncategorizedCount: number;
-};
-
-// The score of one response, for the owner.
-export type ResponseScoreDto = {
-  score: number;
-  maxScore: number | null;
-  percent: number | null;
-  categoryId: string | null;
-  // By name as it is now; null when the response has no category or it was deleted.
-  categoryLabel: string | null;
-};
 
 export type FormAnalyticsDto = {
   totalResponses: number;

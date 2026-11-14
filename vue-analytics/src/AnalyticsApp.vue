@@ -14,6 +14,7 @@ import QuestionDetailPanel from "./components/QuestionDetailPanel.vue";
 import ResponsesList from "./components/ResponsesList.vue";
 import ResponseDetailView from "./components/ResponseDetailView.vue";
 import ExportMenu from "./components/ExportMenu.vue";
+import ScoreSummary from "./components/ScoreSummary.vue";
 import { setAuthBridge } from "./api/client";
 
 const props = defineProps<{
@@ -160,6 +161,12 @@ const selectResponse = (responseId: string) => {
         </section>
 
         <template v-else>
+          <section v-if="analytics.scoring" class="score-section">
+            <h2 class="section-title">{{ t("analytics.scoring.sectionTitle") }}</h2>
+            <p class="section-hint">{{ t("analytics.scoring.sectionHint") }}</p>
+            <ScoreSummary :scoring="analytics.scoring" />
+          </section>
+
           <section class="cards-grid">
             <QuestionOverviewCard
               v-for="q in analytics.questions"
@@ -350,6 +357,11 @@ const selectResponse = (responseId: string) => {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
 }
+.score-section {
+  max-width: 960px;
+  margin: 40px auto 0;
+}
+
 .paths-section {
   max-width: 960px;
   margin: 40px auto 0;
