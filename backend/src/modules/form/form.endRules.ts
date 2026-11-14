@@ -3,6 +3,7 @@ import {
   localizeEndRuleScreen,
   normalizeEndRules,
   normalizeEndScreen,
+  SCORE_CONDITION_KEYS,
   type FormEndRule,
   type FormEndScreen,
   type FormTranslations,
@@ -24,21 +25,31 @@ export interface EndRuleIssue {
   reason: EndRuleIssueReason;
 }
 
+// `scoringEnabled`: a rule may look at the respondent's score ($score, $percent), but only while the
+// form has scoring switched on. Otherwise it would depend on something that does not exist.
 export const findEndRuleIssues = (
   rules: readonly FormEndRule[] | null,
   questions: readonly { id: string; type: QuestionType }[],
-): EndRuleIssue[] =>
-  (rules ?? []).flatMap((rule) =>
-    findConditionIssues(rule.condition, questions).map((issue) => ({ ruleId: rule.id, ...issue })),
+  scoringEnabled = false,
+): EndRuleIssue[] => {
+  const allowed = new Set<string>(scoringEnabled ? SCORE_CONDITION_KEYS : []);
+
+  return (rules ?? []).flatMap((rule) =>
+    findConditionIssues(rule.condition, questions, allowed).map((issue) => ({
+      ruleId: rule.id,
+      ...issue,
+    })),
   );
+};
 
 // Also what stops a question from being deleted while a rule still points at it: the rules are
 // checked against the question list the form is saved with.
 export const assertEndRulesValid = (
   rules: readonly FormEndRule[] | null,
   questions: readonly { id: string; type: QuestionType }[],
+  scoringEnabled = false,
 ): void => {
-  const issues = findEndRuleIssues(rules, questions);
+  const issues = findEndRuleIssues(rules, questions, scoringEnabled);
 
   if (issues.length > 0) {
     throw new AppError(ErrorCode.FORM_INVALID_END_RULES, 400, issues);

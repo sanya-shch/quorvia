@@ -5,6 +5,7 @@ import { validateConditionGraph } from "@quorvia/condition-engine";
 import { ErrorCode } from "@quorvia/shared-types";
 import { createDefaultOptions, createDefaultQuestionConfig } from "../questionConfig";
 import { findBrokenEndRules } from "../endRules";
+import { hasBlockingCategoryIssue, numberNeedsRange } from "../scoring";
 
 const INITIAL_STATE: FormState = {
   title: "",
@@ -42,7 +43,14 @@ export function useFormBuilder(initialData?: FormState) {
 
     formData.questions.forEach((q, index) => {
       if (!q.text.trim()) newErrors[`q-${index}`] = `errors.${ErrorCode.VALIDATION_FIELD_REQUIRED}`;
+
+      // A number that gives points needs a range: the server refuses it otherwise.
+      if (numberNeedsRange(q)) newErrors[`q-${index}-score`] = "builder.scoring.numberRange";
     });
+
+    // Categories of the score that overlap or run backwards are refused by the server.
+    if (hasBlockingCategoryIssue(formData.scoring))
+      newErrors["scoring"] = "builder.scoring.errors.categories";
 
     const questionsWithId = formData.questions.filter((q): q is Question & { id: string } =>
       Boolean(q.id),
@@ -63,7 +71,11 @@ export function useFormBuilder(initialData?: FormState) {
 
     // The server refuses a result rule on a question that was deleted, so the form cannot be saved
     // until the rule is fixed or removed (the rule's card says which).
-    for (const index of findBrokenEndRules(formData.endRules, formData.questions)) {
+    for (const index of findBrokenEndRules(
+      formData.endRules,
+      formData.questions,
+      formData.scoring?.enabled === true,
+    )) {
       newErrors[`endRule-${index}`] = `errors.${ErrorCode.FORM_INVALID_END_RULES}`;
     }
 

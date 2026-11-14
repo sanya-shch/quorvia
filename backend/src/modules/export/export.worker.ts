@@ -87,6 +87,7 @@ export const processExportJob = async (job: Job<ExportQueueJobData>) => {
         id: form.id,
         title: form.title,
         description: form.description,
+        scoring: form.scoring,
       },
       questions: form.questions,
       responses: await withFileNames(form.id, form.questions, form.responses),

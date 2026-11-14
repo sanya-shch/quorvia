@@ -9,6 +9,7 @@ import {
 } from "@quorvia/shared-types";
 import type { FormState, Question } from "../../types/formBuilder";
 import { isEndRuleComplete } from "./endRules";
+import { prepareScoring } from "./scoring";
 import { questionTypeUsesOptions } from "./questionConfig";
 
 // Everything about translating a form in the builder: pure functions over FormState (no
@@ -39,6 +40,7 @@ export type TranslationFieldKind =
   | "welcomeButton"
   | "endText"
   | "endRuleText"
+  | "scoreCategoryLabel"
   | "questionText"
   | "questionDescription"
   | "option"
@@ -142,6 +144,20 @@ export const listTranslationFields = (form: FormState, language: string): Transl
       source: isEndRuleComplete(rule) ? rule.screen.text : "",
       value: formEntry?.endRules?.[rule.id],
       multiline: true,
+    });
+  }
+
+  // The labels of the score categories that will be saved (finished ones, while scoring is on).
+  const scoring = prepareScoring(form.scoring);
+
+  for (const category of scoring?.enabled ? scoring.categories : []) {
+    push({
+      key: `form:scoreCategory:${category.id}`,
+      kind: "scoreCategoryLabel",
+      questionIndex: null,
+      refId: category.id,
+      source: category.label,
+      value: formEntry?.scoreCategories?.[category.id],
     });
   }
 
@@ -280,6 +296,17 @@ export const setFieldTranslation = (
 
   if (field.questionIndex === null) {
     const entry: FormTranslation = { ...form.translations?.[language] };
+    if (field.kind === "scoreCategoryLabel") {
+      if (!field.refId) return form;
+
+      entry.scoreCategories = withMapValue(entry.scoreCategories, field.refId, value);
+
+      return {
+        ...form,
+        translations: withLanguageEntry(form.translations, language, compact(entry)),
+      };
+    }
+
     if (field.kind === "endRuleText") {
       if (!field.refId) return form;
 

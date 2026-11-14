@@ -15,6 +15,9 @@ Quorvia/
 │   └── Vue 3 Module Federation remote
 │
 ├── packages/
+│   ├── calculation-engine/
+│   │   └── Scoring (and, later, formulas): framework-independent
+│   │
 │   ├── condition-engine/
 │   │   └── Conditional logic domain package
 │   │
@@ -40,6 +43,7 @@ flowchart TB
     subgraph Shared["Shared Packages"]
         Types["shared-types"]
         Engine["condition-engine"]
+        Calc["calculation-engine"]
     end
 
     subgraph Backend["Backend"]
@@ -64,6 +68,7 @@ flowchart TB
 
     React --> Engine
     API --> Engine
+    API --> Calc
 
     API --> DB
     API --> Redis
@@ -221,6 +226,7 @@ Quorvia/
 │   └── package.json
 │
 ├── packages/
+│   ├── calculation-engine/
 │   ├── condition-engine/
 │   └── shared-types/
 │

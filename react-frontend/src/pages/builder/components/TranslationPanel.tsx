@@ -26,6 +26,7 @@ const FIELD_LABEL_KEYS: Record<TranslationFieldKind, string> = {
   welcomeButton: "builder.languages.fields.welcomeButton",
   endText: "builder.languages.fields.endText",
   endRuleText: "builder.languages.fields.endRuleText",
+  scoreCategoryLabel: "builder.languages.fields.scoreCategoryLabel",
   questionText: "builder.languages.fields.questionText",
   questionDescription: "builder.languages.fields.questionDescription",
   option: "builder.languages.fields.option",

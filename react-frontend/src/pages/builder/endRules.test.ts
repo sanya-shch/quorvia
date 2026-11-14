@@ -125,6 +125,33 @@ describe("findBrokenEndRules", () => {
   });
 });
 
+describe("findBrokenEndRules and the score", () => {
+  const onScore = [
+    rule({
+      id: "a",
+      condition: { logic: "AND", rules: [{ questionId: "$score", operator: "gt", value: 5 }] },
+    }),
+    rule({
+      id: "b",
+      condition: { logic: "AND", rules: [{ questionId: "$percent", operator: "lt", value: 50 }] },
+    }),
+  ];
+
+  it("a rule on the score is broken unless scoring is on", () => {
+    expect(findBrokenEndRules(onScore, [question()])).toEqual([0, 1]);
+    expect(findBrokenEndRules(onScore, [question()], false)).toEqual([0, 1]);
+    expect(findBrokenEndRules(onScore, [question()], true)).toEqual([]);
+  });
+
+  it("scoring does not excuse a rule on another unknown key", () => {
+    const other = rule({
+      condition: { logic: "AND", rules: [{ questionId: "$other", operator: "gt", value: 1 }] },
+    });
+
+    expect(findBrokenEndRules([other], [question()], true)).toEqual([0]);
+  });
+});
+
 describe("prepareEndRules", () => {
   it("sends the finished rules in order and drops the unfinished ones", () => {
     const rules = [

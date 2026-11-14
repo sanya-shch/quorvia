@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { otherAnswerKey } from "@quorvia/shared-types";
 import { ExportData, Exporter, GeneratedFile } from "./exporter.types.js";
 import { AnswerValue, formatAnswer, slugifyFileName } from "./formatAnswer.js";
+import { scoreExport } from "./scoreColumns.js";
 
 const PAGE_BOTTOM_MARGIN = 70;
 
@@ -16,6 +17,7 @@ const FONT_PATH = path.join(__dirname, "../../../fonts/DejaVuSans.ttf");
 export const exportToPdf: Exporter = (data: ExportData): Promise<GeneratedFile> => {
   return new Promise((resolve, reject) => {
     const questions = [...data.questions].sort((a, b) => a.order - b.order);
+    const scores = scoreExport(data);
 
     const doc = new PDFDocument({
       margin: 50,
@@ -75,6 +77,21 @@ export const exportToPdf: Exporter = (data: ExportData): Promise<GeneratedFile> 
         });
 
       doc.moveDown(0.3);
+
+      if (scores) {
+        const { score, maxScore, category } = scores.cellsFor(response);
+
+        // A response that was not scored has no line (its cells are empty).
+        if (score !== "") {
+          doc
+            .fontSize(11)
+            .fillColor("#111")
+            .text(
+              `Бали: ${score}${maxScore === "" ? "" : ` з ${maxScore}`}${category ? ` · ${category}` : ""}`,
+            );
+          doc.moveDown(0.3);
+        }
+      }
 
       const answers = response.answers as Record<string, AnswerValue>;
 

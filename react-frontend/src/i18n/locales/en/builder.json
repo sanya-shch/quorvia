@@ -282,7 +282,8 @@
       "welcomeText": "Welcome screen: text",
       "welcomeButton": "Welcome screen: button",
       "endText": "End screen: message",
-      "endRuleText": "Result rule: message"
+      "endRuleText": "Result rule: message",
+      "scoreCategoryLabel": "Score category: name"
     },
     "removeModal": {
       "title": "Remove language “{{language}}”?",
@@ -324,6 +325,40 @@
       "noQuestions": "Add a question that can be used in conditions (not ranking, matrix or file) to create a rule.",
       "noTargets": "There is no question left to build this condition on.",
       "limit": "At most {{count}} rules."
+    }
+  },
+  "scoring": {
+    "summary": "Scoring",
+    "enable": "Score the responses",
+    "hint": "Give points for answers, show the total and a category on the end screen, and send respondents to different end screens by their score. Set the points of each answer in the questions.",
+    "points": "Points",
+    "optionPoints": "Points for \"{{text}}\"",
+    "multiHint": "Points of all picked options are added up.",
+    "yes": "Yes",
+    "no": "No",
+    "yesPoints": "Points for yes",
+    "noPoints": "Points for no",
+    "multiplier": "Multiplier",
+    "multiplierHint": "Points = the answer times the multiplier. Leave it empty or 0 for no points. From -1000 to 1000, up to two decimals.",
+    "numberRange": "Set both the minimum and the maximum of this number to give it points: without them the best possible score is unknown.",
+    "categoriesTitle": "Result categories",
+    "categoriesHint": "A name for a range of totals, for example 0-30 Beginner. Both ends are included and ranges must not overlap.",
+    "untitledCategory": "New category",
+    "categoryName": "Name",
+    "from": "From",
+    "to": "To",
+    "addCategory": "Add a category",
+    "removeCategory": "Remove the category",
+    "placeholdersHint": "In the text of an end screen you can use {{score}}, {{maxScore}}, {{percent}} (the number only, write the % sign yourself) and {{category}}.",
+    "scoreTarget": "Total score",
+    "percentTarget": "Score, % of the maximum",
+    "issues": {
+      "incomplete": "Fill in the name and both ends, otherwise this category is not saved.",
+      "inverted": "\"From\" is greater than \"To\".",
+      "overlap": "This range overlaps an earlier category."
+    },
+    "errors": {
+      "categories": "Fix the result categories: a range runs backwards or overlaps another."
     }
   },
   "quotas": {

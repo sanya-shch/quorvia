@@ -7,7 +7,7 @@ import {
   normalizeEndRules,
   normalizeFormTranslations,
   questionTypeSupportsConditions,
-  stripEndRuleTranslations,
+  stripOutcomeTranslations,
   type FormEndRule,
 } from "@quorvia/shared-types";
 
@@ -202,10 +202,10 @@ describe("normalizeFormTranslations: end rule texts", () => {
   });
 });
 
-describe("stripEndRuleTranslations", () => {
+describe("stripOutcomeTranslations", () => {
   it("removes the end rule texts and keeps the rest", () => {
     expect(
-      stripEndRuleTranslations({
+      stripOutcomeTranslations({
         en: { title: "T", endText: "Bye", endRules: { r1: "One" } },
         de: { endRules: { r1: "Eins" } },
       }),
@@ -213,10 +213,10 @@ describe("stripEndRuleTranslations", () => {
   });
 
   it("returns null when nothing is left or the input is not translations", () => {
-    expect(stripEndRuleTranslations({ en: { endRules: { r1: "One" } } })).toBeNull();
-    expect(stripEndRuleTranslations(null)).toBeNull();
-    expect(stripEndRuleTranslations("x")).toBeNull();
-    expect(stripEndRuleTranslations({ en: "oops" })).toBeNull();
+    expect(stripOutcomeTranslations({ en: { endRules: { r1: "One" } } })).toBeNull();
+    expect(stripOutcomeTranslations(null)).toBeNull();
+    expect(stripOutcomeTranslations("x")).toBeNull();
+    expect(stripOutcomeTranslations({ en: "oops" })).toBeNull();
   });
 });
 

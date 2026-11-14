@@ -2,6 +2,7 @@ import type {
   ConditionGroup,
   FormEndRule,
   FormEndScreen,
+  FormScoring,
   FormTheme,
   FormTranslations,
   FormWelcomeScreen,
@@ -58,6 +59,9 @@ export interface FormState {
   endScreen?: FormEndScreen | null;
   // Conditional end screens (checked in order; the first match wins, see FormEndRule).
   endRules?: FormEndRule[] | null;
+  // Scoring settings as the author edits them: the bounds of a category are text while being typed.
+  // The server's shape is FormScoring (see AdminForm); the builder converts on load and on save.
+  scoring?: ScoringDraft | null;
   // Closing: an ISO instant and/or a number of responses; null means no limit.
   closesAt?: string | null;
   maxResponses?: number | null;
@@ -65,13 +69,30 @@ export interface FormState {
   responseCount?: number;
 }
 
+export interface ScoringDraftCategory {
+  id: string;
+  label: string;
+  min: string;
+  max: string;
+}
+
+export interface ScoringDraft {
+  enabled: boolean;
+  categories: ScoringDraftCategory[];
+}
+
+// The scoring field as it travels to and from the server.
+interface ServerScoring {
+  scoring?: FormScoring | null;
+}
+
 // A form from the admin endpoint: FormState plus the version for optimistic locking.
-export interface AdminForm extends FormState {
+export interface AdminForm extends Omit<FormState, "scoring">, ServerScoring {
   version: number;
 }
 
 // Save body: version is the one the client loaded (the server answers 409 if it is stale).
-export type UpdateFormPayload = FormState & { version?: number };
+export type UpdateFormPayload = Omit<FormState, "scoring"> & ServerScoring & { version?: number };
 
 export interface UpdateFormResult {
   success: boolean;

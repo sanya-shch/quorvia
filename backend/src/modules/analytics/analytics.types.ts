@@ -83,9 +83,44 @@ export type QuestionOverview =
       falseCount: number;
     } & QuestionVisibilityStats);
 
+/**
+ * How the responses scored (see FormScoring). Built from what was stored with each response:
+ * responses are never rescored, so a change of the points does not rewrite history. null when the
+ * form never scored.
+ */
+export type ScoreAnalyticsDto = {
+  // Scoring is switched on now (it may have been switched off after responses were scored).
+  enabled: boolean;
+  // Responses that have a score.
+  scoredCount: number;
+  // Over the raw totals, 2 decimals; 0 without scored responses.
+  average: number;
+  min: number;
+  max: number;
+  // The average of score / maximum in percent; null when no response has a positive maximum.
+  averagePercent: number | null;
+  // 10 buckets of percent of the maximum, 0-10 ... 90-100 (100 is in the last one).
+  histogram: { fromPercent: number; toPercent: number; count: number }[];
+  // The categories as they are now, each with the responses counted in it.
+  categories: { id: string; label: string; min: number; max: number; count: number }[];
+  // Scored responses in no category now: the total fell in none, or the category was deleted.
+  uncategorizedCount: number;
+};
+
+// The score of one response, for the owner.
+export type ResponseScoreDto = {
+  score: number;
+  maxScore: number | null;
+  percent: number | null;
+  categoryId: string | null;
+  // By name as it is now; null when the response has no category or it was deleted.
+  categoryLabel: string | null;
+};
+
 export type FormAnalyticsDto = {
   totalResponses: number;
   questions: QuestionOverview[];
+  scoring: ScoreAnalyticsDto | null;
 };
 
 // One node of the form's path: a question with the number of respondents who saw it
@@ -215,6 +250,8 @@ export type ResponseListItem = {
   // Form language the respondent used (null: unknown).
   language: string | null;
   answersPreview?: Record<string, unknown>;
+  // null: the response was not scored.
+  score: ResponseScoreDto | null;
 };
 
 export type ResponseListDto = {
@@ -246,6 +283,8 @@ export type ResponseDetailsDto = {
   formId: string;
   createdAt: Date;
   language: string | null;
+  // null: the response was not scored.
+  score: ResponseScoreDto | null;
   answers: EnrichedAnswer[];
 };
 

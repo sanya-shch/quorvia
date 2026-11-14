@@ -21,6 +21,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@quorvia/calculation-engine": "workspace:*",
     "@quorvia/condition-engine": "workspace:*",
     "@quorvia/shared-types": "workspace:*",
     "bcrypt": "^6.0.0",

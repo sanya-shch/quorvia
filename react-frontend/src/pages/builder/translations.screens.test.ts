@@ -190,3 +190,62 @@ describe("end rule texts as translatable fields", () => {
     ).toEqual({ en: { endText: "Thanks" } });
   });
 });
+
+describe("score category labels as translatable fields", () => {
+  const scoring = (enabled: boolean) => ({
+    enabled,
+    categories: [
+      { id: "a", label: "Початківець", min: "0", max: "30" },
+      { id: "b", label: "", min: "31", max: "60" },
+      { id: "c", label: "Експерт", min: "61", max: "100" },
+      { id: "d", label: "Зламана", min: "50", max: "70" },
+    ],
+  });
+
+  it("lists the labels of the categories that will be saved, while scoring is on", () => {
+    const fields = listTranslationFields(base({ scoring: scoring(true) }), "en").filter(
+      (f) => f.kind === "scoreCategoryLabel",
+    );
+
+    // "b" has no label and "d" overlaps "c": neither is saved, so neither is translatable.
+    expect(fields.map((f) => f.refId)).toEqual(["a", "c"]);
+    expect(fields.map((f) => f.source)).toEqual(["Початківець", "Експерт"]);
+  });
+
+  it("lists nothing while scoring is off", () => {
+    expect(
+      listTranslationFields(base({ scoring: scoring(false) }), "en").some(
+        (f) => f.kind === "scoreCategoryLabel",
+      ),
+    ).toBe(false);
+  });
+
+  it("shows the current translation and counts a missing one", () => {
+    const form = base({
+      scoring: scoring(true),
+      translations: { en: { scoreCategories: { a: "Beginner" } } },
+    });
+
+    expect(listTranslationFields(form, "en").find((f) => f.refId === "a")?.value).toBe("Beginner");
+    // The title and the label of "c".
+    expect(countMissingTranslations(form, "en")).toBe(2);
+  });
+
+  it("writes and clears the translation of one category without touching the others", () => {
+    const form = base({ scoring: scoring(true), translations: { en: { endText: "Thanks" } } });
+    const field = { kind: "scoreCategoryLabel" as const, questionIndex: null, refId: "a" };
+
+    const added = setFieldTranslation(form, "en", field, "Beginner");
+
+    expect(added.translations).toEqual({
+      en: { endText: "Thanks", scoreCategories: { a: "Beginner" } },
+    });
+
+    const both = setFieldTranslation(added, "en", { ...field, refId: "c" }, "Expert");
+
+    expect(both.translations?.en?.scoreCategories).toEqual({ a: "Beginner", c: "Expert" });
+    expect(setFieldTranslation(both, "en", field, " ").translations?.en?.scoreCategories).toEqual({
+      c: "Expert",
+    });
+  });
+});

@@ -5,6 +5,8 @@ export type ExportData = {
     id: string;
     title: string;
     description: string | null;
+    // Scoring settings (Json as stored), for the names of the categories.
+    scoring?: unknown;
   };
   questions: Question[];
   responses: SurveyResponse[];

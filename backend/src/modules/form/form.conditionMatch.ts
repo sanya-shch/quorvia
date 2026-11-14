@@ -37,11 +37,15 @@ export interface ConditionIssue {
 export const findConditionIssues = (
   condition: ConditionGroup,
   questions: readonly { id: string; type: QuestionType }[],
+  // Keys that are not questions but may be looked at (the score of an end rule).
+  allowedKeys: ReadonlySet<string> = new Set(),
 ): ConditionIssue[] => {
   const typeById = new Map(questions.map((q) => [q.id, q.type]));
   const issues: ConditionIssue[] = [];
 
   for (const { questionId } of condition.rules) {
+    if (allowedKeys.has(questionId)) continue;
+
     const type = typeById.get(questionId);
 
     if (!type) {

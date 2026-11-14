@@ -140,6 +140,14 @@ Examples include:
 pnpm --filter @quorvia/condition-engine test
 ```
 
+### Calculation engine
+
+Scores of a response (`computeScore`, `categoryFor`): which answers give points, the total and the maximum over the questions the respondent was shown, exact sums in hundredths, categories of the total.
+
+```bash
+pnpm --filter @quorvia/calculation-engine test
+```
+
 ### Backend
 
 Backend tests cover:

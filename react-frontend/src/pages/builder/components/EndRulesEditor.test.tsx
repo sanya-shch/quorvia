@@ -22,10 +22,21 @@ const rule = (id: string, overrides: Partial<FormEndRule> = {}): FormEndRule => 
   ...overrides,
 });
 
-const setup = (rules: FormEndRule[] | null, questions: Question[] = [score]) => {
+const setup = (
+  rules: FormEndRule[] | null,
+  questions: Question[] = [score],
+  scoringEnabled = false,
+) => {
   const onChange = vi.fn();
 
-  render(<EndRulesEditor rules={rules} questions={questions} onChange={onChange} />);
+  render(
+    <EndRulesEditor
+      rules={rules}
+      questions={questions}
+      scoringEnabled={scoringEnabled}
+      onChange={onChange}
+    />,
+  );
 
   return { onChange, user: userEvent.setup() };
 };
@@ -160,6 +171,54 @@ describe("EndRulesEditor", () => {
       ]);
 
       expect(within(card(1)).getByText(/посилається на питання, яке видалено/)).toBeInTheDocument();
+    });
+  });
+
+  describe("with scoring on", () => {
+    it("offers the score among the things a rule can look at", () => {
+      setup([rule("a")], [score], true);
+
+      const select = within(card(1)).getAllByRole("combobox")[0]!;
+      const labels = within(select)
+        .getAllByRole("option")
+        .map((o) => o.textContent);
+
+      // The score comes first and has no number; the questions keep theirs.
+      expect(labels).toEqual(["Сума балів", "Бали, % від максимуму", "#1 Оцінка"]);
+    });
+
+    it("does not offer it with scoring off", () => {
+      setup([rule("a")]);
+
+      const select = within(card(1)).getAllByRole("combobox")[0]!;
+
+      expect(within(select).queryByRole("option", { name: "Сума балів" })).not.toBeInTheDocument();
+    });
+
+    it("can add a rule even when the form has no question that can be compared", async () => {
+      const { onChange, user } = setup(null, [{ ...score, type: "RANKING" }], true);
+
+      expect(screen.getByRole("button", { name: "Додати правило" })).toBeEnabled();
+
+      await user.click(screen.getByRole("button", { name: "Додати правило" }));
+
+      expect(onChange.mock.calls[0]![0][0].condition.rules[0].questionId).toBe("$score");
+    });
+
+    it("a rule on the score is fine while scoring is on, and flagged when it is off", () => {
+      const onScore = rule("a", {
+        condition: { logic: "AND", rules: [{ questionId: "$score", operator: "gt", value: 5 }] },
+      });
+      const { unmount } = render(
+        <EndRulesEditor rules={[onScore]} questions={[score]} scoringEnabled onChange={() => {}} />,
+      );
+
+      expect(screen.queryByText(/посилається на питання, яке видалено/)).not.toBeInTheDocument();
+      unmount();
+
+      render(<EndRulesEditor rules={[onScore]} questions={[score]} onChange={() => {}} />);
+
+      expect(screen.getByText(/посилається на питання, яке видалено/)).toBeInTheDocument();
     });
   });
 });

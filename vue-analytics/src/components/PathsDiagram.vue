@@ -162,6 +162,7 @@ const svgHeight = computed(
   fill: white;
   stroke: #e2e8f0;
   stroke-width: 1.5;
+  opacity: 0.5;
 }
 .node-text {
   font-size: 13px;

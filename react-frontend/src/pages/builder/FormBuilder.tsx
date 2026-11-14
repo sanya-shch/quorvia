@@ -30,12 +30,16 @@ import ThemeEditor from "./components/ThemeEditor";
 import {
   normalizeEndRules,
   normalizeEndScreen,
+  normalizeScoring,
   normalizeWelcomeScreen,
   type FormTheme,
 } from "@quorvia/shared-types";
 import ScreensEditor from "./components/ScreensEditor";
 import EndRulesEditor from "./components/EndRulesEditor";
 import QuotasEditor from "./components/QuotasEditor";
+import ScoringEditor from "./components/ScoringEditor";
+import QuestionScoringEditor from "./components/QuestionScoringEditor";
+import { draftFromScoring, prepareScoring } from "./scoring";
 import { prepareEndRules } from "./endRules";
 import ClosingEditor from "./components/ClosingEditor";
 import TranslationPanel from "./components/TranslationPanel";
@@ -137,6 +141,7 @@ export default function FormBuilder() {
         welcomeScreen: normalizeWelcomeScreen(server.welcomeScreen),
         endScreen: normalizeEndScreen(server.endScreen),
         endRules: normalizeEndRules(server.endRules),
+        scoring: draftFromScoring(normalizeScoring(server.scoring)),
         closesAt: server.closesAt ?? null,
         maxResponses: server.maxResponses ?? null,
         responseCount: server.responseCount ?? 0,
@@ -180,6 +185,8 @@ export default function FormBuilder() {
         endScreen: form.endScreen === undefined ? undefined : normalizeEndScreen(form.endScreen),
         // Only finished rules are saved (the editor warns about the others); none left -> null.
         endRules: form.endRules === undefined ? undefined : prepareEndRules(form.endRules),
+        // Only the finished categories are saved; no settings left removes them.
+        scoring: form.scoring === undefined ? undefined : prepareScoring(form.scoring),
         closesAt: form.closesAt,
         maxResponses: form.maxResponses,
         questions: normalizedQuestions,
@@ -400,9 +407,23 @@ export default function FormBuilder() {
                       <EndRulesEditor
                         rules={form.endRules}
                         questions={form.questions}
+                        scoringEnabled={form.scoring?.enabled === true}
                         onChange={(endRules) => updateFormMeta({ endRules })}
                       />
                     </div>
+                  </div>
+                </details>
+
+                <details className="mt-4 pt-4 border-t border-slate-100">
+                  <summary className="cursor-pointer text-xs font-semibold text-slate-600 select-none">
+                    {t("builder.scoring.summary")}
+                  </summary>
+                  <div className="mt-4">
+                    <ScoringEditor
+                      scoring={form.scoring}
+                      onChange={(scoring) => updateFormMeta({ scoring })}
+                    />
+                    {errors.scoring && <ErrorInfo errorText={t(errors.scoring)} />}
                   </div>
                 </details>
 
@@ -663,6 +684,18 @@ export default function FormBuilder() {
                                   <p className="py-2 text-xs text-slate-500 animate-in fade-in duration-150">
                                     {t("builder.editors.nps.hint")}
                                   </p>
+                                )}
+
+                                {form.scoring?.enabled && (
+                                  <QuestionScoringEditor
+                                    question={question}
+                                    onChange={(patch) => updateQuestion(index, patch)}
+                                    error={
+                                      errors[`q-${index}-score`]
+                                        ? t(errors[`q-${index}-score`])
+                                        : undefined
+                                    }
+                                  />
                                 )}
 
                                 {question.type === "DATE" && (

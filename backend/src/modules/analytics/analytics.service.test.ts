@@ -271,7 +271,7 @@ describe("getResponses", () => {
     expect(prisma.response.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ skip: 20, take: 10 }),
     );
-    expect(result).toEqual({ total: 25, page: 3, limit: 10, data: [{ id: "r-1" }] });
+    expect(result).toEqual({ total: 25, page: 3, limit: 10, data: [{ id: "r-1", score: null }] });
   });
 
   it("використовує дефолтні page=1/limit=10, коли не передано", async () => {

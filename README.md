@@ -23,6 +23,7 @@ The project focuses on a non-trivial form engine rather than plain CRUD: conditi
 - Conditional question visibility with `AND` / `OR` rules, graph validation and cycle detection
 - Welcome and end screens, with conditional end screens (result rules): a different message and redirect depending on the answers, decided on the server
 - Quotas: a limit of completed responses per group of respondents, kept atomically on the server, with an early warning while the form is being filled
+- Scoring: points for answers, a total and result categories, written into the end screen and used to choose it, with a score histogram in the analytics and score columns in the exports
 - Drag-and-drop reordering of questions and options, optimistic locking against concurrent edits
 - Form content in several languages: a main language plus up to 10 translations, with missing-translation indicators
 

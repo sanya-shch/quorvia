@@ -20,6 +20,7 @@ import {
 import { Answers } from "../response/response.types.js";
 import { paginate } from "../../shared/utils/paginate.js";
 import { analyticsConfig } from "./analytics.config.js";
+import { createScoreAccumulator, toResponseScore } from "./analytics.score.js";
 import {
   EnrichedAnswer,
   FormAnalyticsDto,
@@ -64,7 +65,14 @@ const responseBatches = (formId: string) =>
     (page) =>
       prisma.response.findMany({
         where: { formId },
-        select: { id: true, answers: true, visibleQuestionIds: true },
+        select: {
+          id: true,
+          answers: true,
+          visibleQuestionIds: true,
+          score: true,
+          maxScore: true,
+          scoreCategoryId: true,
+        },
         orderBy: [{ createdAt: "asc" }, { id: "asc" }],
         ...page,
       }),
@@ -252,6 +260,8 @@ export const getFormAnalytics = async (
 
   const allQuestionIds = form.questions.map((q) => q.id);
 
+  const scoreAccumulator = createScoreAccumulator();
+
   const accumulators = new Map<string, QuestionAccumulator>();
 
   for (const q of form.questions) {
@@ -284,6 +294,7 @@ export const getFormAnalytics = async (
   for await (const batch of responseBatches(formId)) {
     for (const response of batch) {
       totalResponses++;
+      scoreAccumulator.add(response);
       const visibleIds = resolveVisibleIdsForResponse(response, allQuestionIds);
       const answers = response.answers as Answers;
 
@@ -462,6 +473,7 @@ export const getFormAnalytics = async (
   return {
     totalResponses,
     questions,
+    scoring: scoreAccumulator.result(form.scoring),
   };
 };
 
@@ -902,6 +914,9 @@ export const getResponses = async (
         id: true,
         createdAt: true,
         language: true,
+        score: true,
+        maxScore: true,
+        scoreCategoryId: true,
         // answers: true,
       },
     }),
@@ -911,7 +926,10 @@ export const getResponses = async (
     total,
     page,
     limit,
-    data: responses,
+    data: responses.map(({ score, maxScore, scoreCategoryId, ...rest }) => ({
+      ...rest,
+      score: toResponseScore({ score, maxScore, scoreCategoryId }, form.scoring),
+    })),
   };
 };
 
@@ -1043,6 +1061,7 @@ export const getResponseById = async (
     formId: response.formId,
     createdAt: response.createdAt,
     language: response.language,
+    score: toResponseScore(response, form.scoring),
     answers: enrichedAnswers,
   };
 };

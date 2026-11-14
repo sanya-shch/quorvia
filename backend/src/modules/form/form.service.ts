@@ -8,10 +8,11 @@ import {
   getClosedReason,
   normalizeEndRules,
   normalizeEndScreen,
+  normalizeScoring,
   normalizeTheme,
   normalizeWelcomeScreen,
   normalizeQuestionTranslations,
-  stripEndRuleTranslations,
+  stripOutcomeTranslations,
 } from "@quorvia/shared-types";
 import type {
   ClosedPublicFormDto,
@@ -22,6 +23,7 @@ import type {
 import { assertFormOpen } from "./form.closing.js";
 import { assertEndRulesValid } from "./form.endRules.js";
 import { assertQuotasValid } from "./form.quotas.js";
+import { stripQuestionScoring } from "./form.scoring.js";
 import { removeFileObjects } from "../file/file.service.js";
 import {
   assertFormAsset,
@@ -154,14 +156,16 @@ const toPublicFormDto = (form: LoadedForm): PublicFormDto => ({
   responseMode: form.responseMode,
   defaultLanguage: form.defaultLanguage,
   languages: form.languages,
-  // The end rule texts stay on the server: only the screen chosen on submit is sent.
-  translations: stripEndRuleTranslations(form.translations) as Prisma.JsonValue | null,
+  // The end rule texts and score category labels stay on the server: only the screen chosen on
+  // submit is sent.
+  translations: stripOutcomeTranslations(form.translations) as Prisma.JsonValue | null,
   logoAssetId: form.logoAssetId,
   // Normalized again on read: only known keys and valid values leave the server.
   theme: normalizeTheme(form.theme),
   welcomeScreen: normalizeWelcomeScreen(form.welcomeScreen),
   endScreen: normalizeEndScreen(form.endScreen),
-  questions: form.questions,
+  // Without the points: which answer is worth what (and so which is "right") stays on the server.
+  questions: form.questions.map(stripQuestionScoring),
 });
 
 const toClosedFormDto = (
@@ -174,8 +178,9 @@ const toClosedFormDto = (
   description: form.description,
   defaultLanguage: form.defaultLanguage,
   languages: form.languages,
-  // The end rule texts stay on the server: only the screen chosen on submit is sent.
-  translations: stripEndRuleTranslations(form.translations) as Prisma.JsonValue | null,
+  // The end rule texts and score category labels stay on the server: only the screen chosen on
+  // submit is sent.
+  translations: stripOutcomeTranslations(form.translations) as Prisma.JsonValue | null,
   logoAssetId: form.logoAssetId,
   theme: normalizeTheme(form.theme),
 });
@@ -233,12 +238,17 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
   // still looks at is refused as well.
   const endRules = normalizeEndRules(data.endRules !== undefined ? data.endRules : form.endRules);
 
+  // The same for scoring: the settings as they will be after this save. An end rule may look at the
+  // score only while scoring is on, so switching it off while a rule needs it is refused below.
+  const scoring = normalizeScoring(data.scoring !== undefined ? data.scoring : form.scoring);
+
   // Normalize the stored ones too (when the client sent none): the language list may have shrunk.
   // Texts of rules that no longer exist are dropped with them.
   const formTranslations = normalizeFormTranslations(
     data.translations !== undefined ? data.translations : form.translations,
     languages,
     (endRules ?? []).map((rule) => rule.id),
+    (scoring?.categories ?? []).map((category) => category.id),
   );
   const previousQuestionById = new Map(existingQuestions.map((q) => [q.id, q]));
 
@@ -295,6 +305,7 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
   assertEndRulesValid(
     endRules,
     withResolvedIds.map((q) => ({ id: q.id, type: q.type })),
+    scoring?.enabled === true,
   );
 
   // Same for the quotas of the form: a question that a quota still looks at cannot be deleted.
@@ -339,6 +350,7 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
           data.endScreen === undefined ? undefined : normalizeEndScreen(data.endScreen),
         ),
         endRules: toNullableJson(data.endRules === undefined ? undefined : endRules),
+        scoring: toNullableJson(data.scoring === undefined ? undefined : scoring),
         updatedAt: new Date(),
         version: { increment: 1 },
       },
@@ -466,6 +478,9 @@ export const duplicateForm = async (formId: string, userId: string) => {
         theme: form.theme == null ? undefined : toJson(form.theme),
         welcomeScreen: form.welcomeScreen == null ? undefined : toJson(form.welcomeScreen),
         endScreen: form.endScreen == null ? undefined : toJson(form.endScreen),
+        // Scoring: the points of the options and answers are in the copied questions, the categories
+        // here (their ids only have to be unique within a form).
+        scoring: form.scoring == null ? undefined : toJson(form.scoring),
         // Rule ids stay the same (they only have to be unique within a form), so the translated
         // texts copied above keep matching.
         endRules: sourceEndRules

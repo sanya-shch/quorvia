@@ -107,6 +107,11 @@ model Form {
   // public form: only the chosen screen is sent to the respondent.
   endRules Json?
 
+  // Scoring settings, see FormScoring in shared-types: whether the form scores its responses and the
+  // categories of the total. Never part of the public form (the points of each answer stay on the
+  // server too): the respondent only gets the end screen the server chose for them.
+  scoring Json?
+
   // Closing. Real columns (not JSON) because the submit transaction compares them atomically.
   // responseCount is incremented in that same transaction, so two simultaneous submits cannot
   // both take the last place.
@@ -229,6 +234,14 @@ model Response {
   // Id of the end rule that decided this respondent's end screen; null when none matched (or for
   // responses from before end rules existed). Not a foreign key: rules live in Form.endRules.
   endRuleId String?
+
+  // The respondent's score (see FormScoring), set only when the form had scoring switched on:
+  // the total, the best total possible on the questions they were shown, and the category of the
+  // total (an id from Form.scoring; not a foreign key, categories can be edited later). Responses
+  // are never rescored: changing the points of an answer does not touch what was already stored.
+  score           Float?
+  maxScore        Float?
+  scoreCategoryId String?
 
   // Ids of the quotas (see FormQuota) this response was counted in; null when it matched none (or
   // for responses from before quotas existed). Not a foreign key: a quota can be deleted later.

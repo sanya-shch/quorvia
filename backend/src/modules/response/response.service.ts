@@ -9,6 +9,11 @@ import { buildCompleteAttemptSql } from "../attempt/attempt.sql.js";
 import { attachFilesToResponse, collectFileClaims } from "../file/file.service.js";
 import { assertFormOpen, claimResponseSlot } from "../form/form.closing.js";
 import { resolveEndScreen } from "../form/form.endRules.js";
+import {
+  fillScorePlaceholders,
+  scoreConditionAnswers,
+  scoreSubmission,
+} from "../form/form.scoring.js";
 import { assertQuotasOpen, claimQuotaPlaces, matchingQuotas } from "../form/form.quotas.js";
 
 export const submitResponse = async (
@@ -67,12 +72,32 @@ export const submitResponse = async (
 
   // Decided here, from the answers the server accepted, never from what the client claims. The
   // winning rule is stored with the response (analytics can tell the outcomes apart).
-  const { endRuleId, screen: endScreen } = resolveEndScreen(
+  //
+  // A form with scoring switched on scores the response first (visible questions only): the total
+  // can be looked at by the end rules ($score, $percent) and can be written into the screen text.
+  const scored = scoreSubmission(form, cleanedAnswers, visibleQuestionIds);
+  const scoreAnswers = scored ? scoreConditionAnswers(scored) : {};
+
+  const resolved = resolveEndScreen(
     form,
-    cleanedAnswers,
-    visibleQuestionIds,
+    { ...cleanedAnswers, ...scoreAnswers },
+    new Set([...visibleQuestionIds, ...Object.keys(scoreAnswers)]),
     responseLanguage,
   );
+  const { endRuleId } = resolved;
+  const endScreen =
+    resolved.screen && scored
+      ? {
+          ...resolved.screen,
+          text: fillScorePlaceholders(
+            resolved.screen.text,
+            scored,
+            form.translations,
+            responseLanguage,
+            responseLanguage ?? form.defaultLanguage,
+          ),
+        }
+      : resolved.screen;
 
   const data = {
     formId: form.id,
@@ -80,6 +105,10 @@ export const submitResponse = async (
     visibleQuestionIds: toJson(Array.from(visibleQuestionIds)),
     language: responseLanguage,
     endRuleId,
+    // Set only for a form that scores; stored as computed and never recomputed.
+    ...(scored
+      ? { score: scored.score, maxScore: scored.maxScore, scoreCategoryId: scored.categoryId }
+      : {}),
   };
 
   // Files uploaded for FILE questions are attached in the same transaction that creates the

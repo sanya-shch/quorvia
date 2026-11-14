@@ -1,5 +1,6 @@
 import {
   END_RULE_LIMITS,
+  SCORE_CONDITION_KEYS,
   normalizeEndRules,
   questionTypeSupportsConditions,
   type ConditionGroup,
@@ -60,8 +61,12 @@ export const isEndRuleComplete = (rule: FormEndRule): boolean =>
 export const findBrokenEndRules = (
   rules: readonly FormEndRule[] | null | undefined,
   questions: readonly Question[],
+  // A rule may look at the score ($score, $percent) while the form scores its responses.
+  scoringEnabled = false,
 ): number[] => {
-  const usable = new Set(conditionTargets(questions).map((q) => q.id));
+  const usable = new Set<string | undefined>(conditionTargets(questions).map((q) => q.id));
+
+  if (scoringEnabled) SCORE_CONDITION_KEYS.forEach((key) => usable.add(key));
 
   return (rules ?? []).flatMap((rule, index) =>
     rule.condition.rules.some((r) => !usable.has(r.questionId)) ? [index] : [],

@@ -1,6 +1,7 @@
 import { otherAnswerKey } from "@quorvia/shared-types";
 import { ExportData, Exporter, GeneratedFile } from "./exporter.types.js";
 import { AnswerValue, formatAnswer, slugifyFileName } from "./formatAnswer.js";
+import { SCORE_HEADERS, scoreExport } from "./scoreColumns.js";
 
 /**
  * CSV/formula injection: anonymous respondents type the answers, and the form owner opens
@@ -29,7 +30,13 @@ const toCsvRow = (cells: string[]): string => cells.map(escapeCsvCell).join(",")
 export const exportToCsv: Exporter = async (data: ExportData): Promise<GeneratedFile> => {
   const questions = [...data.questions].sort((a, b) => a.order - b.order);
 
-  const header = ["Дата надсилання", ...questions.map((q) => q.text)];
+  const scores = scoreExport(data);
+
+  const header = [
+    "Дата надсилання",
+    ...questions.map((q) => q.text),
+    ...(scores ? [SCORE_HEADERS.score, SCORE_HEADERS.maxScore, SCORE_HEADERS.category] : []),
+  ];
 
   const rows = data.responses.map((response) => {
     const answers = response.answers as Record<string, AnswerValue>;
@@ -37,6 +44,12 @@ export const exportToCsv: Exporter = async (data: ExportData): Promise<Generated
     const cells = [
       response.createdAt.toLocaleString("uk-UA"),
       ...questions.map((q) => formatAnswer(q, answers[q.id], answers[otherAnswerKey(q.id)])),
+      // The category is typed by the owner, so it goes through the same formula guard as answers.
+      ...(scores
+        ? (({ score, maxScore, category }) => [String(score), String(maxScore), category])(
+            scores.cellsFor(response),
+          )
+        : []),
     ];
 
     return toCsvRow(cells);

@@ -128,6 +128,8 @@ export interface QuestionOption {
   // IMAGE_CHOICE: the picture of this option (an asset of kind OPTION_IMAGE of the same form).
   // The text stays required: it is the label, the alt text and what analytics shows.
   imageAssetId?: string | null;
+  // Scoring (see FormScoring): the points a respondent gets for picking this option. Absent means 0.
+  score?: number | null;
 }
 
 // Suffix of the `answers` key that holds the "Other" text.
@@ -182,6 +184,11 @@ export interface QuestionConfig {
   rows?: MatrixRow[];
   // FILE: how many files the respondent may attach (1 to FILE_LIMITS.maxFilesPerQuestion).
   maxFiles?: number;
+  // Scoring (see FormScoring). BOOLEAN: the points for "yes" and for "no".
+  score?: { true: number; false: number } | null;
+  // Scoring. NUMBER, RATING, SCALE, NPS: the points are the answer times this factor. A NUMBER needs
+  // both `min` and `max` to be scored (without them the best possible score is unknown).
+  scoreMultiplier?: number | null;
 }
 
 export type NumberVariant = "input" | "slider";
@@ -582,6 +589,8 @@ export interface FormTranslation {
   endText?: string;
   // End rule id -> text of that rule's end screen (see FormEndRule).
   endRules?: Record<string, string>;
+  // Score category id -> its label (see FormScoring).
+  scoreCategories?: Record<string, string>;
 }
 
 export interface QuestionTranslation {
@@ -759,11 +768,13 @@ const cleanStringMap = (
 // `languages`, only title/description, no empty values. Returns null when nothing is left.
 //
 // `endRuleIds`: ids of the form's current end rules. Texts of rules that no longer exist are
-// dropped; when the argument is omitted, rule texts are kept as they are.
+// dropped; when the argument is omitted, rule texts are kept as they are. `scoreCategoryIds` does the
+// same for the labels of score categories.
 export const normalizeFormTranslations = (
   translations: unknown,
   languages: readonly string[],
   endRuleIds?: readonly string[],
+  scoreCategoryIds?: readonly string[],
 ): FormTranslations | null => {
   if (!isPlainObject(translations)) return null;
 
@@ -784,6 +795,13 @@ export const normalizeFormTranslations = (
     const endRules = cleanStringMap(source.endRules, endRuleIds ? new Set(endRuleIds) : undefined);
 
     if (Object.keys(endRules).length > 0) entry.endRules = endRules;
+
+    const scoreCategories = cleanStringMap(
+      source.scoreCategories,
+      scoreCategoryIds ? new Set(scoreCategoryIds) : undefined,
+    );
+
+    if (Object.keys(scoreCategories).length > 0) entry.scoreCategories = scoreCategories;
 
     if (Object.keys(entry).length > 0) result[language] = entry;
   }
@@ -1142,9 +1160,10 @@ export const localizeEndRuleScreen = (
   return text ? { ...rule.screen, text } : rule.screen;
 };
 
-// Form translations as the public form may carry them: without the end rule texts. The rules (and
-// so what each outcome says) are decided on the server; only the chosen screen is sent.
-export const stripEndRuleTranslations = (translations: unknown): FormTranslations | null => {
+// Form translations as the public form may carry them: without the end rule texts and the score
+// category labels. The outcomes (what each rule or category says) are decided on the server; only
+// the chosen screen is sent.
+export const stripOutcomeTranslations = (translations: unknown): FormTranslations | null => {
   if (!isPlainObject(translations)) return null;
 
   const result: FormTranslations = {};
@@ -1152,12 +1171,115 @@ export const stripEndRuleTranslations = (translations: unknown): FormTranslation
   for (const [language, entry] of Object.entries(translations)) {
     if (!isPlainObject(entry)) continue;
 
-    const { endRules: _omitted, ...rest } = entry as FormTranslation;
+    const {
+      endRules: _endRules,
+      scoreCategories: _scoreCategories,
+      ...rest
+    } = entry as FormTranslation;
 
     if (Object.keys(rest).length > 0) result[language] = rest;
   }
 
   return Object.keys(result).length > 0 ? result : null;
+};
+
+// Scoring: points for the answers, a total, and categories of the total ("Beginner", "Advanced").
+// Which questions give points: the options of CHOICE_SINGLE / CHOICE_MULTI / IMAGE_CHOICE
+// (`option.score`), BOOLEAN (`config.score`) and NUMBER / RATING / SCALE / NPS (`config.scoreMultiplier`).
+// Only questions the respondent was shown count. The total is computed on the server
+// (@quorvia/calculation-engine) and stored with the response.
+export const SCORE_LIMITS = {
+  // One option's points, a BOOLEAN's points, a multiplier: -1000 to 1000, at most 2 decimals.
+  value: { min: -1_000, max: 1_000 },
+  // Category bounds are totals over many questions.
+  categoryBound: { min: -1_000_000, max: 1_000_000 },
+  categories: 10,
+  categoryId: 64,
+  categoryLabel: 100,
+} as const;
+
+// A number that is usable as points: finite, within the limits, with at most 2 decimals (the
+// engine works in hundredths, so more decimals could not be kept).
+const hasAtMostTwoDecimals = (value: number): boolean =>
+  Math.abs(value * 100 - Math.round(value * 100)) < 1e-6;
+
+export const isScoreValue = (value: unknown): value is number =>
+  typeof value === "number" &&
+  Number.isFinite(value) &&
+  value >= SCORE_LIMITS.value.min &&
+  value <= SCORE_LIMITS.value.max &&
+  hasAtMostTwoDecimals(value);
+
+export const isScoreBound = (value: unknown): value is number =>
+  typeof value === "number" &&
+  Number.isFinite(value) &&
+  value >= SCORE_LIMITS.categoryBound.min &&
+  value <= SCORE_LIMITS.categoryBound.max &&
+  hasAtMostTwoDecimals(value);
+
+// A range of totals, both ends included. Ranges do not overlap.
+export interface ScoreCategory {
+  id: string;
+  label: string;
+  min: number;
+  max: number;
+}
+
+export interface FormScoring {
+  enabled: boolean;
+  categories: ScoreCategory[];
+}
+
+// Reduces whatever is stored to valid scoring settings, or null when there is nothing to keep (not
+// enabled and no categories). A category that is malformed, repeats an id, has min > max or overlaps
+// one that came before it is dropped, as are categories beyond the limit; the order is kept.
+export const normalizeScoring = (raw: unknown): FormScoring | null => {
+  if (!isPlainObject(raw)) return null;
+
+  const categories: ScoreCategory[] = [];
+
+  for (const item of Array.isArray(raw.categories) ? raw.categories : []) {
+    if (categories.length >= SCORE_LIMITS.categories) break;
+    if (!isPlainObject(item)) continue;
+    if (!filled(item.id) || item.id.length > SCORE_LIMITS.categoryId) continue;
+    if (!filled(item.label) || item.label.trim().length > SCORE_LIMITS.categoryLabel) continue;
+    if (!isScoreBound(item.min) || !isScoreBound(item.max) || item.min > item.max) continue;
+
+    const { id, min, max } = item as { id: string; min: number; max: number };
+
+    if (categories.some((c) => c.id === id || (min <= c.max && max >= c.min))) continue;
+
+    categories.push({ id, label: (item.label as string).trim(), min, max });
+  }
+
+  const enabled = raw.enabled === true;
+
+  return enabled || categories.length > 0 ? { enabled, categories } : null;
+};
+
+// What an end rule's condition can look at besides the questions: the respondent's total and its
+// percentage of the maximum. Only while the form has scoring switched on, and only in end rules
+// (a question's own condition must not depend on a total that depends on which questions are shown).
+export const SCORE_CONDITION_KEYS = ["$score", "$percent"] as const;
+
+export const isScoreConditionKey = (key: string): boolean =>
+  (SCORE_CONDITION_KEYS as readonly string[]).includes(key);
+
+// The label of a category in the respondent's language: the translation when there is one,
+// otherwise the main-language label.
+export const localizeScoreCategoryLabel = (
+  category: ScoreCategory,
+  translations: unknown,
+  language?: string | null,
+): string => {
+  if (!language || !isPlainObject(translations)) return category.label;
+
+  const translation = translations[language];
+  const label = isPlainObject(translation)
+    ? cleanStringMap(translation.scoreCategories)[category.id]
+    : undefined;
+
+  return label ?? category.label;
 };
 
 // Quotas: a limit on the completed responses that satisfy a condition. A response counts in every

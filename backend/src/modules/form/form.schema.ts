@@ -8,6 +8,8 @@ import {
   FORM_RADII,
   FORM_THEME_MODES,
   isHttpUrl,
+  isScoreBound,
+  isScoreValue,
   MAX_RESPONSES_LIMIT,
   IMAGE_CHOICE_LIMITS,
   MATRIX_LIMITS,
@@ -15,6 +17,7 @@ import {
   OTHER_ANSWER_SUFFIX,
   RANKING_LIMITS,
   SCALE_LIMITS,
+  SCORE_LIMITS,
   SCREEN_LIMITS,
   THEME_COLOR_PATTERN,
 } from "@quorvia/shared-types";
@@ -71,6 +74,14 @@ const formTranslationSchema = z.object({
   welcomeText: z.string().max(SCREEN_LIMITS.text).optional(),
   welcomeButton: z.string().max(SCREEN_LIMITS.buttonLabel).optional(),
   endText: z.string().max(SCREEN_LIMITS.text).optional(),
+  // Score category id -> its label.
+  scoreCategories: z
+    .record(z.string().max(SCORE_LIMITS.categoryId), z.string().max(SCORE_LIMITS.categoryLabel))
+    .refine(
+      (map) => Object.keys(map).length <= SCORE_LIMITS.categories,
+      ErrorCode.REQUEST_BODY_INVALID,
+    )
+    .optional(),
   // End rule id -> text of that rule's end screen.
   endRules: z
     .record(z.string().max(END_RULE_LIMITS.id), z.string().max(SCREEN_LIMITS.text))
@@ -141,11 +152,18 @@ const optionSchema = z.object({
   isOther: z.boolean().optional(),
 });
 
+// Points (see FormScoring): -1000 to 1000, at most 2 decimals.
+const scoreSchema = z.number().refine(isScoreValue, ErrorCode.REQUEST_BODY_INVALID);
+
+// Only the options of choice questions carry points. A ranking or matrix option that arrives with
+// a `score` has it stripped (these schemas are not strict): there is nothing to score there.
+const scoredOptionSchema = optionSchema.extend({ score: scoreSchema.nullable().optional() });
+
 // "Other": at most one, always last (so it is easy to "pin" when options are randomized),
 // and never the default option: the form would otherwise start with "Other" selected and an
 // empty required text.
 const optionsSchema = z
-  .array(optionSchema)
+  .array(scoredOptionSchema)
   .min(1)
   .max(FORM_LIMITS.options)
   .refine((options) => {
@@ -158,7 +176,7 @@ const optionsSchema = z
 
 // IMAGE_CHOICE: 2 to 12 options with an optional picture each (an asset of this form, checked
 // by the service on save). No "Other": a picture cannot be free text.
-const imageOptionSchema = optionSchema
+const imageOptionSchema = scoredOptionSchema
   .omit({ isOther: true })
   .extend({ imageAssetId: z.uuid().nullable().optional() });
 
@@ -263,6 +281,8 @@ export const questionSchema = z.discriminatedUnion("type", [
     config: z
       .object({
         defaultValue: z.boolean().optional(),
+        // Points for "yes" and for "no" (see FormScoring).
+        score: z.strictObject({ true: scoreSchema, false: scoreSchema }).nullable().optional(),
       })
       .optional(),
   }),
@@ -281,12 +301,20 @@ export const questionSchema = z.discriminatedUnion("type", [
         max: z.number().optional(),
         numberVariant: z.enum(["input", "slider"]).optional(),
         step: z.number().positive().optional(),
+        // Points = the answer times this (see FormScoring).
+        scoreMultiplier: scoreSchema.nullable().optional(),
       })
       // A slider needs a finite range, otherwise there is nothing to move.
       .refine(
         (c) =>
           c.numberVariant !== "slider" ||
           (c.min !== undefined && c.max !== undefined && c.min < c.max),
+        ErrorCode.REQUEST_BODY_INVALID,
+      )
+      // A scored number needs a finite range: without it the best possible score, and so the
+      // percentage, is unknown.
+      .refine(
+        (c) => !c.scoreMultiplier || (c.min !== undefined && c.max !== undefined && c.min <= c.max),
         ErrorCode.REQUEST_BODY_INVALID,
       )
       .nullable()
@@ -304,6 +332,7 @@ export const questionSchema = z.discriminatedUnion("type", [
           .min(SCALE_LIMITS.ratingMax.min)
           .max(SCALE_LIMITS.ratingMax.max)
           .optional(),
+        scoreMultiplier: scoreSchema.nullable().optional(),
       })
       .nullable()
       .optional(),
@@ -327,6 +356,7 @@ export const questionSchema = z.discriminatedUnion("type", [
           .optional(),
         minLabel: z.string().trim().max(FORM_LIMITS.scaleLabel).optional(),
         maxLabel: z.string().trim().max(FORM_LIMITS.scaleLabel).optional(),
+        scoreMultiplier: scoreSchema.nullable().optional(),
       })
       .refine(
         (c) =>
@@ -340,6 +370,12 @@ export const questionSchema = z.discriminatedUnion("type", [
   z.object({
     ...base,
     type: z.literal("NPS"),
+    config: z
+      .object({
+        scoreMultiplier: scoreSchema.nullable().optional(),
+      })
+      .nullable()
+      .optional(),
   }),
 
   z.object({
@@ -371,6 +407,33 @@ const endScreenSchema = z.strictObject({
     .refine(isHttpUrl, ErrorCode.VALIDATION_FORMAT_INVALID)
     .nullable()
     .optional(),
+});
+
+// Scoring: whether the form scores its responses, and the categories of the total. The ranges are
+// inclusive and must not overlap (a total falls into at most one category).
+const scoreCategorySchema = z
+  .strictObject({
+    id: z.string().min(1).max(SCORE_LIMITS.categoryId),
+    label: z.string().trim().min(1).max(SCORE_LIMITS.categoryLabel),
+    min: z.number().refine(isScoreBound, ErrorCode.REQUEST_BODY_INVALID),
+    max: z.number().refine(isScoreBound, ErrorCode.REQUEST_BODY_INVALID),
+  })
+  .refine((category) => category.min <= category.max, ErrorCode.REQUEST_BODY_INVALID);
+
+const scoringSchema = z.strictObject({
+  enabled: z.boolean(),
+  categories: z
+    .array(scoreCategorySchema)
+    .max(SCORE_LIMITS.categories)
+    .refine(
+      (categories) => new Set(categories.map((c) => c.id)).size === categories.length,
+      ErrorCode.REQUEST_BODY_INVALID,
+    )
+    .refine((categories) => {
+      const sorted = [...categories].sort((a, b) => a.min - b.min);
+
+      return sorted.every((c, i) => i === 0 || c.min > sorted[i - 1]!.max);
+    }, ErrorCode.REQUEST_BODY_INVALID),
 });
 
 // Conditional end screens: the first rule whose condition holds decides the screen. That the
@@ -419,6 +482,8 @@ export const updateFormSchema = z.object({
   maxResponses: z.number().int().min(1).max(MAX_RESPONSES_LIMIT).nullable().optional(),
   welcomeScreen: welcomeScreenSchema.nullable().optional(),
   endScreen: endScreenSchema.nullable().optional(),
+  // Scoring settings. null removes them, omitted leaves them as is.
+  scoring: scoringSchema.nullable().optional(),
   // Conditional end screens, checked in order. null or [] removes them, omitted leaves them as is.
   endRules: z
     .array(endRuleSchema)

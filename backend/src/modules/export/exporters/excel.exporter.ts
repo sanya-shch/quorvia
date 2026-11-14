@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import { otherAnswerKey } from "@quorvia/shared-types";
 import { ExportData, Exporter, GeneratedFile } from "./exporter.types.js";
 import { AnswerValue, formatAnswer, slugifyFileName } from "./formatAnswer.js";
+import { SCORE_HEADERS, scoreExport } from "./scoreColumns.js";
 
 export const exportToExcel: Exporter = async (data: ExportData): Promise<GeneratedFile> => {
   const workbook = new ExcelJS.Workbook();
@@ -24,6 +25,8 @@ export const exportToExcel: Exporter = async (data: ExportData): Promise<Generat
   ]);
   summarySheet.getRow(1).font = { bold: true };
 
+  const scores = scoreExport(data);
+
   const responsesSheet = workbook.addWorksheet("Відповіді");
   responsesSheet.columns = [
     { header: "Дата надсилання", key: "createdAt", width: 22 },
@@ -32,6 +35,13 @@ export const exportToExcel: Exporter = async (data: ExportData): Promise<Generat
       key: q.id,
       width: Math.min(Math.max(q.text.length, 15), 40),
     })),
+    ...(scores
+      ? [
+          { header: SCORE_HEADERS.score, key: "score", width: 12 },
+          { header: SCORE_HEADERS.maxScore, key: "maxScore", width: 16 },
+          { header: SCORE_HEADERS.category, key: "category", width: 24 },
+        ]
+      : []),
   ];
   responsesSheet.getRow(1).font = { bold: true };
   responsesSheet.getRow(1).alignment = { wrapText: true, vertical: "middle" };
@@ -40,8 +50,10 @@ export const exportToExcel: Exporter = async (data: ExportData): Promise<Generat
   for (const response of data.responses) {
     const answers = response.answers as Record<string, AnswerValue>;
 
-    const row: Record<string, string> = {
+    // Points are numbers, so the sheet can sum and sort them.
+    const row: Record<string, string | number> = {
       createdAt: response.createdAt.toLocaleString("uk-UA"),
+      ...(scores ? scores.cellsFor(response) : {}),
     };
 
     for (const question of questions) {

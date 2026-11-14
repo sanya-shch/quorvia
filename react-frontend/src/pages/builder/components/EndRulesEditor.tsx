@@ -15,6 +15,8 @@ import {
 interface EndRulesEditorProps {
   rules: FormEndRule[] | null | undefined;
   questions: Question[];
+  // Scoring is on: a rule may look at the score, which then shows up among the questions to choose.
+  scoringEnabled?: boolean;
   onChange: (rules: FormEndRule[] | null) => void;
 }
 
@@ -30,13 +32,36 @@ const iconButtonClass =
 // Rules are checked from top to bottom on the server and the first match wins, which is why the order
 // is editable. A rule that is not finished is not saved (the card says so), a rule that looks at a
 // deleted question blocks saving (the server would refuse it).
-export default function EndRulesEditor({ rules, questions, onChange }: EndRulesEditorProps) {
+export default function EndRulesEditor({
+  rules,
+  questions,
+  scoringEnabled = false,
+  onChange,
+}: EndRulesEditorProps) {
   const { t } = useTranslation();
   const id = useId();
 
   const list = rules ?? [];
-  const broken = new Set(findBrokenEndRules(list, questions));
-  const hasTargets = conditionTargets(questions).length > 0;
+  // The score is not a question but is chosen like one: two stand-ins that sort before the real ones.
+  const choices: Question[] = scoringEnabled
+    ? [
+        ...(["$score", "$percent"] as const).map((key, i) => ({
+          id: key,
+          text: t(
+            key === "$score" ? "builder.scoring.scoreTarget" : "builder.scoring.percentTarget",
+          ),
+          type: "NUMBER" as const,
+          required: false,
+          order: -2 + i,
+          options: [],
+          config: null,
+        })),
+        ...questions,
+      ]
+    : questions;
+
+  const broken = new Set(findBrokenEndRules(list, questions, scoringEnabled));
+  const hasTargets = conditionTargets(choices).length > 0;
 
   const emit = (next: FormEndRule[]) => onChange(next.length > 0 ? next : null);
 
@@ -44,7 +69,7 @@ export default function EndRulesEditor({ rules, questions, onChange }: EndRulesE
     emit(list.map((rule, i) => (i === index ? { ...rule, ...patch } : rule)));
 
   const addRule = () => {
-    const rule = createEndRule(questions);
+    const rule = createEndRule(choices);
 
     if (rule) emit([...list, rule]);
   };
@@ -111,7 +136,7 @@ export default function EndRulesEditor({ rules, questions, onChange }: EndRulesE
               mandatory
               condition={rule.condition}
               currentOrder={Infinity}
-              allQuestions={questions}
+              allQuestions={choices}
               emptyHint={t("builder.screens.rules.noTargets")}
               onChange={(condition) => {
                 if (condition) patchRule(index, { condition });
@@ -183,7 +208,7 @@ export default function EndRulesEditor({ rules, questions, onChange }: EndRulesE
         <button
           type="button"
           onClick={addRule}
-          disabled={!canAddEndRule(list, questions)}
+          disabled={!canAddEndRule(list, choices)}
           className="rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
         >
           {t("builder.screens.rules.add")}

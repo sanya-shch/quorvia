@@ -43,6 +43,38 @@ describe("findEndRuleIssues", () => {
   });
 });
 
+describe("rules on the score", () => {
+  const onScore = [rule("a", "$score", "gt", 7), rule("b", "$percent", "lt", 50)];
+
+  it("are allowed while scoring is on, and only then", () => {
+    expect(findEndRuleIssues(onScore, [], true)).toEqual([]);
+    expect(findEndRuleIssues(onScore, [], false).map((i) => i.questionId)).toEqual([
+      "$score",
+      "$percent",
+    ]);
+    expect(findEndRuleIssues(onScore, [])[0]?.reason).toBe("UNKNOWN_QUESTION");
+  });
+
+  it("do not make other unknown questions acceptable", () => {
+    expect(findEndRuleIssues([rule("a", "$other", "gt", 1)], [], true)).toHaveLength(1);
+  });
+
+  it("decide the end screen from the score the server computed", () => {
+    const form = { endRules: onScore, endScreen: { text: "Thanks" } };
+    const visible = new Set(["$score", "$percent"]);
+
+    expect(resolveEndScreen(form, { $score: 9, $percent: 90 }, visible, null).endRuleId).toBe("a");
+    expect(resolveEndScreen(form, { $score: 3, $percent: 30 }, visible, null).endRuleId).toBe("b");
+    expect(resolveEndScreen(form, { $score: 6, $percent: 60 }, visible, null).endRuleId).toBeNull();
+  });
+
+  it("do not hold when the percentage is missing (no maximum)", () => {
+    const form = { endRules: [rule("b", "$percent", "lt", 50)] };
+
+    expect(resolveEndScreen(form, { $score: 0 }, new Set(["$score"]), null).endRuleId).toBeNull();
+  });
+});
+
 describe("assertEndRulesValid", () => {
   it("throws FORM_INVALID_END_RULES with the issues", () => {
     expect.assertions(2);

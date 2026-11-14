@@ -162,7 +162,9 @@ export default function ConditionEditor({
                 >
                   {availableTargets.map((q) => (
                     <option key={q.id} value={q.id}>
-                      #{q.order + 1} {q.text || t("builder.editors.condition.untitledQuestion")}
+                      {/* The score stands in for a question and has no number of its own. */}
+                      {q.order >= 0 && `#${q.order + 1} `}
+                      {q.text || t("builder.editors.condition.untitledQuestion")}
                     </option>
                   ))}
                 </select>
