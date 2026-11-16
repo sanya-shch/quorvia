@@ -17,6 +17,7 @@ import MatrixConfigEditor from "./components/editors/MatrixConfigEditor";
 import NumberConfigEditor from "./components/editors/NumberConfigEditor";
 import RatingConfigEditor from "./components/editors/RatingConfigEditor";
 import FileConfigEditor from "./components/editors/FileConfigEditor";
+import CalculationConfigEditor from "./components/editors/CalculationConfigEditor";
 import ScaleConfigEditor from "./components/editors/ScaleConfigEditor";
 import OptionsConfigEditor from "./components/editors/OptionsConfigEditor";
 import BooleanConfigEditor from "./components/editors/BooleanConfigEditor";
@@ -205,6 +206,10 @@ export default function FormBuilder() {
       }
       if (getApiErrorCode(error) === "FORM_INVALID_END_RULES") {
         toast.error(t("errors.FORM_INVALID_END_RULES"));
+        return;
+      }
+      if (getApiErrorCode(error) === "FORM_INVALID_FORMULAS") {
+        toast.error(t("errors.FORM_INVALID_FORMULAS"));
         return;
       }
       if (getApiErrorCode(error) === "FORM_INVALID_QUOTAS") {
@@ -658,6 +663,21 @@ export default function FormBuilder() {
                                     config={question.config}
                                     onChange={(newConfig) =>
                                       updateQuestion(index, { config: newConfig })
+                                    }
+                                  />
+                                )}
+
+                                {question.type === "CALCULATION" && (
+                                  <CalculationConfigEditor
+                                    question={question}
+                                    allQuestions={form.questions}
+                                    onChange={(newConfig) =>
+                                      updateQuestion(index, { config: newConfig })
+                                    }
+                                    error={
+                                      errors[`q-${index}-formula`]
+                                        ? t(errors[`q-${index}-formula`])
+                                        : undefined
                                     }
                                   />
                                 )}

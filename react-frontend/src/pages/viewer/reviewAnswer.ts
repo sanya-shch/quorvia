@@ -1,3 +1,4 @@
+import { formatCalcValue } from "@quorvia/calculation-engine";
 import { assertNever, getOtherOption } from "@quorvia/shared-types";
 import type { Question } from "../../types/formBuilder";
 import type { AnswerValue } from "../../types/formViewer";
@@ -10,6 +11,8 @@ interface ReviewLabels {
   empty: string;
   // FILE answers hold file ids; this turns an id into the name the respondent saw.
   fileName?: (id: string) => string | undefined;
+  // The language numbers of a calculation are written in.
+  locale?: string;
 }
 
 // The answer as text for the "Review your answers" screen (step-by-step mode). It used to be
@@ -69,6 +72,21 @@ export const formatReviewAnswer = (
 
       return names.length > 0 ? names.join(", ") : labels.empty;
     }
+
+    // The computed value, as the field showed it (`value` is the computed one; none: a dash).
+    case "CALCULATION":
+      return formatCalcValue(
+        typeof value === "string" || typeof value === "number" || typeof value === "boolean"
+          ? value
+          : null,
+        {
+          resultType: question.config?.resultType ?? "number",
+          decimals: question.config?.decimals,
+          prefix: question.config?.prefix,
+          suffix: question.config?.suffix,
+        },
+        labels.locale,
+      );
 
     default:
       return assertNever(question.type, "question type");

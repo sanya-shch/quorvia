@@ -9,6 +9,7 @@ import { buildCompleteAttemptSql } from "../attempt/attempt.sql.js";
 import { attachFilesToResponse, collectFileClaims } from "../file/file.service.js";
 import { assertFormOpen, claimResponseSlot } from "../form/form.closing.js";
 import { resolveEndScreen } from "../form/form.endRules.js";
+import { calculateSubmission, fillCalculationPlaceholders } from "../form/form.calculation.js";
 import {
   fillScorePlaceholders,
   scoreConditionAnswers,
@@ -62,6 +63,11 @@ export const submitResponse = async (
 
   const cleanedAnswers = cleanAnswers(form.questions, result.data as Answers, visibleQuestionIds);
 
+  // The calculation fields, from the answers the server accepted. The respondent's own copy of a
+  // value was dropped by cleanAnswers: only this one is stored. Quotas ignore them (a quota cannot
+  // look at a computed value); end rules and the end screen text can.
+  const calculated = calculateSubmission(form.questions, cleanedAnswers, visibleQuestionIds);
+
   // The quotas these answers fall into. A full one turns the respondent away now, before the files
   // are attached; the claim in the transaction below is what actually decides.
   assertQuotasOpen(form.quotas, cleanedAnswers, visibleQuestionIds);
@@ -80,12 +86,12 @@ export const submitResponse = async (
 
   const resolved = resolveEndScreen(
     form,
-    { ...cleanedAnswers, ...scoreAnswers },
+    { ...calculated.answers, ...scoreAnswers },
     new Set([...visibleQuestionIds, ...Object.keys(scoreAnswers)]),
     responseLanguage,
   );
   const { endRuleId } = resolved;
-  const endScreen =
+  const withScore =
     resolved.screen && scored
       ? {
           ...resolved.screen,
@@ -98,10 +104,21 @@ export const submitResponse = async (
           ),
         }
       : resolved.screen;
+  const endScreen = withScore
+    ? {
+        ...withScore,
+        text: fillCalculationPlaceholders(
+          withScore.text,
+          form.questions,
+          calculated.values,
+          responseLanguage ?? form.defaultLanguage,
+        ),
+      }
+    : withScore;
 
   const data = {
     formId: form.id,
-    answers: toJson(cleanedAnswers),
+    answers: toJson(calculated.answers),
     visibleQuestionIds: toJson(Array.from(visibleQuestionIds)),
     language: responseLanguage,
     endRuleId,

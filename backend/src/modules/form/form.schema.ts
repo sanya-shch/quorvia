@@ -1,5 +1,8 @@
 import { z } from "zod";
 import {
+  CALCULATION_DISPLAYS,
+  CALCULATION_LIMITS,
+  CALCULATION_RESULT_TYPES,
   CONTENT_LOCALES,
   END_RULE_LIMITS,
   ErrorCode,
@@ -152,7 +155,7 @@ const optionSchema = z.object({
   isOther: z.boolean().optional(),
 });
 
-// Points (see FormScoring): -1000 to 1000, at most 2 decimals.
+// Points (see FormScoring): see SCORE_LIMITS, at most 2 decimals.
 const scoreSchema = z.number().refine(isScoreValue, ErrorCode.REQUEST_BODY_INVALID);
 
 // Only the options of choice questions carry points. A ranking or matrix option that arrives with
@@ -194,6 +197,23 @@ const fileConfigSchema = z
   .object({ maxFiles: z.number().int().min(1).max(FILE_LIMITS.maxFilesPerQuestion) })
   .nullable()
   .optional();
+
+// CALCULATION: the formula text and how its result is shown. Only the shape is checked here; the
+// service parses and type-checks the formula against the other questions on save (form.calculation.ts).
+const calculationConfigSchema = z.object({
+  formula: z.string().trim().min(1).max(CALCULATION_LIMITS.formula),
+  resultType: z.enum(CALCULATION_RESULT_TYPES),
+  decimals: z
+    .number()
+    .int()
+    .min(CALCULATION_LIMITS.decimals.min)
+    .max(CALCULATION_LIMITS.decimals.max)
+    .optional(),
+  prefix: z.string().max(CALCULATION_LIMITS.affix).optional(),
+  suffix: z.string().max(CALCULATION_LIMITS.affix).optional(),
+  display: z.enum(CALCULATION_DISPLAYS).optional(),
+  emptyAsZero: z.boolean().optional(),
+});
 
 // RANKING: 2 to 20 options; ids are unique because the answer is a permutation of ids (a
 // duplicate would make a valid answer impossible). "Other"/isDefault make no sense for
@@ -273,6 +293,17 @@ export const questionSchema = z.discriminatedUnion("type", [
     ...base,
     type: z.literal("FILE"),
     config: fileConfigSchema,
+  }),
+
+  z.object({
+    ...base,
+    // The respondent never fills it in, so it can never be required.
+    required: z
+      .boolean()
+      .optional()
+      .transform(() => false),
+    type: z.literal("CALCULATION"),
+    config: calculationConfigSchema,
   }),
 
   z.object({

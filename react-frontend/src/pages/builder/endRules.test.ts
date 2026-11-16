@@ -5,6 +5,7 @@ import {
   canAddEndRule,
   conditionTargets,
   createEndRule,
+  endRuleTargets,
   findBrokenEndRules,
   isConditionValueFilled,
   isEndRuleComplete,
@@ -189,5 +190,39 @@ describe("moveEndRule", () => {
     expect(ids(moveEndRule(rules, 0, 3))).toEqual(["a", "b", "c"]);
     expect(ids(moveEndRule(rules, -1, 1))).toEqual(["a", "b", "c"]);
     expect(ids(rules)).toEqual(["a", "b", "c"]);
+  });
+});
+
+describe("calculation fields in result rules", () => {
+  const calculation = question({
+    id: "calc",
+    type: "CALCULATION",
+    config: { formula: "1", resultType: "number" },
+  });
+
+  it("a result rule may look at a calculation, a quota or a question's condition may not", () => {
+    expect(endRuleTargets([question(), calculation]).map((q) => q.id)).toEqual(["q1", "calc"]);
+    expect(conditionTargets([question(), calculation]).map((q) => q.id)).toEqual(["q1"]);
+  });
+
+  it("a rule on a calculation is not broken, and a new rule can start from one", () => {
+    const onCalculation = rule({
+      condition: { logic: "AND", rules: [{ questionId: "calc", operator: "gt", value: 100 }] },
+    });
+
+    expect(findBrokenEndRules([onCalculation], [calculation])).toEqual([]);
+    expect(canAddEndRule([], [calculation])).toBe(true);
+    expect(createEndRule([calculation])?.condition.rules[0]).toMatchObject({
+      questionId: "calc",
+      operator: "equals",
+    });
+  });
+
+  it("a rule on a calculation that was deleted is broken", () => {
+    const onCalculation = rule({
+      condition: { logic: "AND", rules: [{ questionId: "calc", operator: "gt", value: 100 }] },
+    });
+
+    expect(findBrokenEndRules([onCalculation], [question()])).toEqual([0]);
   });
 });

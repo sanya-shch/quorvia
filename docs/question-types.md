@@ -13,8 +13,9 @@
 | `NPS`           | integer 0-10          | fixed scale; analytics show promoters, passives, detractors and the score           |
 | `RANKING`       | array of option ids   | a full ordering of the options, best first (2-20 options)                           |
 | `MATRIX`        | `{ rowId: columnId }` | rows x columns, one column per row; also covers Likert statements                   |
+| `CALCULATION`   | computed              | a formula over other answers, see [calculation fields](calculation.md)              |
 
-The scale types (`RATING`, `SCALE`, `NPS`) answer with plain numbers, so validation and conditions (`equals`, `gt`, `lt`, ...) work the same way as for `NUMBER`. `RANKING` and `MATRIX` are not available in conditions.
+The scale types (`RATING`, `SCALE`, `NPS`) answer with plain numbers, so validation and conditions (`equals`, `gt`, `lt`, ...) work the same way as for `NUMBER`. `RANKING` and `MATRIX` are not available in conditions; a `CALCULATION` is only in result rules.
 
 Full per-type configuration, limits and answer formats are in the [API reference](API.md#question-types). Per-type analytics are described in [analytics.md](analytics.md#per-question-analytics).
 
@@ -28,7 +29,7 @@ A form can score its responses (switched on in the builder, `Form.scoring.enable
 | `BOOLEAN`                                       | `config.score = { true, false }`                                                        |
 | `NUMBER`, `RATING`, `SCALE`, `NPS`              | `config.scoreMultiplier`: the points are the answer times the factor                    |
 
-`TEXT`, `DATE`, `RANKING`, `MATRIX` and `FILE` give no points. Points are numbers from -1000 to 1000 with at most 2 decimals, and an absent value means 0. A `NUMBER` that is scored must have both `min` and `max`, because the best possible score (and so the percentage) is otherwise unknown.
+`TEXT`, `DATE`, `RANKING`, `MATRIX`, `FILE` and `CALCULATION` give no points. Points are numbers from -1 000 000 to 1 000 000 with at most 2 decimals (so an option can also carry a price for a [calculation field](calculation.md)), and an absent value means 0. A `NUMBER` that is scored must have both `min` and `max`, because the best possible score (and so the percentage) is otherwise unknown.
 
 The total and the best total possible are computed on the server by `@quorvia/calculation-engine` (`computeScore`) from the questions the respondent was **shown**; a branch they never saw is neither in their total nor in their maximum. A question that may be skipped is worth at least 0, a required one its best answer even if that is negative. Sums are exact (the engine works in hundredths, so `0.1 + 0.2` is `0.3`).
 

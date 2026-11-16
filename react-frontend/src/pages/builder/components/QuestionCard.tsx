@@ -9,6 +9,7 @@ import {
   fileIcon,
   npsIcon,
   matrixIcon,
+  calculationIcon,
   numberIcon,
   rankingIcon,
   ratingIcon,
@@ -163,22 +164,30 @@ export default function QuestionCard({
                 {matrixIcon} {t(QUESTION_TYPE_LABEL_KEYS.MATRIX)}
               </>
             )}
+            {question.type === "CALCULATION" && (
+              <>
+                {calculationIcon} {t(QUESTION_TYPE_LABEL_KEYS.CALCULATION)}
+              </>
+            )}
           </span>
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-3 text-slate-500">
-          <label className="flex items-center gap-2 cursor-pointer pr-2 border-r border-slate-200 select-none">
-            <span className="text-xs font-medium text-slate-500">{t("common.required")}</span>
-            <div className="relative">
-              <input
-                type="checkbox"
-                checked={question.required}
-                onChange={(e) => onUpdate({ required: e.target.checked })}
-                className="sr-only peer"
-              />
-              <div className="w-8 h-4.5 bg-slate-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-indigo-500 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-indigo-600"></div>
-            </div>
-          </label>
+          {/* A calculation is computed, so there is nothing to require. */}
+          {question.type !== "CALCULATION" && (
+            <label className="flex items-center gap-2 cursor-pointer pr-2 border-r border-slate-200 select-none">
+              <span className="text-xs font-medium text-slate-500">{t("common.required")}</span>
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={question.required}
+                  onChange={(e) => onUpdate({ required: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-8 h-4.5 bg-slate-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-indigo-500 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-indigo-600"></div>
+              </div>
+            </label>
+          )}
 
           <button
             type="button"

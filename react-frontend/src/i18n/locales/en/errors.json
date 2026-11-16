@@ -15,6 +15,7 @@
   "FORM_INVALID_CONDITIONS": "Invalid question display conditions",
   "FORM_INVALID_END_RULES": "A result rule refers to a question that was removed or cannot be used in conditions",
   "FORM_INVALID_QUOTAS": "A quota refers to a question that was removed or cannot be used in conditions",
+  "FORM_INVALID_FORMULAS": "A calculation field has a formula that is invalid or refers to a question that was removed",
   "QUOTA_FULL": "This survey is no longer accepting answers from this group of respondents",
   "QUOTA_NOT_FOUND": "The quota was not found",
   "QUOTA_LIMIT_REACHED": "The form already has the maximum number of quotas",

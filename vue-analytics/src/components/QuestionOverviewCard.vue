@@ -18,6 +18,13 @@ const hasVisibilityInfo = computed(
 
 const isScale = computed(() => isScaleQuestionType(props.question.type));
 
+// FILE and CALCULATION have no detail view: the card is the whole summary.
+const isStatic = computed(
+  () => props.question.type === "FILE" || props.question.type === "CALCULATION",
+);
+// Money-like computed values keep two decimals; an average of plain numbers one.
+const avgDigits = computed(() => (props.question.type === "CALCULATION" ? 2 : 1));
+
 const topRanking = computed(() =>
   [...(props.question.ranking ?? [])]
     .filter((item) => item.avgPosition !== null)
@@ -53,12 +60,13 @@ const maxDistributionCount = computed(() =>
 </script>
 
 <template>
-  <!-- FILE questions have no detail view: the card only reports how many files came in. -->
+  <!-- FILE and CALCULATION have no detail view: a file card reports how many files came in, a
+       calculation card summarizes the computed values. -->
   <button
     type="button"
     class="card"
-    :class="{ 'card--static': question.type === 'FILE' }"
-    :disabled="question.type === 'FILE'"
+    :class="{ 'card--static': isStatic }"
+    :disabled="isStatic"
     @click="$emit('open-detail', question.id)"
   >
     <div class="card-header">
@@ -129,10 +137,14 @@ const maxDistributionCount = computed(() =>
         </span>
       </template>
 
-      <template v-else-if="question.type === 'NUMBER' && question.stats">
+      <template
+        v-else-if="
+          (question.type === 'NUMBER' || question.type === 'CALCULATION') && question.stats
+        "
+      >
         <div class="stats-row">
           <div class="stat">
-            <span class="stat-value">{{ question.stats.avg.toFixed(1) }}</span>
+            <span class="stat-value">{{ question.stats.avg.toFixed(avgDigits) }}</span>
             <span class="stat-label">{{ t("analytics.common.avg") }}</span>
           </div>
           <div class="stat">
@@ -145,6 +157,14 @@ const maxDistributionCount = computed(() =>
           </div>
         </div>
       </template>
+
+      <!-- A calculation with a text or yes/no result has no numbers to summarize. -->
+      <p
+        v-else-if="question.type === 'CALCULATION' && question.resultType !== 'number'"
+        class="no-data"
+      >
+        {{ t("analytics.questionCard.calculationNoSummary") }}
+      </p>
 
       <template v-else-if="question.type === 'FILE'">
         <p class="file-count">

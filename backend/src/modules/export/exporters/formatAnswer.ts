@@ -64,6 +64,11 @@ export const formatAnswer = (
       const ids = Array.isArray(value) ? value : [value as string];
       return ids.map((id, i) => `${i + 1}. ${labels[id] ?? String(id)}`).join("; ");
     }
+    case "CALCULATION":
+      // The computed value: a boolean like BOOLEAN; a number or a text is formatted below (a number
+      // is exported raw so a spreadsheet can sum it).
+      if (typeof value === "boolean") return value ? "Так" : "Ні";
+      break;
     case "TEXT":
     case "DATE":
     case "NUMBER":

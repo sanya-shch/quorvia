@@ -23,7 +23,11 @@ import type {
 import { assertFormOpen } from "./form.closing.js";
 import { assertEndRulesValid } from "./form.endRules.js";
 import { assertQuotasValid } from "./form.quotas.js";
-import { stripQuestionScoring } from "./form.scoring.js";
+import {
+  assertCalculationsValid,
+  findCalculationConditionErrors,
+  toPublicQuestions,
+} from "./form.calculation.js";
 import { removeFileObjects } from "../file/file.service.js";
 import {
   assertFormAsset,
@@ -36,6 +40,7 @@ type IncomingQuestion = UpdateFormInput["questions"][number];
 type ResolvedQuestion = IncomingQuestion & { id: string };
 import { toJson, toNullableJson } from "../../shared/utils/helpers.js";
 import { validateConditionGraph } from "@quorvia/condition-engine";
+import { remapFormulaRefs } from "@quorvia/calculation-engine";
 
 export const createForm = async ({
   title,
@@ -164,8 +169,10 @@ const toPublicFormDto = (form: LoadedForm): PublicFormDto => ({
   theme: normalizeTheme(form.theme),
   welcomeScreen: normalizeWelcomeScreen(form.welcomeScreen),
   endScreen: normalizeEndScreen(form.endScreen),
-  // Without the points: which answer is worth what (and so which is "right") stays on the server.
-  questions: form.questions.map(stripQuestionScoring),
+  // Without the points: which answer is worth what (and so which is "right") stays on the server,
+  // except what a visible calculation needs to show its value.
+  // Without the formulas of hidden calculations either.
+  questions: toPublicQuestions(form.questions),
 });
 
 const toClosedFormDto = (
@@ -296,11 +303,21 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
     withResolvedIds.map((q) => ({ id: q.id, order: q.order, condition: q.condition })),
   );
 
-  if (!graphValidation.valid) {
+  // A question's own condition must not look at a calculation field (see form.calculation.ts).
+  const conditionErrors = [
+    ...(graphValidation.valid ? [] : graphValidation.errors),
+    ...findCalculationConditionErrors(withResolvedIds),
+  ];
+
+  if (conditionErrors.length > 0) {
     // errors is a structured { questionId, reason, detail } array from condition-engine; the
     // frontend translation is built from `reason` (a stable code), not from the Ukrainian `detail`.
-    throw new AppError(ErrorCode.FORM_INVALID_CONDITIONS, 400, graphValidation.errors);
+    throw new AppError(ErrorCode.FORM_INVALID_CONDITIONS, 400, conditionErrors);
   }
+
+  // The formulas of the calculation fields, against the questions of this same request: a formula
+  // that reads a question being deleted is refused, nothing is written.
+  assertCalculationsValid(withResolvedIds);
 
   assertEndRulesValid(
     endRules,
@@ -548,6 +565,21 @@ export const duplicateForm = async (formId: string, userId: string) => {
       } as Prisma.InputJsonValue;
     };
 
+    // A calculation's formula names questions by id: the copy's formulas name the copied questions.
+    const remapConfig = (type: string, config: unknown): Prisma.InputJsonValue => {
+      if (type !== "CALCULATION" || !config || typeof config !== "object") {
+        return config as Prisma.InputJsonValue;
+      }
+
+      const { formula } = config as { formula?: unknown };
+
+      return (
+        typeof formula === "string"
+          ? { ...config, formula: remapFormulaRefs(formula, idMap) }
+          : config
+      ) as Prisma.InputJsonValue;
+    };
+
     await tx.question.createMany({
       data: form.questions.map((q) => ({
         id: idMap.get(q.id),
@@ -557,7 +589,7 @@ export const duplicateForm = async (formId: string, userId: string) => {
         required: q.required,
         order: q.order,
         options: remapOptions(q.type, q.options),
-        config: q.config as Prisma.InputJsonValue,
+        config: remapConfig(q.type, q.config),
         condition: remapCondition(q.condition),
         // Translations are keyed by option/row ids inside the question, which do not change when
         // copying, so they are carried over as is.

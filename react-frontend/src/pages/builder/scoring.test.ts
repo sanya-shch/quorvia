@@ -47,7 +47,7 @@ describe("parseScoreValue", () => {
     expect(parseScoreValue("  ")).toBeNull();
   });
 
-  it.each(["1001", "-1001", "1.234", "abc", "-"])("marks %j as not usable", (text) => {
+  it.each(["1000001", "-1000001", "1.234", "abc", "-"])("marks %j as not usable", (text) => {
     expect(parseScoreValue(text)).toBeUndefined();
   });
 

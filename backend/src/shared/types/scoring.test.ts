@@ -4,21 +4,35 @@ import { SCORE_LIMITS, isScoreBound, isScoreValue, normalizeScoring } from "@quo
 const category = (id: string, min: number, max: number, label = id) => ({ id, label, min, max });
 
 describe("isScoreValue", () => {
-  it.each([0, 1, -1, 2.5, 0.01, -0.99, 1000, -1000])("accepts %s", (value) => {
-    expect(isScoreValue(value)).toBe(true);
-  });
-
-  it.each([1001, -1001, 0.001, 1.005, NaN, Infinity, "1", null, undefined, true, [1]])(
-    "rejects %j",
+  it.each([0, 1, -1, 2.5, 0.01, -0.99, 1000, -1000, 1_500, 999_999.99, 1_000_000, -1_000_000])(
+    "accepts %s",
     (value) => {
-      expect(isScoreValue(value)).toBe(false);
+      expect(isScoreValue(value)).toBe(true);
     },
   );
+
+  it.each([
+    1_000_001,
+    -1_000_001,
+    1_000_000.01,
+    0.001,
+    1.005,
+    NaN,
+    Infinity,
+    "1",
+    null,
+    undefined,
+    true,
+    [1],
+  ])("rejects %j", (value) => {
+    expect(isScoreValue(value)).toBe(false);
+  });
 });
 
 describe("isScoreBound", () => {
   it("allows the large totals a whole form can reach, with at most 2 decimals", () => {
     expect(isScoreBound(250_000)).toBe(true);
+    expect(isScoreBound(900_000_000)).toBe(true);
     expect(isScoreBound(-0.5)).toBe(true);
     expect(isScoreBound(SCORE_LIMITS.categoryBound.max + 1)).toBe(false);
     expect(isScoreBound(1.234)).toBe(false);

@@ -25,6 +25,7 @@ enum QuestionType {
   RANKING
   MATRIX
   FILE
+  CALCULATION
 }
 
 enum ResponseMode {

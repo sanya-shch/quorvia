@@ -63,7 +63,8 @@
       "hiddenByCondition": "hidden by condition: {count}",
       "shownButSkipped": "shown but skipped: {count}",
       "noData": "No responses yet",
-      "filesUploaded": "{count} files uploaded"
+      "filesUploaded": "{count} files uploaded",
+      "calculationNoSummary": "Computed text or yes/no result: see the values in the responses"
     },
     "detailPanel": {
       "close": "Close details panel",

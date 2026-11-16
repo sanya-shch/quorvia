@@ -17,6 +17,7 @@ import {
   type ScaleBounds,
   type UploadedFileDto,
 } from "@quorvia/shared-types";
+import { formatCalcValue } from "@quorvia/calculation-engine";
 import { Answers } from "../response/response.types.js";
 import { paginate } from "../../shared/utils/paginate.js";
 import { analyticsConfig } from "./analytics.config.js";
@@ -352,6 +353,14 @@ export const getFormAnalytics = async (
           recordMatrix(acc.matrix!, value);
         } else if (acc.type === "FILE") {
           if (Array.isArray(value)) acc.fileCount += value.length;
+        } else if (acc.type === "CALCULATION") {
+          // Only a number result has a numeric summary; a text or boolean result is just counted.
+          if (typeof value === "number" && Number.isFinite(value)) {
+            acc.numberSum += value;
+            acc.numberCount += 1;
+            acc.numberMin = acc.numberMin === undefined ? value : Math.min(acc.numberMin, value);
+            acc.numberMax = acc.numberMax === undefined ? value : Math.max(acc.numberMax, value);
+          }
         } else {
           assertNever(acc.type, "question type");
         }
@@ -463,6 +472,24 @@ export const getFormAnalytics = async (
         text: q.text,
         type: "FILE",
         fileCount: acc.fileCount,
+        ...visibility,
+      });
+    } else if (q.type === "CALCULATION") {
+      questions.push({
+        id: q.id,
+        text: q.text,
+        type: "CALCULATION",
+        resultType: (q.config as QuestionConfig | null)?.resultType ?? "number",
+        // min / avg / max of the computed values; none for a text or boolean result or without values.
+        ...(acc.numberCount > 0
+          ? {
+              stats: {
+                avg: acc.numberSum / acc.numberCount,
+                min: acc.numberMin!,
+                max: acc.numberMax!,
+              },
+            }
+          : {}),
         ...visibility,
       });
     } else {
@@ -655,6 +682,8 @@ const DETAIL_ANALYTICS_SUPPORT: Record<QuestionType, boolean> = {
   MATRIX: true,
   // Files are not summarized per answer; the overview shows how many were uploaded.
   FILE: false,
+  // The overview summarizes the computed values (min / avg / max); there is no per-answer detail.
+  CALCULATION: false,
 };
 
 export const getQuestionAnalytics = async (
@@ -774,6 +803,7 @@ export const getQuestionAnalytics = async (
           recordMatrix(matrix!, value);
           break;
         case "FILE":
+        case "CALCULATION":
           break;
         default:
           assertNever(question.type, "question type");
@@ -880,8 +910,9 @@ export const getQuestionAnalytics = async (
     };
   }
 
-  // Unreachable: FILE is rejected above as unsupported for detailed analytics.
-  if (question.type === "FILE") throw new AppError(ErrorCode.ANALYTICS_UNSUPPORTED_TYPE, 400);
+  // Unreachable: FILE and CALCULATION are rejected above as unsupported for detailed analytics.
+  if (question.type === "FILE" || question.type === "CALCULATION")
+    throw new AppError(ErrorCode.ANALYTICS_UNSUPPORTED_TYPE, 400);
 
   return assertNever(question.type, "question type");
 };
@@ -1027,6 +1058,26 @@ export const getResponseById = async (
       displayValue = fileList.map((file) => file.name);
     } else if (q.type === "BOOLEAN") {
       displayValue = userValue === true ? "Так" : "Ні";
+    } else if (q.type === "CALCULATION") {
+      // The computed value as the respondent read it: prefix, fixed decimals, suffix; yes/no as
+      // "Так" / "Ні" like a BOOLEAN answer.
+      const config = q.config as QuestionConfig | null;
+
+      displayValue =
+        typeof userValue === "number" ||
+        typeof userValue === "string" ||
+        typeof userValue === "boolean"
+          ? formatCalcValue(
+              userValue,
+              {
+                resultType: config?.resultType ?? "number",
+                decimals: config?.decimals,
+                prefix: config?.prefix,
+                suffix: config?.suffix,
+              },
+              response.language ?? "uk",
+            )
+          : "";
     } else if (
       q.type === "TEXT" ||
       q.type === "DATE" ||

@@ -81,6 +81,7 @@ Each question type has its own summary (full field reference: [API.md](API.md#an
 - **`NPS`** - the distribution plus promoters (9-10), passives (7-8), detractors (0-6) and the NPS score (`% promoters - % detractors`).
 - **`RANKING`** - average position per option and how many respondents put it at each place.
 - **`MATRIX`** - a row x column table with the number of respondents per cell.
+- **`CALCULATION`** - for a number result: average (two decimals), min and max over the values that were computed (a response whose value could not be computed is left out); for a text or yes/no result only a note. There is no per-answer detail view (the card is not clickable and the detail endpoint answers `ANALYTICS_UNSUPPORTED_TYPE`). The response view shows the value as the respondent read it: prefix, exactly `decimals` places, suffix, in the response's language (yes/no as “Так” / “Ні” in Ukrainian, “Yes” / “No” otherwise).
 - **Text, number, boolean, date** - the usual aggregates and value lists.
 
 Answers that no longer fit the current configuration (for example the scale was shortened after collecting) are excluded from the averages but still counted in `totalAnswers`. Analytics, exports and the response view always use the form's main language; see [content-languages.md](content-languages.md).

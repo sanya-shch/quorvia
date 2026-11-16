@@ -209,3 +209,30 @@ describe("slugifyFileName", () => {
     expect(slugifyFileName("Customer Feedback Survey")).toBe("customer-feedback-survey");
   });
 });
+
+describe("formatAnswer - обчислюване поле", () => {
+  const calculation = (resultType: string) =>
+    makeQuestion({
+      type: "CALCULATION",
+      config: { formula: "1", resultType, decimals: 2, prefix: "$" },
+    });
+
+  it("число: як є (таблиця може його додавати), без префікса і зайвих форматів", () => {
+    expect(formatAnswer(calculation("number"), 8548.67)).toBe("8548.67");
+    expect(formatAnswer(calculation("number"), 0)).toBe("0");
+  });
+
+  it("текст: як є", () => {
+    expect(formatAnswer(calculation("string"), "Pro")).toBe("Pro");
+  });
+
+  it("«так / ні»: як у BOOLEAN", () => {
+    expect(formatAnswer(calculation("boolean"), true)).toBe("Так");
+    expect(formatAnswer(calculation("boolean"), false)).toBe("Ні");
+  });
+
+  it("немає значення: порожня клітинка", () => {
+    expect(formatAnswer(calculation("number"), undefined as never)).toBe("");
+    expect(formatAnswer(calculation("number"), null as never)).toBe("");
+  });
+});

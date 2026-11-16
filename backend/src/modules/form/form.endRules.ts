@@ -3,6 +3,7 @@ import {
   localizeEndRuleScreen,
   normalizeEndRules,
   normalizeEndScreen,
+  questionTypeSupportsEndRuleConditions,
   SCORE_CONDITION_KEYS,
   type FormEndRule,
   type FormEndScreen,
@@ -35,7 +36,12 @@ export const findEndRuleIssues = (
   const allowed = new Set<string>(scoringEnabled ? SCORE_CONDITION_KEYS : []);
 
   return (rules ?? []).flatMap((rule) =>
-    findConditionIssues(rule.condition, questions, allowed).map((issue) => ({
+    findConditionIssues(
+      rule.condition,
+      questions,
+      allowed,
+      questionTypeSupportsEndRuleConditions,
+    ).map((issue) => ({
       ruleId: rule.id,
       ...issue,
     })),

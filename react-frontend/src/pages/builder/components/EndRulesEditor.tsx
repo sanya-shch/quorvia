@@ -5,7 +5,7 @@ import type { Question } from "../../../types/formBuilder";
 import ConditionEditor from "./editors/ConditionEditor";
 import {
   canAddEndRule,
-  conditionTargets,
+  endRuleTargets,
   createEndRule,
   findBrokenEndRules,
   hasEmptyConditionValue,
@@ -61,7 +61,7 @@ export default function EndRulesEditor({
     : questions;
 
   const broken = new Set(findBrokenEndRules(list, questions, scoringEnabled));
-  const hasTargets = conditionTargets(choices).length > 0;
+  const hasTargets = endRuleTargets(choices).length > 0;
 
   const emit = (next: FormEndRule[]) => onChange(next.length > 0 ? next : null);
 
@@ -134,6 +134,7 @@ export default function EndRulesEditor({
 
             <ConditionEditor
               mandatory
+              allowCalculations
               condition={rule.condition}
               currentOrder={Infinity}
               allQuestions={choices}

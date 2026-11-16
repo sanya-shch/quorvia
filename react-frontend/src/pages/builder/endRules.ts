@@ -3,6 +3,7 @@ import {
   SCORE_CONDITION_KEYS,
   normalizeEndRules,
   questionTypeSupportsConditions,
+  questionTypeSupportsEndRuleConditions,
   type ConditionGroup,
   type ConditionRule,
   type FormEndRule,
@@ -18,15 +19,18 @@ import { newConditionRule } from "./components/editors/conditionRules";
 export const conditionTargets = (questions: readonly Question[]): Question[] =>
   questions.filter((q) => q.id && questionTypeSupportsConditions(q.type));
 
+// The same for a result rule, which may also look at a calculation field (it runs after them).
+export const endRuleTargets = (questions: readonly Question[]): Question[] =>
+  questions.filter((q) => q.id && questionTypeSupportsEndRuleConditions(q.type));
+
 export const canAddEndRule = (
   rules: readonly FormEndRule[] | null | undefined,
   questions: readonly Question[],
-): boolean =>
-  (rules?.length ?? 0) < END_RULE_LIMITS.rules && conditionTargets(questions).length > 0;
+): boolean => (rules?.length ?? 0) < END_RULE_LIMITS.rules && endRuleTargets(questions).length > 0;
 
 // A new, still empty rule on the first usable question; null when there is none.
 export const createEndRule = (questions: readonly Question[]): FormEndRule | null => {
-  const target = conditionTargets(questions)[0];
+  const target = endRuleTargets(questions)[0];
 
   if (!target) return null;
 
@@ -64,7 +68,7 @@ export const findBrokenEndRules = (
   // A rule may look at the score ($score, $percent) while the form scores its responses.
   scoringEnabled = false,
 ): number[] => {
-  const usable = new Set<string | undefined>(conditionTargets(questions).map((q) => q.id));
+  const usable = new Set<string | undefined>(endRuleTargets(questions).map((q) => q.id));
 
   if (scoringEnabled) SCORE_CONDITION_KEYS.forEach((key) => usable.add(key));
 

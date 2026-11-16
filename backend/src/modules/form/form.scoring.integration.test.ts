@@ -147,8 +147,8 @@ describe("saving scoring", () => {
   };
 
   it.each([
-    ["points above the limit", { score: 1001 }],
-    ["points below the limit", { score: -1001 }],
+    ["points above the limit", { score: 1_000_001 }],
+    ["points below the limit", { score: -1_000_001 }],
     ["more than 2 decimals", { score: 1.234 }],
     ["points that are not a number", { score: "5" }],
   ])("refuses an option with %s", async (_label, option) => {

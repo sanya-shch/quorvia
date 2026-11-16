@@ -147,6 +147,9 @@ importers:
       '@quorvia/shared-types':
         specifier: workspace:*
         version: link:../shared-types
+      decimal.js:
+        specifier: 10.6.0
+        version: 10.6.0
     devDependencies:
       vitest:
         specifier: ^4.1.10
@@ -181,6 +184,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.4.0
         version: 5.8.0(@standard-schema/spec@1.1.0)(ajv@8.20.0)(effect@3.20.0)(react-hook-form@7.85.0(react@19.2.8))(valibot@1.4.2(typescript@6.0.3))(zod@4.4.3)
+      '@quorvia/calculation-engine':
+        specifier: workspace:*
+        version: link:../packages/calculation-engine
       '@quorvia/condition-engine':
         specifier: workspace:*
         version: link:../packages/condition-engine
@@ -3390,6 +3396,7 @@ packages:
 
   node-abort-controller@3.1.1:
     resolution: {integrity: sha512-AGK2yQKIjRuqnc6VkX2Xj5d+QW8xZ87pa1UK6yA6ouUyuxfHuMP6umE5QK7UmTeOAymo+Zx1Fxiuw9rVx8taHQ==}
+    deprecated: This package is no longer needed on supported Node.js versions. Node.js 16+ includes AbortController and AbortSignal as built-in globals. All Node.js versions requiring this polyfill are end-of-life. Use the built-in globals instead.
 
   node-addon-api@8.9.2:
     resolution: {integrity: sha512-VijLXbi3UACN69I0JVXJsX4tjACjNoQDgv2gTF6sx2wWEi8tkSg2eX8p5gSIFi8z2+DL3oHmY6OyKce38SDolg==}

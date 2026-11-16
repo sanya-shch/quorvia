@@ -121,7 +121,9 @@ export const getDefaultAnswer = (q: Question): AnswerValue => {
     case "RANKING":
     case "MATRIX":
     case "FILE":
-      // Ranking, matrix and files have no answer until the respondent interacts.
+    case "CALCULATION":
+      // Ranking, matrix and files have no answer until the respondent interacts, and a calculation
+      // is computed, never typed in.
       return "";
     default:
       return assertNever(q.type, "question type");
@@ -156,6 +158,9 @@ export const buildCleanedAnswers = (
   questions.forEach((question) => {
     const qId = question.id;
     if (!qId) return;
+
+    // A calculation is computed by the server; the form never sends one.
+    if (question.type === "CALCULATION") return;
 
     const value = answers[qId];
     const isEmptyText = typeof value === "string" && value.trim() === "";

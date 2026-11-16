@@ -23,6 +23,7 @@ export const ErrorCode = {
   FORM_INVALID_CONDITIONS: "FORM_INVALID_CONDITIONS",
   FORM_INVALID_END_RULES: "FORM_INVALID_END_RULES",
   FORM_INVALID_QUOTAS: "FORM_INVALID_QUOTAS",
+  FORM_INVALID_FORMULAS: "FORM_INVALID_FORMULAS",
   QUOTA_FULL: "QUOTA_FULL",
   QUOTA_NOT_FOUND: "QUOTA_NOT_FOUND",
   QUOTA_LIMIT_REACHED: "QUOTA_LIMIT_REACHED",
@@ -111,6 +112,7 @@ export const QUESTION_TYPES = [
   "RANKING",
   "MATRIX",
   "FILE",
+  "CALCULATION",
 ] as const;
 
 export type QuestionType = (typeof QUESTION_TYPES)[number];
@@ -189,7 +191,30 @@ export interface QuestionConfig {
   // Scoring. NUMBER, RATING, SCALE, NPS: the points are the answer times this factor. A NUMBER needs
   // both `min` and `max` to be scored (without them the best possible score is unknown).
   scoreMultiplier?: number | null;
+  // CALCULATION (see CalculationConfig): the formula and how its result is shown.
+  formula?: string;
+  resultType?: CalculationResultType;
+  decimals?: number;
+  prefix?: string;
+  suffix?: string;
+  display?: CalculationDisplay;
+  emptyAsZero?: boolean;
 }
+
+// CALCULATION: a value the respondent does not fill in; the server computes it from the answers
+// with a formula (docs/calculation.md). The result is stored in `answers` like any answer.
+export const CALCULATION_RESULT_TYPES = ["number", "string", "boolean"] as const;
+export type CalculationResultType = (typeof CALCULATION_RESULT_TYPES)[number];
+export const CALCULATION_DISPLAYS = ["visible", "hidden"] as const;
+export type CalculationDisplay = (typeof CALCULATION_DISPLAYS)[number];
+
+export const CALCULATION_LIMITS = {
+  formula: 500,
+  affix: 20,
+  decimals: { min: 0, max: 8, default: 2 },
+  // Calculation fields per form: every one is evaluated on every submit.
+  perForm: 30,
+} as const;
 
 export type NumberVariant = "input" | "slider";
 
@@ -345,11 +370,18 @@ export const questionTypeSupportsConditions = (type: QuestionType): boolean => {
     case "RANKING":
     case "MATRIX":
     case "FILE":
+    // A computed value: a question's own condition (visibility) and a quota must not depend on it.
+    // End rules may (see questionTypeSupportsEndRuleConditions).
+    case "CALCULATION":
       return false;
     default:
       return assertNever(type, "question type");
   }
 };
+
+// End rules run after the calculations, so they may also look at the computed values.
+export const questionTypeSupportsEndRuleConditions = (type: QuestionType): boolean =>
+  type === "CALCULATION" || questionTypeSupportsConditions(type);
 
 export type ConditionValue = string | number | boolean | string[];
 
@@ -407,6 +439,8 @@ export interface QuestionOverview extends Partial<QuestionVisibilityStats> {
   falseCount?: number;
   // FILE only: how many files were uploaded in submitted responses.
   fileCount?: number;
+  // CALCULATION only: what the field computes. `stats` is there for a number result.
+  resultType?: CalculationResultType;
 }
 
 // How the responses scored (see FormScoring), built from what was stored with each response:
@@ -1226,10 +1260,11 @@ export const stripOutcomeTranslations = (translations: unknown): FormTranslation
 // Only questions the respondent was shown count. The total is computed on the server
 // (@quorvia/calculation-engine) and stored with the response.
 export const SCORE_LIMITS = {
-  // One option's points, a BOOLEAN's points, a multiplier: -1000 to 1000, at most 2 decimals.
-  value: { min: -1_000, max: 1_000 },
+  // One option's points, a BOOLEAN's points, a multiplier: -1 000 000 to 1 000 000, at most 2
+  // decimals. Large enough for prices: calculation fields read the points of an option as its price.
+  value: { min: -1_000_000, max: 1_000_000 },
   // Category bounds are totals over many questions.
-  categoryBound: { min: -1_000_000, max: 1_000_000 },
+  categoryBound: { min: -1_000_000_000, max: 1_000_000_000 },
   categories: 10,
   categoryId: 64,
   categoryLabel: 100,

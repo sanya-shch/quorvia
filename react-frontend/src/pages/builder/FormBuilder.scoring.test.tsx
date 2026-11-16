@@ -299,7 +299,7 @@ describe("FormBuilder - scoring", () => {
     renderBuilder();
     await screen.findByDisplayValue("Початкова");
 
-    fireEvent.change(screen.getByLabelText("Бали за «Профі»"), { target: { value: "99999" } });
+    fireEvent.change(screen.getByLabelText("Бали за «Профі»"), { target: { value: "9999999" } });
     await edit(user);
     await save(user);
 

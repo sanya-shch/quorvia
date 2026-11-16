@@ -1,6 +1,6 @@
 import { isScaleQuestionType } from "@quorvia/shared-types";
 import { questionTypeSupportsConditions } from "../../questionConfig";
-import { newConditionRule, OPERATORS_BY_TYPE } from "./conditionRules";
+import { conditionKind, newConditionRule, operatorsFor } from "./conditionRules";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import type {
@@ -21,6 +21,8 @@ interface ConditionEditorProps {
   mandatory?: boolean;
   // Shown instead of the default hint when no question can be used in the condition.
   emptyHint?: string;
+  // Calculation fields can be looked at (a result rule can; a question's own condition cannot).
+  allowCalculations?: boolean;
 }
 
 const getOperatorLabel = (t: TFunction, op: ConditionOperator): string =>
@@ -37,10 +39,14 @@ export default function ConditionEditor({
   error,
   mandatory = false,
   emptyHint,
+  allowCalculations = false,
 }: ConditionEditorProps) {
   const { t } = useTranslation();
   const availableTargets = allQuestions.filter(
-    (q) => q.id && q.order < currentOrder && questionTypeSupportsConditions(q.type),
+    (q) =>
+      q.id &&
+      q.order < currentOrder &&
+      (q.type === "CALCULATION" ? allowCalculations : questionTypeSupportsConditions(q.type)),
   );
 
   if (availableTargets.length === 0) {
@@ -96,7 +102,7 @@ export default function ConditionEditor({
     const target = availableTargets.find((q) => q.id === questionId);
     if (!target) return;
 
-    updateRule(index, { questionId, operator: OPERATORS_BY_TYPE[target.type][0], value: "" });
+    updateRule(index, { questionId, operator: operatorsFor(target)[0]!, value: "" });
   };
 
   return (
@@ -145,7 +151,7 @@ export default function ConditionEditor({
 
           {condition.rules.map((rule, index) => {
             const target = availableTargets.find((q) => q.id === rule.questionId);
-            const operators = target ? OPERATORS_BY_TYPE[target.type] : ["equals" as const];
+            const operators = target ? operatorsFor(target) : ["equals" as const];
 
             return (
               <div key={index} className="flex flex-wrap items-center gap-1.5">
@@ -232,7 +238,10 @@ function ConditionValueInput({ target, operator, value, onChange }: ConditionVal
 
   if (!target) return null;
 
-  if (target.type === "BOOLEAN") {
+  // A calculation is compared like the kind of value it gives.
+  const kind = conditionKind(target);
+
+  if (kind === "BOOLEAN") {
     return (
       <div className="flex gap-1 bg-white p-0.5 rounded-lg border border-slate-200">
         <button
@@ -311,7 +320,7 @@ function ConditionValueInput({ target, operator, value, onChange }: ConditionVal
     );
   }
 
-  if (target.type === "NUMBER" || isScaleQuestionType(target.type)) {
+  if (kind === "NUMBER" || isScaleQuestionType(kind)) {
     return (
       <input
         type="number"

@@ -12,6 +12,7 @@ import NumberSlider from "./NumberSlider";
 import RankingField from "./RankingField";
 import MatrixField from "./MatrixField";
 import FileField from "./FileField";
+import CalculationField from "./CalculationField";
 import { type Question } from "../../../types/formBuilder";
 import { type AnswerValue } from "../../../types/formViewer";
 import { assetUrl } from "../../../api/assets";
@@ -455,6 +456,23 @@ function QuestionControl({
         aria-describedby={describedBy}
         onChange={(e) => onChange(e.target.value)}
         className="w-full h-10 rounded-xl border border-slate-200 px-3 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none"
+      />
+    );
+  }
+
+  // A calculation has no control: the respondent does not fill it in, they read the value (the
+  // caller passes the computed value as `value`).
+  if (question.type === "CALCULATION") {
+    return (
+      <CalculationField
+        question={question}
+        qId={qId}
+        value={
+          typeof value === "string" || typeof value === "number" || typeof value === "boolean"
+            ? value
+            : undefined
+        }
+        labelledBy={labelledBy}
       />
     );
   }

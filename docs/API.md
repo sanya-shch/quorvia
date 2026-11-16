@@ -61,7 +61,7 @@ Translations of the messages: `translations.<lang>.welcomeTitle`, `welcomeText`,
 Scoring is part of the form (see [conditional logic](conditional-logic.md#scoring)). `PATCH /forms/:formId` accepts:
 
 - `scoring`: `{ enabled, categories: [{ id, label, min, max }] }`, or `null` to remove it (omitted leaves it as it is). `id` is a string of 1-64 characters, unique within the form, and the translations refer to it; `label` is 1-100 characters; `min` and `max` are numbers from -1,000,000 to 1,000,000 with at most 2 decimals, `min <= max`; up to 10 categories, ranges must not overlap. Anything else is `400 REQUEST_BODY_INVALID`.
-- Points inside the questions: `options[].score` for `CHOICE_SINGLE`, `CHOICE_MULTI` and `IMAGE_CHOICE` (a ranking or matrix option that arrives with a `score` has it dropped), `config.score = { true, false }` for `BOOLEAN` (both required), `config.scoreMultiplier` for `NUMBER`, `RATING`, `SCALE` and `NPS`. All are numbers from -1000 to 1000 with at most 2 decimals, `null` or absent for none. A `NUMBER` with a non-zero `scoreMultiplier` must have `min` and `max`.
+- Points inside the questions: `options[].score` for `CHOICE_SINGLE`, `CHOICE_MULTI` and `IMAGE_CHOICE` (a ranking or matrix option that arrives with a `score` has it dropped), `config.score = { true, false }` for `BOOLEAN` (both required), `config.scoreMultiplier` for `NUMBER`, `RATING`, `SCALE` and `NPS`. All are numbers from -1 000 000 to 1 000 000 with at most 2 decimals (the points of an option double as its price in a [calculation field](calculation.md)), `null` or absent for none. A `NUMBER` with a non-zero `scoreMultiplier` must have `min` and `max`.
 - `translations.<lang>.scoreCategories[<categoryId>]`: the label of a category in another language. Labels of categories that no longer exist are dropped on save.
 - End rules may look at `$score` and `$percent` (`endRules[].condition.rules[].questionId`) while `scoring.enabled` is true; `{{score}}`, `{{maxScore}}`, `{{percent}}` and `{{category}}` work in end screen texts.
 
@@ -130,7 +130,25 @@ Question translations may contain `text`, `description`, `options` (option/colum
 | `SCALE`                          | integer `min..max`                                                            | `min`: 0 or 1 (default 1), `max`: integer 2-10, strictly greater than `min` (default 5), `minLabel`/`maxLabel` (up to 100 chars)                  |
 | `NPS`                            | integer `0..10`                                                               | - (fixed)                                                                                                                                         |
 | `MATRIX`                         | object `{ rowId: columnId }`, one column per row                              | `rows`: 1-30 `{ id, text }` (unique ids). The **columns** are the question's `options` (2-10, unique ids, no `isOther`)                           |
+| `CALCULATION`                    | none: computed on the server, a value sent by the client is dropped           | `formula`, `resultType`, `decimals`, `prefix`/`suffix`, `display`, `emptyAsZero` ([calculation fields](calculation.md))                           |
 | `RANKING`                        | array of option ids: a full permutation of the question's options, best first | `options`: 2-20, unique ids (`isOther` is dropped)                                                                                                |
+
+### Calculation fields
+
+A `CALCULATION` question is never answered by the respondent; the server computes it on submit and stores the value in `answers[questionId]` (a number rounded to `decimals`, a string or a boolean; nothing is stored when it could not be computed, for example after a division by zero). The formula language is described in [calculation fields](calculation.md).
+
+`PATCH /forms/:formId` checks the formulas against the question list of the _same_ request and answers `400 FORM_INVALID_FORMULAS` with `errors: [{ questionId, code, message, pos, end, cycle? }]` (`pos`/`end` are offsets in the formula) and writes nothing when:
+
+- a formula does not parse or type-check, or its result type is not the declared `resultType` (`UNEXPECTED_TOKEN`, `UNEXPECTED_END`, `TYPE_MISMATCH`, `UNKNOWN_FUNCTION`, `ARITY`, ...);
+- it reads a question that does not exist (`UNKNOWN_REFERENCE`). This is also what stops a question from being deleted while a formula reads it (the plan's `REFERENCE_BROKEN`; the project's other references, end rules and quotas, are refused the same way with their own `FORM_INVALID_*` code);
+- it reads a question that cannot be used in formulas, such as `DATE`, `RANKING`, `MATRIX` or `FILE` (`UNSUPPORTED_REFERENCE`);
+- calculation fields read each other in a circle (`FORMULA_CYCLE`, `cycle` lists the ids);
+- a visible calculation reads a `display: "hidden"` one (`HIDDEN_REFERENCE`);
+- there are more than 30 calculation fields (`TOO_MANY_CALCULATIONS`).
+
+A question's own `condition` must not look at a calculation field (`400 FORM_INVALID_CONDITIONS`, reason `CALCULATION_REFERENCE`), and neither may a quota (`FORM_INVALID_QUOTAS`). An end rule may (see [conditional logic](conditional-logic.md#conditional-end-screens-result-rules)).
+
+The public form leaves out the calculations with `display: "hidden"` entirely. It carries the formula of the visible ones, and the points of exactly the questions a visible formula reads (the viewer needs them to show the value as it changes); every other question still loses its points.
 
 ### “Other” option
 

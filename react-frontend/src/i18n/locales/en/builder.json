@@ -127,6 +127,7 @@
     "NUMBER": "Number field",
     "CHOICE_SINGLE": "Single choice",
     "FILE": "File upload",
+    "CALCULATION": "Calculation",
     "IMAGE_CHOICE": "Image choice",
     "CHOICE_MULTI": "Multiple choice",
     "BOOLEAN": "Yes / No",
@@ -246,6 +247,147 @@
         "neutral": "Neutral",
         "agree": "Agree",
         "stronglyAgree": "Strongly agree"
+      }
+    },
+    "calculation": {
+      "formula": "Formula",
+      "formulaPlaceholder": "For example: [[Plan]] * [[Seats]] * 1.2",
+      "formulaHint": "A question is written [[like this]]; renaming a question does not break the formula. Numbers use a dot (0.5).",
+      "insertQuestion": "Insert a question",
+      "insertQuestionPlaceholder": "Choose a question…",
+      "noQuestions": "Add questions above first: a formula reads their answers.",
+      "functions": {
+        "title": "Functions",
+        "hint": "Click a function to insert it",
+        "items": {
+          "IF": {
+            "signature": "IF(condition, then, else)",
+            "description": "Picks one of two values; only the chosen one is calculated"
+          },
+          "ROUND": {
+            "signature": "ROUND(number, places)",
+            "description": "Rounds half away from zero to the given places (0 to 8)"
+          },
+          "FLOOR": {
+            "signature": "FLOOR(number, places)",
+            "description": "Rounds down to the given places"
+          },
+          "CEIL": {
+            "signature": "CEIL(number, places)",
+            "description": "Rounds up to the given places"
+          },
+          "ABS": {
+            "signature": "ABS(number)",
+            "description": "The number without its sign"
+          },
+          "MIN": {
+            "signature": "MIN(a, b, …)",
+            "description": "The smallest of the numbers"
+          },
+          "MAX": {
+            "signature": "MAX(a, b, …)",
+            "description": "The largest of the numbers"
+          },
+          "SUM": {
+            "signature": "SUM(a, b, …)",
+            "description": "The sum of the numbers (use it for long sums)"
+          },
+          "AVG": {
+            "signature": "AVG(a, b, …)",
+            "description": "The average of the numbers"
+          },
+          "COUNT": {
+            "signature": "COUNT([[question]])",
+            "description": "How many options of a multiple choice question are picked"
+          },
+          "CONCAT": {
+            "signature": "CONCAT(a, b, …)",
+            "description": "Joins values into one text"
+          },
+          "UPPER": {
+            "signature": "UPPER(text)",
+            "description": "Text in capital letters"
+          },
+          "LOWER": {
+            "signature": "LOWER(text)",
+            "description": "Text in small letters"
+          },
+          "SCORE": {
+            "signature": "SCORE([[question]])",
+            "description": "The points of a choice or yes/no question"
+          },
+          "LABEL": {
+            "signature": "LABEL([[question]])",
+            "description": "The text of the picked option of a single choice question"
+          }
+        }
+      },
+      "position": "Position {{position}}",
+      "resultType": {
+        "label": "Result",
+        "number": "Number",
+        "string": "Text",
+        "boolean": "Yes / No"
+      },
+      "decimals": "Places after the point",
+      "prefix": "Before the value",
+      "suffix": "After the value",
+      "prefixPlaceholder": "$",
+      "suffixPlaceholder": "kg",
+      "display": {
+        "label": "Show to the respondent",
+        "visible": "Yes, show the value",
+        "hidden": "No, only for the end screen, rules and exports"
+      },
+      "emptyAsZero": {
+        "label": "Empty counts as 0",
+        "hint": "An unanswered or hidden question counts as 0 (empty text, no). When off, the result stays empty until every question it uses is answered."
+      },
+      "placeholder": {
+        "label": "In the end screen text",
+        "hint": "Paste this where the value should appear.",
+        "copy": "Copy",
+        "copied": "Copied"
+      },
+      "test": {
+        "title": "Test the formula",
+        "hint": "Enter sample answers to see the result the respondent would get.",
+        "noInputs": "The formula does not read any question.",
+        "result": "Result",
+        "noValue": "No value",
+        "fixFirst": "Fix the formula to test it.",
+        "yes": "Yes",
+        "no": "No",
+        "notChosen": "Not chosen",
+        "evalErrors": {
+          "DIVISION_BY_ZERO": "Division by zero",
+          "OVERFLOW": "The number or text is too large",
+          "EMPTY_REFERENCE": "A question it uses has no answer, and “Empty counts as 0” is off",
+          "INVALID_ARGUMENT": "A value is not allowed here (for example places must be 0 to 8)",
+          "INVALID_FORMULA": "The formula is not valid"
+        }
+      },
+      "errors": {
+        "EMPTY_FORMULA": "Write a formula",
+        "FORMULA_TOO_LONG": "The formula is too long (at most 500 characters)",
+        "TOO_MANY_NODES": "The formula is too complex (at most 200 elements)",
+        "DEPTH_LIMIT": "The formula is nested too deeply; use SUM(…) instead of a long chain of +",
+        "UNEXPECTED_CHARACTER": "This character is not allowed in a formula",
+        "UNEXPECTED_TOKEN": "This does not fit here",
+        "UNEXPECTED_END": "The formula ends too early; something is missing",
+        "BAD_NUMBER": "This is not a valid number",
+        "BAD_STRING": "The text in quotes is not valid or not closed",
+        "BAD_REFERENCE": "Choose a question from the list; a question is written [[like this]]",
+        "UNKNOWN_IDENTIFIER": "Unknown name. Functions are written with brackets, for example ROUND(…)",
+        "UNKNOWN_FUNCTION": "Unknown function",
+        "ARITY": "Wrong number of values for this function",
+        "TYPE_MISMATCH": "The types do not match (for example a number and a text)",
+        "UNKNOWN_REFERENCE": "This question does not exist (it may have been deleted)",
+        "UNSUPPORTED_REFERENCE": "This kind of question cannot be used in a formula (or here)",
+        "INVALID_CONFIG": "Places after the point must be a whole number from 0 to 8",
+        "FORMULA_CYCLE": "Calculation fields use each other in a circle",
+        "HIDDEN_REFERENCE": "A visible calculation cannot use one that is hidden from the respondent",
+        "TOO_MANY_CALCULATIONS": "A form has at most 30 calculation fields"
       }
     }
   },

@@ -2,5 +2,6 @@
   "SELF_REFERENCE": "A question can't depend on itself",
   "UNKNOWN_QUESTION": "This condition references a question that doesn't exist in the form",
   "CYCLE": "Question display conditions form a circular dependency",
-  "FORWARD_REFERENCE": "A question can't depend on a question that comes after it"
+  "FORWARD_REFERENCE": "A question can't depend on a question that comes after it",
+  "CALCULATION_REFERENCE": "A question can't depend on a calculation field: its value is computed after the answers"
 }

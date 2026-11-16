@@ -187,3 +187,19 @@ export const matrixIcon = (
     <path strokeLinecap="round" strokeLinejoin="round" d="M4 5h16v14H4zM4 12h16M12 5v14" />
   </svg>
 );
+
+export const calculationIcon = (
+  <svg
+    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth="2"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M6 3h12a1 1 0 011 1v16a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1zM8 7h8M8 12h2m4 0h2M8 16h2m4 0h2"
+    />
+  </svg>
+);

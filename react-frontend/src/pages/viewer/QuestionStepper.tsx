@@ -18,6 +18,8 @@ import { sortByOrder, getNextQuestion } from "./questionFlow";
 import { useAttemptAutosave } from "./hooks/useAttemptAutosave";
 import StepTransition, { type StepDirection } from "./components/StepTransition";
 import FormLogo from "./components/FormLogo";
+import { resolveVisibleQuestionIds, type QuestionLike } from "@quorvia/condition-engine";
+import { isHiddenCalculation, useCalculatedValues, withCalculatedValues } from "./calculations";
 
 interface QuestionStepperProps {
   formTitle: string;
@@ -36,19 +38,26 @@ export default function QuestionStepper({
   formTitle,
   logoUrl,
   formDescription,
-  questions,
+  questions: allQuestions,
   onSubmit,
   serverErrors = {},
   onClearServerError,
   shareId,
   sessionKey = "",
 }: QuestionStepperProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  // A calculation hidden from the respondent is never shown (the server does not even send it).
+  const questions = useMemo(
+    () => allQuestions.filter((q) => !isHiddenCalculation(q)),
+    [allQuestions],
+  );
   const orderedQuestions = useMemo(() => sortByOrder(questions), [questions]);
 
   const [answers, setAnswers] = useState<FormAnswers>(() => {
     const initial: FormAnswers = {};
     orderedQuestions.forEach((q, index) => {
+      // A calculation has no answer of its own: its value is computed.
+      if (q.type === "CALCULATION") return;
       const qId = q.id || `q-${index}`;
       initial[qId] = getDefaultAnswer(q);
     });
@@ -99,6 +108,19 @@ export default function QuestionStepper({
   );
 
   useAttemptAutosave(shareId, sessionKey, answers, reachedQuestionIds);
+
+  // Calculation fields: the value for the answers so far, from the same engine the server runs. The
+  // visible questions are the logical ones, as on the server (an old answer to a question a branch
+  // closed does not count).
+  const visibleQuestionIds = useMemo(
+    () => resolveVisibleQuestionIds(questions as unknown as QuestionLike[], answers),
+    [questions, answers],
+  );
+  const calculated = useCalculatedValues(questions, answers, visibleQuestionIds);
+  const shownAnswers = useMemo(
+    () => withCalculatedValues(answers, calculated),
+    [answers, calculated],
+  );
   const uploadedFiles = useUploadedFiles();
   const combinedErrors = { ...serverErrors, ...localErrors };
 
@@ -229,7 +251,8 @@ export default function QuestionStepper({
                     <span className="text-xs text-slate-500">
                       {q.text || t("viewer.questionFallback", { number: i + 1 })}
                       {" - "}
-                      {formatReviewAnswer(q, answers[q.id!], answers[otherAnswerKey(q.id!)], {
+                      {formatReviewAnswer(q, shownAnswers[q.id!], answers[otherAnswerKey(q.id!)], {
+                        locale: i18n.language,
                         yes: t("viewer.stepper.booleanYes"),
                         no: t("viewer.stepper.booleanNo"),
                         empty: t("viewer.stepper.noAnswer"),
@@ -292,7 +315,7 @@ export default function QuestionStepper({
                 <QuestionField
                   question={current}
                   qId={current.id || `q-${currentIndex}`}
-                  value={answers[current.id || `q-${currentIndex}`]}
+                  value={shownAnswers[current.id || `q-${currentIndex}`]}
                   onChange={(value) => handleAnswerChange(current.id || `q-${currentIndex}`, value)}
                   otherValue={answers[otherAnswerKey(current.id || `q-${currentIndex}`)]}
                   onOtherChange={(text) =>

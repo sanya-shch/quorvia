@@ -6,6 +6,7 @@ import { ErrorCode } from "@quorvia/shared-types";
 import { createDefaultOptions, createDefaultQuestionConfig } from "../questionConfig";
 import { findBrokenEndRules } from "../endRules";
 import { hasBlockingCategoryIssue, numberNeedsRange } from "../scoring";
+import { findCalculationProblems } from "../calculation";
 
 const INITIAL_STATE: FormState = {
   title: "",
@@ -47,6 +48,12 @@ export function useFormBuilder(initialData?: FormState) {
       // A number that gives points needs a range: the server refuses it otherwise.
       if (numberNeedsRange(q)) newErrors[`q-${index}-score`] = "builder.scoring.numberRange";
     });
+
+    // The server refuses a calculation whose formula does not parse or type-check, reads a question
+    // that is gone, or runs in a circle: the builder says which one before sending.
+    for (const [index, key] of findCalculationProblems(formData.questions)) {
+      newErrors[`q-${index}-formula`] = key;
+    }
 
     // Categories of the score that overlap or run backwards are refused by the server.
     if (hasBlockingCategoryIssue(formData.scoring))

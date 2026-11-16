@@ -63,7 +63,8 @@
       "hiddenByCondition": "приховано умовою: {count}",
       "shownButSkipped": "показано, але пропущено: {count}",
       "noData": "Немає відповідей",
-      "filesUploaded": "Завантажено файлів: {count}"
+      "filesUploaded": "Завантажено файлів: {count}",
+      "calculationNoSummary": "Результат — текст або «так / ні»: значення дивіться у відповідях"
     },
     "detailPanel": {
       "close": "Закрити панель деталей",

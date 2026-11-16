@@ -29,6 +29,14 @@ export type QuestionOverview =
   | ({ id: string; type: "FILE"; text: string; fileCount: number } & QuestionVisibilityStats)
   | ({
       id: string;
+      type: "CALCULATION";
+      text: string;
+      resultType: "number" | "string" | "boolean";
+      // Only for a number result with at least one computed value.
+      stats?: { avg: number; min: number; max: number };
+    } & QuestionVisibilityStats)
+  | ({
+      id: string;
       type: "TEXT" | "DATE";
       text: string;
       preview: { value: string; count: number }[];

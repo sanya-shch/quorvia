@@ -70,10 +70,10 @@ describe("ScoreInput", () => {
   it("does not report a value that is out of range or has too many decimals, and marks it", async () => {
     const { onValue, user, field } = setup();
 
-    await user.type(field, "1001");
+    await user.type(field, "1000001");
 
     expect(field).toHaveAttribute("aria-invalid", "true");
-    expect(onValue).toHaveBeenLastCalledWith(100);
+    expect(onValue).toHaveBeenLastCalledWith(100000);
 
     await user.clear(field);
     await user.type(field, "0.123");

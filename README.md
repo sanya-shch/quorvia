@@ -55,6 +55,7 @@ The project focuses on a non-trivial form engine rather than plain CRUD: conditi
 | [Architecture](docs/architecture.md)           | Monorepo layout, high-level diagram, data flow, design decisions, trade-offs |
 | [Frontend](docs/frontend.md)                   | React host, Vue micro-frontend, state management, performance, motion        |
 | [Conditional logic](docs/conditional-logic.md) | The condition engine, dependency validation, server-side invariants          |
+| [Calculation fields](docs/calculation.md)      | Formula language, exact decimals, editor, live value, exports and analytics  |
 | [Question types](docs/question-types.md)       | Supported types and the checklist for adding a new one                       |
 | [Content languages](docs/content-languages.md) | Translating forms and how respondents pick a language                        |
 | [Analytics](docs/analytics.md)                 | Attempts, reached vs. visible questions, funnel and per-type analytics       |

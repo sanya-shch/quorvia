@@ -15,6 +15,7 @@ import {
 } from "./questionValidation";
 import { useAttemptAutosave } from "./hooks/useAttemptAutosave";
 import FormLogo from "./components/FormLogo";
+import { isHiddenCalculation, useCalculatedValues, withCalculatedValues } from "./calculations";
 
 interface FormViewerProps {
   formTitle: string;
@@ -33,7 +34,7 @@ export default function FormViewer({
   formTitle,
   logoUrl,
   formDescription,
-  questions,
+  questions: allQuestions,
   onSubmit,
   serverErrors = {},
   onClearServerError,
@@ -41,9 +42,16 @@ export default function FormViewer({
   sessionKey = "",
 }: FormViewerProps) {
   const { t } = useTranslation();
+  // A calculation hidden from the respondent is never shown (the server does not even send it).
+  const questions = useMemo(
+    () => allQuestions.filter((q) => !isHiddenCalculation(q)),
+    [allQuestions],
+  );
   const [answers, setAnswers] = useState<FormAnswers>(() => {
     const initialAnswers: FormAnswers = {};
     questions.forEach((q, index) => {
+      // A calculation has no answer of its own: its value is computed.
+      if (q.type === "CALCULATION") return;
       const qId = q.id || `q-${index}`;
       initialAnswers[qId] = getDefaultAnswer(q);
     });
@@ -63,6 +71,13 @@ export default function FormViewer({
   const visibleQuestions = useMemo(
     () => questions.filter((q) => !q.id || visibleQuestionIds.has(q.id)),
     [questions, visibleQuestionIds],
+  );
+
+  // What the calculation fields show for the answers so far.
+  const calculated = useCalculatedValues(questions, answers, visibleQuestionIds);
+  const shownAnswers = useMemo(
+    () => withCalculatedValues(answers, calculated),
+    [answers, calculated],
   );
 
   const handleAnswerChange = (questionId: string, value: FormAnswers[string]) => {
@@ -189,7 +204,7 @@ export default function FormViewer({
               <QuestionField
                 question={question}
                 qId={qId}
-                value={answers[qId]}
+                value={shownAnswers[qId]}
                 onChange={(value) => handleAnswerChange(qId, value)}
                 otherValue={answers[otherAnswerKey(qId)]}
                 onOtherChange={(text) => handleOtherChange(qId, text)}

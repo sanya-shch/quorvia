@@ -39,6 +39,8 @@ export const findConditionIssues = (
   questions: readonly { id: string; type: QuestionType }[],
   // Keys that are not questions but may be looked at (the score of an end rule).
   allowedKeys: ReadonlySet<string> = new Set(),
+  // Which question types the condition may look at (end rules also take calculation fields).
+  supportsType: (type: QuestionType) => boolean = questionTypeSupportsConditions,
 ): ConditionIssue[] => {
   const typeById = new Map(questions.map((q) => [q.id, q.type]));
   const issues: ConditionIssue[] = [];
@@ -50,7 +52,7 @@ export const findConditionIssues = (
 
     if (!type) {
       issues.push({ questionId, reason: "UNKNOWN_QUESTION" });
-    } else if (!questionTypeSupportsConditions(type)) {
+    } else if (!supportsType(type)) {
       issues.push({ questionId, reason: "UNSUPPORTED_QUESTION_TYPE" });
     }
   }

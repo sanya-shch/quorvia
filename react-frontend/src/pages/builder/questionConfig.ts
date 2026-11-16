@@ -1,3 +1,4 @@
+import { defaultCalculationConfig } from "./calculation";
 import {
   assertNever,
   IMAGE_CHOICE_LIMITS,
@@ -36,6 +37,8 @@ export const createDefaultQuestionConfig = (
       return { rows: [{ id: `row-${Date.now()}-0`, text: rowLabel(1) }] };
     case "FILE":
       return { maxFiles: 1 };
+    case "CALCULATION":
+      return defaultCalculationConfig();
     default:
       return assertNever(type, "question type");
   }
@@ -58,6 +61,7 @@ export const questionTypeUsesOptions = (type: QuestionType): boolean => {
     case "SCALE":
     case "NPS":
     case "FILE":
+    case "CALCULATION":
       return false;
     default:
       return assertNever(type, "question type");
@@ -106,6 +110,7 @@ export const questionTypeUsesConfig = (type: QuestionType): boolean => {
     case "SCALE":
     case "MATRIX": // config.rows
     case "FILE": // config.maxFiles
+    case "CALCULATION": // config.formula and how the result is shown
       return true;
     case "DATE":
     case "NPS":

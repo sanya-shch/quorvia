@@ -163,6 +163,15 @@ export const buildResponseSchema = (questions: unknown, visibleQuestionIds?: Set
         break;
       }
 
+      case "CALCULATION": {
+        // Never read from the client: the server computes it (see computeCalculations in
+        // submitResponse), so whatever arrives under this id is accepted here and dropped by
+        // cleanAnswers.
+        schema = z.unknown();
+
+        break;
+      }
+
       case "RANKING": {
         const optionIds = (q.options as { id: string }[]).map((o) => o.id);
 
@@ -238,6 +247,9 @@ export const cleanAnswers = (
 
   for (const q of questions as Question[]) {
     if (!visibleQuestionIds.has(q.id)) continue;
+
+    // A calculation field is computed on the server; a value sent by the client is discarded.
+    if (q.type === "CALCULATION") continue;
 
     const value = data[q.id];
     // An empty matrix means "not answered" (as on the client); otherwise { q: {} } for an
