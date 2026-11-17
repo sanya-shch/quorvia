@@ -131,7 +131,7 @@ describe("QuestionStepper - покрокова навігація з умовн�
     await user.click(screen.getByRole("button", { name: "Далі →" }));
 
     // Now the review screen must come right away, without "Conditional question" in the path
-    expect(screen.getByText("Готово, перевірте відповіді")).toBeInTheDocument();
+    expect(screen.getByText("Перегляньте свої відповіді")).toBeInTheDocument();
     expect(screen.queryByText("Умовне питання")).not.toBeInTheDocument();
   });
 
@@ -144,7 +144,7 @@ describe("QuestionStepper - покрокова навігація з умовн�
     await user.type(screen.getByLabelText(/Ім'я/), "Олександр");
     await user.click(screen.getByRole("button", { name: "Далі →" }));
 
-    expect(screen.getByText("Готово, перевірте відповіді")).toBeInTheDocument();
+    expect(screen.getByText("Перегляньте свої відповіді")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Надіслати відповіді" }));
 
@@ -214,7 +214,7 @@ describe("QuestionStepper - autosave передає reachedQuestionIds (реал
     await user.click(await screen.findByRole("button", { name: "Далі →" }));
     await flush();
 
-    expect(screen.getByText("Готово, перевірте відповіді")).toBeInTheDocument();
+    expect(screen.getByText("Перегляньте свої відповіді")).toBeInTheDocument();
     expect(lastReached()).toEqual(["q1", "q2", "q3"]);
   });
 });
@@ -285,7 +285,7 @@ describe("QuestionStepper - анімований перехід між крок�
       await screen.findByText(label);
     }
     await user.click(await next());
-    await screen.findByText("Готово, перевірте відповіді");
+    await screen.findByText("Перегляньте свої відповіді");
 
     const changeButtons = await screen.findAllByRole("button", { name: "Змінити" });
     await user.click(changeButtons[0]);

@@ -71,7 +71,7 @@ describe("a respondent whose group is full", () => {
 
     expect(await screen.findByRole("heading", { name: "Місць більше немає" })).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Для Києва місць більше немає");
-    expect(screen.getByText("Опитування")).toBeInTheDocument();
+    expect(screen.getAllByText("Опитування").length).toBeGreaterThan(0);
     expect(screen.queryByRole("button", { name: SUBMIT })).not.toBeInTheDocument();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
@@ -102,7 +102,7 @@ describe("a respondent whose group is full", () => {
     await user.click(await screen.findByRole("button", { name: "Submit answers" }));
 
     expect(await screen.findByRole("heading", { name: "No places left" })).toBeInTheDocument();
-    expect(screen.getByText("Customer survey")).toBeInTheDocument();
+    expect(screen.getAllByText("Customer survey").length).toBeGreaterThan(0);
     expect(screen.getByRole("status")).toHaveTextContent("no longer accepting answers");
   });
 

@@ -1,9 +1,8 @@
 import { otherAnswerKey } from "@quorvia/shared-types";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { type Question } from "../../types/formBuilder";
 import { type FormAnswers } from "../../types/formViewer";
-import { ErrorInfo } from "../../components/ui/ErrorInfo";
 import { resolveVisibleQuestionIds, type QuestionLike } from "@quorvia/condition-engine";
 import QuestionField from "./components/QuestionField";
 import {
@@ -15,6 +14,14 @@ import {
 } from "./questionValidation";
 import { useAttemptAutosave } from "./hooks/useAttemptAutosave";
 import FormLogo from "./components/FormLogo";
+import ViewerShell from "./components/ViewerShell";
+import ViewerQuestionCard from "./components/ViewerQuestionCard";
+import ReviewScreen from "./components/ReviewScreen";
+import SaveIndicator from "./components/SaveIndicator";
+import { ArrowRightIcon } from "./components/viewerIcons";
+import { countMissingRequired, getAnswerProgress } from "./answerProgress";
+import { buildReviewItems } from "./reviewItems";
+import { useUploadedFiles } from "./uploadedFilesContext";
 import { isHiddenCalculation, useCalculatedValues, withCalculatedValues } from "./calculations";
 
 interface FormViewerProps {
@@ -28,6 +35,9 @@ interface FormViewerProps {
   onClearServerError?: (fieldId: string) => void;
   shareId?: string;
   sessionKey?: string;
+  // The language switcher and a banner (the quota warning), placed by the page.
+  languageSwitcher?: ReactNode;
+  notice?: ReactNode;
 }
 
 export default function FormViewer({
@@ -40,8 +50,16 @@ export default function FormViewer({
   onClearServerError,
   shareId,
   sessionKey = "",
+  languageSwitcher,
+  notice,
 }: FormViewerProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const uploadedFiles = useUploadedFiles();
+  // "form": every question on one page; "review": the answers as text, opened by "Review answers".
+  const [view, setView] = useState<"form" | "review">("form");
+  // The question to scroll to when the form is shown again ("Edit" on the review screen).
+  const scrollTargetRef = useRef<string | null>(null);
+  const reviewHeadingRef = useRef<HTMLHeadingElement | null>(null);
   // A calculation hidden from the respondent is never shown (the server does not even send it).
   const questions = useMemo(
     () => allQuestions.filter((q) => !isHiddenCalculation(q)),
@@ -58,7 +76,7 @@ export default function FormViewer({
     return initialAnswers;
   });
 
-  useAttemptAutosave(shareId, sessionKey, answers);
+  const { status: saveStatus } = useAttemptAutosave(shareId, sessionKey, answers);
 
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
   const [localErrors, setLocalErrors] = useState<Record<string, FieldValidationError>>({});
@@ -79,6 +97,35 @@ export default function FormViewer({
     () => withCalculatedValues(answers, calculated),
     [answers, calculated],
   );
+
+  const progress = useMemo(
+    () => getAnswerProgress(visibleQuestions, shownAnswers),
+    [visibleQuestions, shownAnswers],
+  );
+  const missingRequired = useMemo(
+    () => countMissingRequired(validateAll(visibleQuestions, answers)),
+    [visibleQuestions, answers],
+  );
+
+  // Back on the form after "Edit": bring the chosen question into view and move focus to it.
+  useEffect(() => {
+    if (view !== "form" || !scrollTargetRef.current) return;
+
+    const card = document.getElementById(`card-${scrollTargetRef.current}`);
+    scrollTargetRef.current = null;
+    card?.scrollIntoView({ behavior: "smooth", block: "center" });
+    card?.querySelector<HTMLElement>("input, textarea, select, button")?.focus({
+      preventScroll: true,
+    });
+  }, [view]);
+
+  // A new screen starts at the top, with the heading focused for assistive technology.
+  useEffect(() => {
+    if (view !== "review") return;
+
+    window.scrollTo({ top: 0 });
+    reviewHeadingRef.current?.focus();
+  }, [view]);
 
   const handleAnswerChange = (questionId: string, value: FormAnswers[string]) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -155,52 +202,135 @@ export default function FormViewer({
     }
   };
 
+  const openReview = () => setView("review");
+
+  const editAnswer = (questionId: string) => {
+    scrollTargetRef.current = questionId;
+    setView("form");
+  };
+
+  // Submitting from the review screen checks everything again: if something is wrong, the
+  // respondent lands on the form at the first problem, with the errors shown.
+  const submitFromReview = () => {
+    setIsSubmitAttempted(true);
+    const errors = validateAll(visibleQuestions, answers);
+    setLocalErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      scrollTargetRef.current = Object.keys(errors)[0];
+      setView("form");
+      return;
+    }
+
+    onSubmit(buildCleanedAnswers(visibleQuestions, answers));
+  };
+
+  const headerRight = (
+    <>
+      <SaveIndicator status={saveStatus} />
+      {languageSwitcher}
+    </>
+  );
+
+  if (view === "review") {
+    const items = buildReviewItems({
+      questions: visibleQuestions,
+      shownAnswers,
+      answers,
+      errors: validateAll(visibleQuestions, answers),
+      fallbackText: (number) => t("viewer.questionFallback", { number }),
+      labels: {
+        locale: i18n.language,
+        yes: t("viewer.stepper.booleanYes"),
+        no: t("viewer.stepper.booleanNo"),
+        empty: t("viewer.stepper.noAnswer"),
+      },
+      fileName: (id) => uploadedFiles.get(id)?.name,
+    });
+
+    return (
+      <ViewerShell
+        title={formTitle}
+        headerRight={headerRight}
+        progress={progress.percent}
+        progressLabel={t("viewer.progress.answered", {
+          answered: progress.answered,
+          total: progress.total,
+        })}
+        notice={notice}
+      >
+        <ReviewScreen
+          items={items}
+          description={formDescription}
+          headingRef={reviewHeadingRef}
+          onEdit={editAnswer}
+          onBack={() => setView("form")}
+          onSubmit={submitFromReview}
+        />
+      </ViewerShell>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6">
-      <form onSubmit={handleSubmit} noValidate className="max-w-2xl mx-auto space-y-6">
-        <div className="bg-surface rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm border-t-8 border-t-indigo-600">
+    <ViewerShell
+      title={formTitle}
+      headerRight={headerRight}
+      progress={progress.percent}
+      progressLabel={t("viewer.progress.answered", {
+        answered: progress.answered,
+        total: progress.total,
+      })}
+      notice={notice}
+    >
+      <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        <section className="rounded-2xl border border-slate-200 border-t-4 border-t-indigo-600 bg-surface p-5 shadow-sm sm:p-8">
           {logoUrl && <FormLogo url={logoUrl} />}
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">{formTitle}</h1>
-          {formDescription && <p className="text-sm text-slate-500 mt-2">{formDescription}</p>}
-        </div>
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{formTitle}</h1>
+          {formDescription && (
+            <p className="mt-2 whitespace-pre-line text-sm text-slate-500 sm:text-base">
+              {formDescription}
+            </p>
+          )}
+
+          <div className="mt-5 flex items-center gap-3 border-t border-slate-200 pt-5">
+            <span
+              aria-hidden="true"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-sm font-bold text-indigo-600"
+            >
+              {progress.answered}
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-slate-800">
+                {t("viewer.progress.answered", {
+                  answered: progress.answered,
+                  total: progress.total,
+                })}
+              </p>
+              <p className="text-xs text-slate-500">{t("viewer.progress.hint")}</p>
+            </div>
+          </div>
+        </section>
 
         {visibleQuestions.map((question, index) => {
           const qId = question.id || `q-${index}`;
-          const hasError = !!combinedErrors[qId];
+          const error = combinedErrors[qId];
           const labelId = `${qId}-label`;
           const errorId = `${qId}-error`;
 
           return (
-            <div
+            <ViewerQuestionCard
               key={qId}
-              id={`card-${qId}`}
-              className={`bg-surface rounded-2xl border p-6 shadow-sm space-y-4 transition-all duration-200 ${
-                hasError
-                  ? "border-rose-500 ring-2 ring-rose-100 shadow-rose-100/50"
-                  : "border-slate-200 hover:border-slate-300"
-              }`}
+              cardId={`card-${qId}`}
+              number={index + 1}
+              labelId={labelId}
+              htmlFor={qId}
+              text={question.text || t("viewer.questionFallback", { number: index + 1 })}
+              required={question.required}
+              requiredAriaLabel={t("viewer.requiredQuestionAriaLabel")}
+              description={question.description}
+              error={error ? t(error.key, error.params) : undefined}
+              errorId={errorId}
             >
-              <div>
-                <label
-                  id={labelId}
-                  htmlFor={qId}
-                  className="text-base font-bold text-slate-800 flex items-center gap-1"
-                >
-                  {question.text || t("viewer.questionFallback", { number: index + 1 })}
-                  {question.required && (
-                    <span
-                      className="text-rose-500"
-                      aria-label={t("viewer.requiredQuestionAriaLabel")}
-                    >
-                      *
-                    </span>
-                  )}
-                </label>
-                {question.description && (
-                  <p className="text-xs text-slate-500 mt-0.5">{question.description}</p>
-                )}
-              </div>
-
               <QuestionField
                 question={question}
                 qId={qId}
@@ -209,30 +339,45 @@ export default function FormViewer({
                 otherValue={answers[otherAnswerKey(qId)]}
                 onOtherChange={(text) => handleOtherChange(qId, text)}
                 labelledBy={labelId}
-                describedBy={hasError ? errorId : undefined}
-                invalid={hasError}
+                describedBy={error ? errorId : undefined}
+                invalid={!!error}
                 shareId={shareId}
                 sessionKey={sessionKey}
               />
-
-              {hasError && (
-                <div id={errorId}>
-                  <ErrorInfo errorText={t(combinedErrors[qId].key, combinedErrors[qId].params)} />
-                </div>
-              )}
-            </div>
+            </ViewerQuestionCard>
           );
         })}
 
-        <div className="flex justify-end pt-4">
-          <button
-            type="submit"
-            className="w-full sm:w-auto inline-flex h-11 items-center justify-center rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-on-primary hover:bg-indigo-500 shadow-sm transition-colors focus:outline-none cursor-pointer"
-          >
-            {t("viewer.submit")}
-          </button>
-        </div>
+        <section className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">
+              {t("viewer.submitBar.title")}
+            </h2>
+            <p className="mt-0.5 text-sm text-slate-500">
+              {missingRequired > 0
+                ? t("viewer.submitBar.missingRequired", { count: missingRequired })
+                : t("viewer.submitBar.allSet")}
+            </p>
+          </div>
+
+          <div className="flex flex-col items-stretch gap-2 sm:items-end">
+            <button
+              type="submit"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-on-primary shadow-sm transition-colors hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 cursor-pointer"
+            >
+              {t("viewer.submit")}
+              <ArrowRightIcon />
+            </button>
+            <button
+              type="button"
+              onClick={openReview}
+              className="h-9 rounded-lg px-3 text-sm font-semibold text-indigo-600 transition-colors hover:bg-indigo-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer"
+            >
+              {t("viewer.submitBar.review")}
+            </button>
+          </div>
+        </section>
       </form>
-    </div>
+    </ViewerShell>
   );
 }

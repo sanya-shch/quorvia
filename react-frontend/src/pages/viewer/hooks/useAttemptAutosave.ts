@@ -1,9 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useReportQuotaStatus } from "../quotaWarning";
 import { saveFormAttempt } from "../../../api/publicFormApi";
 import type { FormAnswers } from "../../../types/formViewer";
 
 const AUTOSAVE_DEBOUNCE_MS = 1200;
+
+// What the respondent is told about their progress: nothing saved yet (the form says it saves
+// automatically), a save in flight, or the current answers are on the server.
+export type SaveStatus = "idle" | "saving" | "saved";
 
 /**
  * Debounced autosave of a session "draft": records the respondent's progress even if they never
@@ -29,6 +33,10 @@ const AUTOSAVE_DEBOUNCE_MS = 1200;
  * respondent before they reach the end. Only the answer to the latest request counts: a slower,
  * older one must not bring back a warning that a newer one has already cleared.
  *
+ * The hook returns the save status for the "All answers saved" indicator. "saved" means the LAST
+ * successful save holds exactly the current answers, so typing again drops it back to "idle"
+ * until the next save lands; a failed save is not reported (the respondent keeps working).
+ *
  * Known limitation: there is no sendBeacon flush on beforeunload/pagehide, so the last few seconds
  * before closing the tab may miss the draft if the respondent left faster than the debounce pause.
  * Periodic autosave still gives meaningful funnel data; this is a deliberate trade-off.
@@ -43,11 +51,17 @@ export function useAttemptAutosave(
   const lastSavedRef = useRef<string>("");
   const requestRef = useRef(0);
   const reportQuotaStatus = useReportQuotaStatus();
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
+  const snapshot = useMemo(
+    () => JSON.stringify({ answers, reachedQuestionIds }),
+    [answers, reachedQuestionIds],
+  );
 
   useEffect(() => {
     if (!shareId) return;
 
-    const serialized = JSON.stringify({ answers, reachedQuestionIds });
+    const serialized = snapshot;
     if (serialized === lastSavedRef.current) return;
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -55,16 +69,27 @@ export function useAttemptAutosave(
     timeoutRef.current = setTimeout(() => {
       lastSavedRef.current = serialized;
       const request = ++requestRef.current;
+      setIsSaving(true);
 
       saveFormAttempt(shareId, sessionKey, answers, reachedQuestionIds)
         .then((result) => {
-          if (request === requestRef.current) reportQuotaStatus(result?.quotaFull ?? null);
+          if (request !== requestRef.current) return;
+
+          reportQuotaStatus(result?.quotaFull ?? null);
+          setSavedSnapshot(serialized);
+          setIsSaving(false);
         })
-        .catch(() => {});
+        .catch(() => {
+          if (request === requestRef.current) setIsSaving(false);
+        });
     }, AUTOSAVE_DEBOUNCE_MS);
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [shareId, sessionKey, answers, reachedQuestionIds, reportQuotaStatus]);
+  }, [shareId, sessionKey, answers, reachedQuestionIds, snapshot, reportQuotaStatus]);
+
+  const status: SaveStatus = isSaving ? "saving" : savedSnapshot === snapshot ? "saved" : "idle";
+
+  return { status };
 }

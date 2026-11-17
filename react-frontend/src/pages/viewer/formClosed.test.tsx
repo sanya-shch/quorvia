@@ -62,7 +62,7 @@ describe("a closed form", () => {
     renderPage();
 
     expect(await screen.findByRole("heading", { name: "Опитування закрито" })).toBeInTheDocument();
-    expect(screen.getByText("Опитування")).toBeInTheDocument();
+    expect(screen.getAllByText("Опитування").length).toBeGreaterThan(0);
     expect(screen.getByRole("status")).toHaveTextContent("термін його проведення минув");
   });
 
@@ -112,7 +112,7 @@ describe("a closed form", () => {
     expect(
       await screen.findByRole("heading", { name: "This survey is closed" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Customer survey")).toBeInTheDocument();
+    expect(screen.getAllByText("Customer survey").length).toBeGreaterThan(0);
     expect(screen.getByRole("status")).toHaveTextContent("closing date has passed");
   });
 

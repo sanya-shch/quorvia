@@ -124,7 +124,7 @@ describe("FormViewer - FILE", () => {
     await user.click(screen.getByRole("button", SUBMIT));
 
     expect(onSubmit).not.toHaveBeenCalled();
-    expect(await screen.findByText(/обов/i)).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent(/обов/i);
   });
 
   it.each([
@@ -268,6 +268,7 @@ describe("QuestionStepper - FILE", () => {
     await screen.findByText("Звіт.pdf");
     await user.click(screen.getByRole("button", { name: /Далі|Перевірити/ }));
 
-    expect(await screen.findByText(/Додайте файл - Звіт\.pdf/)).toBeInTheDocument();
+    expect(await screen.findByText("Додайте файл")).toBeInTheDocument();
+    expect(screen.getByText("Звіт.pdf")).toBeInTheDocument();
   });
 });

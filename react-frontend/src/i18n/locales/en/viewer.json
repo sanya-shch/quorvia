@@ -17,8 +17,8 @@
   "stepper": {
     "reviewLabel": "Review answers",
     "questionLabel": "Question {{number}}",
-    "reviewTitle": "All done, review your answers",
-    "changeAnswer": "Change",
+    "reviewTitle": "Review your answers",
+    "changeAnswer": "Edit",
     "back": "← Back",
     "next": "Next →",
     "reviewErrorsHint": "Check the highlighted questions - some answers have errors.",
@@ -83,5 +83,43 @@
     "title": "No places left",
     "text": "This survey is no longer accepting answers from your group of respondents. Thank you for your interest.",
     "warning": "There are no places left for your group of respondents, so you will not be able to submit your answers."
+  },
+  "header": {
+    "formLabel": "A Quorvia form"
+  },
+  "save": {
+    "idle": "Saved automatically",
+    "saving": "Saving...",
+    "saved": "All answers saved"
+  },
+  "footer": {
+    "privacy": "Your responses are secure and shared only with the form owner.",
+    "poweredBy": "Powered by Quorvia"
+  },
+  "progress": {
+    "answered": "{{answered}} of {{total}} questions answered",
+    "hint": "You can review every answer before you submit."
+  },
+  "submitBar": {
+    "title": "Review and submit",
+    "allSet": "Everything is filled in. Check your answers before sending.",
+    "missingRequired_one": "{{count}} required answer still needs your attention.",
+    "missingRequired_other": "{{count}} required answers still need your attention.",
+    "review": "Review answers"
+  },
+  "review": {
+    "eyebrow": "Ready to submit",
+    "finalStep": "Final step",
+    "title": "Review your answers",
+    "intro": "Take a moment to check your responses. You can edit any answer before sending.",
+    "notice": "Submitting sends your responses to the form owner. You will not be able to make changes afterward.",
+    "back": "Back to questions",
+    "edit": "Edit",
+    "editAnswer": "Edit answer: {{question}}",
+    "requiredMissing": "Required: this question needs an answer",
+    "summary_one": "{{count}} answer complete",
+    "summary_other": "{{count}} answers complete",
+    "autosaved": "autosaved",
+    "empty": "No answers to review yet."
   }
 }

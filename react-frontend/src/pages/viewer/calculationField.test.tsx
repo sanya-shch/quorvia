@@ -180,7 +180,8 @@ describe("QuestionStepper - calculation field", () => {
 
     await go(user);
 
-    expect(screen.getByText(/Разом - \$102,00/)).toBeInTheDocument();
+    expect(screen.getByText("Разом")).toBeInTheDocument();
+    expect(screen.getByText(/\$102,00/)).toBeInTheDocument();
   });
 
   it("does not send the computed value", async () => {
@@ -209,6 +210,6 @@ describe("QuestionStepper - calculation field", () => {
     await go(user);
 
     // Straight to the review: there is no second step.
-    expect(screen.getByText("Готово, перевірте відповіді")).toBeInTheDocument();
+    expect(screen.getByText("Перегляньте свої відповіді")).toBeInTheDocument();
   });
 });

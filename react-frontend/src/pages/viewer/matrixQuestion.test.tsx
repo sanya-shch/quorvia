@@ -159,9 +159,10 @@ describe("QuestionStepper - екран перевірки відповідей",
 
     await user.click(screen.getByRole("button", { name: "Далі →" }));
 
-    expect(screen.getByText(/Напій - Інше: Какао/)).toBeInTheDocument();
-    expect(screen.getByText(/Оцінки - Швидкість: Згоден/)).toBeInTheDocument();
+    expect(screen.getByText("Інше: Какао")).toBeInTheDocument();
+    expect(screen.getByText("Швидкість: Згоден")).toBeInTheDocument();
     expect(screen.queryByText(/object Object/)).not.toBeInTheDocument();
-    expect(screen.getByText(/Повернетесь\? - Ні/)).toBeInTheDocument();
+    expect(screen.getByText("Повернетесь?")).toBeInTheDocument();
+    expect(screen.getByText("Ні")).toBeInTheDocument();
   });
 });

@@ -6,6 +6,7 @@ import dashboard from "./dashboard.json";
 import builder from "./builder.json";
 import viewer from "./viewer.json";
 import analytics from "./analytics.json";
+import landing from "./landing.json";
 
 // One bundle per language so the bundler emits one lazy chunk per locale.
 export default {
@@ -17,4 +18,5 @@ export default {
   builder,
   viewer,
   analytics,
+  landing,
 };

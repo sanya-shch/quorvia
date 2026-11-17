@@ -96,14 +96,14 @@ describe("PublicFormPage - мови форми", () => {
     renderPage();
 
     expect(await screen.findByText("Ім'я")).toBeInTheDocument();
-    expect(screen.getByText("Опитування")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Опитування" })).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Мова" })).toHaveValue("uk");
   });
 
   it("?lang=en показує переклад; непереклад(ений) варіант лишається основною мовою", async () => {
     renderPage("?lang=en");
 
-    expect(await screen.findByText("Survey")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Survey" })).toBeInTheDocument();
     expect(screen.getByText("Name")).toBeInTheDocument();
     expect(screen.getByText("Drink")).toBeInTheDocument();
     expect(screen.getByLabelText("Coffee")).toBeInTheDocument();
@@ -122,7 +122,7 @@ describe("PublicFormPage - мови форми", () => {
   it("мова без власного інтерфейсу (pl): вміст польською, службові тексти англійською", async () => {
     renderPage("?lang=pl");
 
-    expect(await screen.findByText("Ankieta")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Ankieta" })).toBeInTheDocument();
     expect(screen.getByText("Imię")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Submit answers" })).toBeInTheDocument();
   });
@@ -131,7 +131,7 @@ describe("PublicFormPage - мови форми", () => {
     setBrowserLanguages(["de-DE", "en-GB"]);
     renderPage();
 
-    expect(await screen.findByText("Survey")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Survey" })).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Language" })).toHaveValue("en");
   });
 
@@ -139,14 +139,14 @@ describe("PublicFormPage - мови форми", () => {
     setBrowserLanguages(["en-US"]);
     renderPage("?lang=pl");
 
-    expect(await screen.findByText("Ankieta")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Ankieta" })).toBeInTheDocument();
   });
 
   it("невідома мова в ?lang= та в браузері - основна мова форми", async () => {
     setBrowserLanguages(["fr-FR"]);
     renderPage("?lang=de");
 
-    expect(await screen.findByText("Опитування")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Опитування" })).toBeInTheDocument();
   });
 
   it("перемикач змінює мову, пише її в адресу й не губить уже введені відповіді", async () => {
@@ -158,7 +158,7 @@ describe("PublicFormPage - мови форми", () => {
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Мова" }), "en");
 
-    expect(await screen.findByText("Survey")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Survey" })).toBeInTheDocument();
     expect(screen.getByTestId("search")).toHaveTextContent("?lang=en");
     // the form was not remounted: typed and selected values are kept
     expect(screen.getByLabelText("Name")).toHaveValue("Олена");
@@ -187,7 +187,7 @@ describe("PublicFormPage - мови форми", () => {
   it("атрибут lang виставлено на вміст багатомовної форми", async () => {
     const { container } = renderPage("?lang=pl");
 
-    await screen.findByText("Ankieta");
+    await screen.findByRole("heading", { name: "Ankieta" });
 
     expect(container.querySelector('[lang="pl"]')).not.toBeNull();
   });
@@ -198,7 +198,7 @@ describe("PublicFormPage - мови форми", () => {
     const appLanguage = i18n.language;
 
     renderPage("?lang=en");
-    await screen.findByText("Survey");
+    await screen.findByRole("heading", { name: "Survey" });
 
     expect(i18n.language).toBe(appLanguage);
     expect(localStorage.getItem(I18N_LOCALSTORAGE_KEY)).toBe("uk");

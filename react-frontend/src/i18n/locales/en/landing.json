@@ -1,0 +1,239 @@
+{
+  "nav": {
+    "features": "Features",
+    "useCases": "Use Cases",
+    "howItWorks": "How It Works",
+    "logIn": "Log in",
+    "getStarted": "Get started",
+    "dashboard": "Dashboard",
+    "menu": "Menu"
+  },
+  "hero": {
+    "eyebrow": "Dynamic survey platform",
+    "title": "Build forms that think beyond questions.",
+    "text": "Create intelligent surveys with conditional flows, automated scoring, personalized outcomes and powerful analytics, all in one platform.",
+    "primary": "Start building",
+    "secondary": "Explore features",
+    "tagline": "Flexible forms. Smarter logic. Deeper insights."
+  },
+  "mock": {
+    "survey": "Product fit survey",
+    "builder": "Builder",
+    "singleChoice": "Single choice",
+    "companySize": "What is your company size?",
+    "small": "1-50 employees",
+    "medium": "51-500 employees",
+    "large": "500+ employees",
+    "questionType": "Question type",
+    "conditionalLogic": "Conditional logic",
+    "active": "Active",
+    "discoveryRoute": "Discovery route",
+    "qualificationRoute": "Qualification route",
+    "qualified": "Qualified",
+    "notQualified": "Not qualified",
+    "score": "Score",
+    "outOf": "/ 100",
+    "matchAll": "Match ALL conditions",
+    "static1": "Role",
+    "static2": "Team size",
+    "static3": "Budget",
+    "answer": "Answer",
+    "routeA": "Route A",
+    "routeB": "Route B",
+    "or": "OR",
+    "advancedResult": "Advanced result",
+    "personalizedEnd": "Personalized end screen",
+    "questions": "Questions",
+    "addQuestion": "Add question",
+    "settings": "Settings",
+    "required": "Required",
+    "enabled": "Enabled",
+    "logic": "Logic",
+    "conditions": "2 conditions",
+    "whatHoping": "What are you hoping to achieve?",
+    "qualifyDemand": "Qualify demand",
+    "gatherFeedback": "Gather feedback",
+    "testKnowledge": "Test knowledge",
+    "start": "Start",
+    "usingProduct": "Are you using our product?",
+    "reached": "reached",
+    "ifYes": "If yes",
+    "ifNo": "If no",
+    "satisfaction": "Satisfaction questions",
+    "discovery": "Discovery questions",
+    "resultA": "Result A",
+    "resultB": "Result B",
+    "thankYou": "Thank you for your feedback",
+    "recommendation": "Here is your recommendation",
+    "readiness": "Readiness score",
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advancedLevel": "Advanced",
+    "greatMatch": "You are a great match!",
+    "anotherRec": "Another recommendation",
+    "quota": "Research panel",
+    "quotaFilled": "38 / 50",
+    "saved": "Progress saved",
+    "savedText": "Question 5 of 9",
+    "rules": "Rules validated before submission",
+    "funnel": "Completion funnel",
+    "started": "Started",
+    "submitted": "Submitted",
+    "completion": "Completion",
+    "paths": "Response paths",
+    "last30": "Last 30 days",
+    "language": "Language",
+    "mainLanguage": "Main",
+    "translation": "Translation",
+    "translationComplete": "Translation complete",
+    "exportData": "Export response data",
+    "createExport": "Create export",
+    "exportDone": "CSV export completed",
+    "exportDoneText": "Background jobs stay available to retry."
+  },
+  "problem": {
+    "eyebrow": "Built for dynamic experiences",
+    "title": "More than forms. Build experiences that adapt.",
+    "text": "Traditional forms collect answers. Quorvia helps you create experiences that respond to them.",
+    "static": {
+      "title": "Static forms are limited",
+      "text": "The same linear questions reach everyone, whether they are relevant or not."
+    },
+    "logic": {
+      "title": "Logic changes everything",
+      "text": "Show, hide and route questions based on the answers that matter."
+    },
+    "outcomes": {
+      "title": "Answers become outcomes",
+      "text": "Score, categorize and tailor the end screen to every completed response."
+    }
+  },
+  "builder": {
+    "eyebrow": "Form builder",
+    "title": "Everything you need to build powerful forms.",
+    "text": "Create flexible surveys with an intuitive drag-and-drop builder, welcome and end screens, and {{count}} purposeful question types.",
+    "c1": "Text and number",
+    "c2": "Choice and boolean",
+    "c3": "Rating, NPS and scale",
+    "c4": "Ranking and matrix",
+    "link": "Explore the builder"
+  },
+  "logicSection": {
+    "eyebrow": "Conditional logic",
+    "title": "Every answer can change what happens next.",
+    "text": "Build intelligent survey flows with flexible conditions and personalized respondent journeys, with clear paths from the first answer to the final outcome.",
+    "map": "Logic map",
+    "status": "Valid, no dead ends",
+    "caption": "Create confident branching for question visibility, conditional end screens, redirects and complex decision paths."
+  },
+  "scoring": {
+    "eyebrow": "Scoring engine",
+    "title": "Turn answers into meaningful results.",
+    "text": "Assign points, calculate scores and deliver configurable result categories for assessments and qualification flows.",
+    "endEyebrow": "Personalized end screens",
+    "endTitle": "A result that feels made for them.",
+    "endText": "Guide people to the next step with outcomes tailored to their answers and score."
+  },
+  "control": {
+    "eyebrow": "Response management",
+    "title": "Stay in control of every response.",
+    "text": "Manage limits, preserve respondent progress and validate submissions reliably.",
+    "quotas": {
+      "title": "Smart quotas",
+      "text": "Limit responses for defined groups, with clear warnings while people are still answering."
+    },
+    "autosave": {
+      "title": "Autosaved attempts",
+      "text": "Respondents can resume unfinished attempts and use a review screen before they submit."
+    },
+    "validation": {
+      "title": "Reliable validation",
+      "text": "Keep rules, answers and quota logic consistent between the form and the server."
+    }
+  },
+  "analytics": {
+    "eyebrow": "Analytics",
+    "title": "Understand every answer. Discover every path.",
+    "text": "Explore completion funnels, question-level insights and the actual paths respondents take through your surveys.",
+    "note": "Don't just see what people answered. Understand how they got there.",
+    "link": "Explore analytics"
+  },
+  "languages": {
+    "title": "One form. Multiple languages.",
+    "eyebrow": "Global by design",
+    "heading": "One consistent experience in every language.",
+    "text": "Create a form in your primary language, add up to {{count}} translations and keep each version in sync with clear missing-translation indicators.",
+    "c1": "Language detection from the URL or browser",
+    "c2": "Manual language switcher for respondents"
+  },
+  "exports": {
+    "eyebrow": "Exports and reporting",
+    "title": "Your survey data, ready when you need it.",
+    "text": "Export collected responses and analytical data in the formats you need."
+  },
+  "useCases": {
+    "eyebrow": "Use cases",
+    "title": "One platform. Many possibilities.",
+    "text": "Build surveys and dynamic forms for the decisions that matter most.",
+    "lead": {
+      "title": "Lead qualification",
+      "text": "Identify high-value prospects with conditional questions and scoring."
+    },
+    "quiz": {
+      "title": "Quizzes and assessments",
+      "text": "Evaluate responses, calculate scores and generate personalized results."
+    },
+    "feedback": {
+      "title": "Customer feedback",
+      "text": "Collect feedback, measure satisfaction and understand respondent journeys."
+    },
+    "recruit": {
+      "title": "Recruitment and evaluation",
+      "text": "Create structured questionnaires and assess candidates using scoring rules."
+    }
+  },
+  "how": {
+    "eyebrow": "How it works",
+    "title": "From idea to actionable insights.",
+    "s1": {
+      "title": "Build",
+      "text": "Create a survey with the visual builder and {{count}} question types."
+    },
+    "s2": {
+      "title": "Configure",
+      "text": "Add logic, scoring, quotas and translations."
+    },
+    "s3": {
+      "title": "Collect",
+      "text": "Share the form and preserve respondent progress with autosaved attempts."
+    },
+    "s4": {
+      "title": "Analyze",
+      "text": "Explore funnels, distributions, journeys and export your data."
+    }
+  },
+  "cta": {
+    "eyebrow": "Quorvia",
+    "title": "Ready to build smarter forms?",
+    "text": "Create dynamic surveys, deliver personalized experiences and understand every respondent journey with Quorvia.",
+    "button": "Get started",
+    "note": "Build forms that go beyond traditional surveys."
+  },
+  "footer": {
+    "tagline": "Dynamic forms for thoughtful questions, meaningful outcomes and clearer decisions.",
+    "product": "Product",
+    "explore": "Explore",
+    "account": "Account",
+    "formBuilder": "Form Builder",
+    "conditionalLogic": "Conditional Logic",
+    "scoringResults": "Scoring & Results",
+    "analytics": "Analytics",
+    "multilingual": "Multilingual Forms",
+    "useCases": "Use Cases",
+    "howItWorks": "How It Works",
+    "logIn": "Log in",
+    "getStarted": "Get started",
+    "rights": "© {{year}} Quorvia",
+    "slogan": "Build forms that think beyond questions."
+  }
+}

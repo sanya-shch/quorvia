@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+const loadLanding = () => import("./pages/landing/LandingPage");
 const loadLogin = () => import("./pages/auth/Login");
 const loadRegister = () => import("./pages/auth/Register");
 const loadDashboard = () => import("./pages/dashboard/Dashboard");
@@ -10,6 +11,7 @@ const loadPublicFormPage = () => import("./pages/viewer/PublicFormPage");
 const loadFormAnalyticsPage = () => import("./pages/analytics/FormAnalyticsPage");
 const loadQuestionDetailsPage = () => import("./pages/analytics/components/QuestionDetailsPage");
 
+const LandingPage = lazy(loadLanding);
 const Login = lazy(loadLogin);
 const Register = lazy(loadRegister);
 const Dashboard = lazy(loadDashboard);
@@ -22,6 +24,7 @@ const QuestionDetailsPage = lazy(loadQuestionDetailsPage);
 // their chunks would otherwise start downloading at the end of that chain.
 // Order matters: the more specific analytics path goes first.
 const preloaders: Array<[RegExp, () => Promise<unknown>]> = [
+  [/^\/$/, loadLanding],
   [/^\/login\/?$/, loadLogin],
   [/^\/register\/?$/, loadRegister],
   [/^\/public\/forms\//, loadPublicFormPage],
@@ -39,6 +42,7 @@ export const preloadRouteChunk = (pathname: string): void => {
 };
 
 export const router = createBrowserRouter([
+  { path: "/", element: <LandingPage /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
   { path: "/public/forms/:shareId", element: <PublicFormPage /> },

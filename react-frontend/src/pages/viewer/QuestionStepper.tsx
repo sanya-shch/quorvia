@@ -1,11 +1,15 @@
 import { otherAnswerKey } from "@quorvia/shared-types";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { type Question } from "../../types/formBuilder";
 import { type FormAnswers } from "../../types/formViewer";
-import { ErrorInfo } from "../../components/ui/ErrorInfo";
 import QuestionField from "./components/QuestionField";
-import { formatReviewAnswer } from "./reviewAnswer";
+import { buildReviewItems } from "./reviewItems";
+import FormLogo from "./components/FormLogo";
+import ViewerShell from "./components/ViewerShell";
+import ViewerQuestionCard from "./components/ViewerQuestionCard";
+import ReviewScreen from "./components/ReviewScreen";
+import SaveIndicator from "./components/SaveIndicator";
 import { useUploadedFiles } from "./uploadedFilesContext";
 import {
   getDefaultAnswer,
@@ -17,13 +21,12 @@ import {
 import { sortByOrder, getNextQuestion } from "./questionFlow";
 import { useAttemptAutosave } from "./hooks/useAttemptAutosave";
 import StepTransition, { type StepDirection } from "./components/StepTransition";
-import FormLogo from "./components/FormLogo";
 import { resolveVisibleQuestionIds, type QuestionLike } from "@quorvia/condition-engine";
 import { isHiddenCalculation, useCalculatedValues, withCalculatedValues } from "./calculations";
 
 interface QuestionStepperProps {
   formTitle: string;
-  // Public URL of the form logo, shown above the title.
+  // Public URL of the form logo, shown above the question.
   logoUrl?: string;
   formDescription?: string;
   questions: Question[];
@@ -32,6 +35,9 @@ interface QuestionStepperProps {
   onClearServerError?: (fieldId: string) => void;
   shareId?: string;
   sessionKey?: string;
+  // The language switcher and a banner (the quota warning), placed by the page.
+  languageSwitcher?: ReactNode;
+  notice?: ReactNode;
 }
 
 export default function QuestionStepper({
@@ -44,6 +50,8 @@ export default function QuestionStepper({
   onClearServerError,
   shareId,
   sessionKey = "",
+  languageSwitcher,
+  notice,
 }: QuestionStepperProps) {
   const { t, i18n } = useTranslation();
   // A calculation hidden from the respondent is never shown (the server does not even send it).
@@ -107,7 +115,12 @@ export default function QuestionStepper({
     [path, currentIndex, isReview],
   );
 
-  useAttemptAutosave(shareId, sessionKey, answers, reachedQuestionIds);
+  const { status: saveStatus } = useAttemptAutosave(
+    shareId,
+    sessionKey,
+    answers,
+    reachedQuestionIds,
+  );
 
   // Calculation fields: the value for the answers so far, from the same engine the server runs. The
   // visible questions are the logical ones, as on the server (an old answer to a question a branch
@@ -193,169 +206,128 @@ export default function QuestionStepper({
 
   if (path.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <p className="text-sm text-slate-500">{t("viewer.noQuestions")}</p>
-      </div>
+      <ViewerShell title={formTitle} headerRight={languageSwitcher} notice={notice} centered>
+        <p className="text-center text-sm text-slate-500">{t("viewer.noQuestions")}</p>
+      </ViewerShell>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 flex flex-col items-center">
-      <div className="w-full max-w-xl space-y-4">
-        {logoUrl && <FormLogo url={logoUrl} />}
-        <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-          <span>{formTitle}</span>
-          <span>
-            {isReview
-              ? t("viewer.stepper.reviewLabel")
-              : t("viewer.stepper.questionLabel", { number: currentIndex + 1 })}
-          </span>
-        </div>
+  const headerRight = (
+    <>
+      <SaveIndicator status={saveStatus} />
+      {languageSwitcher}
+    </>
+  );
 
-        <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
-          <div
-            className="h-full bg-indigo-600 transition-all duration-300"
-            style={{
-              width: isReview
-                ? "100%"
-                : `${Math.min(95, ((currentIndex + 0.5) / (currentIndex + 2)) * 100)}%`,
-            }}
-          />
-        </div>
+  // The total is unknown while branches can still change the path, so the bar is an estimate
+  // that slows down the further the respondent goes and fills up on the review screen.
+  const progress = isReview
+    ? 100
+    : Math.round(Math.min(95, ((currentIndex + 0.5) / (currentIndex + 2)) * 100));
+
+  const currentId = current ? current.id || `q-${currentIndex}` : "";
+  const currentError = combinedErrors[currentId];
+
+  return (
+    <ViewerShell
+      title={formTitle}
+      headerRight={headerRight}
+      progress={progress}
+      progressLabel={
+        isReview
+          ? t("viewer.stepper.reviewLabel")
+          : t("viewer.stepper.questionLabel", { number: currentIndex + 1 })
+      }
+      notice={notice}
+      width="lg"
+    >
+      <div className="space-y-4">
+        {logoUrl && <FormLogo url={logoUrl} />}
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          {isReview
+            ? t("viewer.stepper.reviewLabel")
+            : t("viewer.stepper.questionLabel", { number: currentIndex + 1 })}
+        </p>
 
         <StepTransition
           stepKey={isReview ? "review" : `q-${current?.id ?? currentIndex}`}
           direction={direction}
         >
           {isReview ? (
-            <div className="bg-surface rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5">
-              <div>
-                <h2
-                  ref={setHeadingRef}
-                  tabIndex={-1}
-                  className="text-xl font-bold text-slate-900 focus:outline-none"
-                >
-                  {t("viewer.stepper.reviewTitle")}
-                </h2>
-                {formDescription && (
-                  <p className="text-sm text-slate-500 mt-1">{formDescription}</p>
-                )}
-              </div>
-
-              <ul className="space-y-2">
-                {path.map((q, i) => (
-                  <li
-                    key={q.id || i}
-                    className="flex items-center justify-between text-sm border-b border-slate-100 pb-2 last:border-0"
-                  >
-                    <span className="text-xs text-slate-500">
-                      {q.text || t("viewer.questionFallback", { number: i + 1 })}
-                      {" - "}
-                      {formatReviewAnswer(q, shownAnswers[q.id!], answers[otherAnswerKey(q.id!)], {
-                        locale: i18n.language,
-                        yes: t("viewer.stepper.booleanYes"),
-                        no: t("viewer.stepper.booleanNo"),
-                        empty: t("viewer.stepper.noAnswer"),
-                        fileName: (id) => uploadedFiles.get(id)?.name,
-                      })}
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={() => goTo(i)}
-                      className="text-left text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer pl-4"
-                    >
-                      <span className="text-xs">{t("viewer.stepper.changeAnswer")}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="flex justify-between pt-2">
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className="inline-flex h-11 items-center rounded-xl px-5 text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  {t("viewer.stepper.back")}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleFinalSubmit}
-                  className="inline-flex h-11 items-center rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-on-primary hover:bg-indigo-500 shadow-sm transition-colors cursor-pointer"
-                >
-                  {t("viewer.submit")}
-                </button>
-              </div>
-            </div>
+            <ReviewScreen
+              items={buildReviewItems({
+                questions: path,
+                shownAnswers,
+                answers,
+                errors: localErrors,
+                fallbackText: (number) => t("viewer.questionFallback", { number }),
+                labels: {
+                  locale: i18n.language,
+                  yes: t("viewer.stepper.booleanYes"),
+                  no: t("viewer.stepper.booleanNo"),
+                  empty: t("viewer.stepper.noAnswer"),
+                },
+                fileName: (id) => uploadedFiles.get(id)?.name,
+              })}
+              description={formDescription}
+              headingRef={setHeadingRef}
+              onEdit={(id) => {
+                const index = path.findIndex((q, i) => (q.id || `q-${i}`) === id);
+                if (index !== -1) goTo(index);
+              }}
+              onBack={handleBack}
+              onSubmit={handleFinalSubmit}
+              errorHint={
+                isSubmitAttempted && Object.keys(localErrors).length > 0
+                  ? t("viewer.stepper.reviewErrorsHint")
+                  : undefined
+              }
+            />
           ) : (
             current && (
-              <div className="bg-surface rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5">
-                <div ref={setHeadingRef} tabIndex={-1} className="focus:outline-none">
-                  <label
-                    id={`${current.id || currentIndex}-label`}
-                    htmlFor={current.id || `q-${currentIndex}`}
-                    className="text-lg font-bold text-slate-800 flex items-center gap-1"
-                  >
-                    {current.text || t("viewer.questionFallback", { number: currentIndex + 1 })}
-                    {current.required && (
-                      <span
-                        className="text-rose-500"
-                        aria-label={t("viewer.requiredQuestionAriaLabel")}
-                      >
-                        *
-                      </span>
-                    )}
-                  </label>
-                  {current.description && (
-                    <p className="text-xs text-slate-500 mt-1">{current.description}</p>
-                  )}
-                </div>
+              <div className="space-y-4">
+                <ViewerQuestionCard
+                  cardId={`card-${currentId}`}
+                  number={currentIndex + 1}
+                  labelId={`${current.id || currentIndex}-label`}
+                  htmlFor={current.id || `q-${currentIndex}`}
+                  text={current.text || t("viewer.questionFallback", { number: currentIndex + 1 })}
+                  required={current.required}
+                  requiredAriaLabel={t("viewer.requiredQuestionAriaLabel")}
+                  description={current.description}
+                  error={currentError ? t(currentError.key, currentError.params) : undefined}
+                  errorId={`${current.id || currentIndex}-error`}
+                  size="lg"
+                  headerRef={setHeadingRef}
+                >
+                  <QuestionField
+                    question={current}
+                    qId={currentId}
+                    value={shownAnswers[currentId]}
+                    onChange={(value) => handleAnswerChange(currentId, value)}
+                    otherValue={answers[otherAnswerKey(currentId)]}
+                    onOtherChange={(text) => handleOtherChange(currentId, text)}
+                    labelledBy={`${current.id || currentIndex}-label`}
+                    describedBy={currentError ? `${current.id || currentIndex}-error` : undefined}
+                    invalid={!!currentError}
+                    shareId={shareId}
+                    sessionKey={sessionKey}
+                  />
+                </ViewerQuestionCard>
 
-                <QuestionField
-                  question={current}
-                  qId={current.id || `q-${currentIndex}`}
-                  value={shownAnswers[current.id || `q-${currentIndex}`]}
-                  onChange={(value) => handleAnswerChange(current.id || `q-${currentIndex}`, value)}
-                  otherValue={answers[otherAnswerKey(current.id || `q-${currentIndex}`)]}
-                  onOtherChange={(text) =>
-                    handleOtherChange(current.id || `q-${currentIndex}`, text)
-                  }
-                  labelledBy={`${current.id || currentIndex}-label`}
-                  describedBy={
-                    combinedErrors[current.id || `q-${currentIndex}`]
-                      ? `${current.id || currentIndex}-error`
-                      : undefined
-                  }
-                  invalid={!!combinedErrors[current.id || `q-${currentIndex}`]}
-                  shareId={shareId}
-                  sessionKey={sessionKey}
-                />
-
-                {combinedErrors[current.id || `q-${currentIndex}`] && (
-                  <div id={`${current.id || currentIndex}-error`}>
-                    <ErrorInfo
-                      errorText={t(
-                        combinedErrors[current.id || `q-${currentIndex}`].key,
-                        combinedErrors[current.id || `q-${currentIndex}`].params,
-                      )}
-                    />
-                  </div>
-                )}
-
-                <div className="flex justify-between pt-2">
+                <div className="flex items-center justify-between">
                   <button
                     type="button"
                     onClick={handleBack}
                     disabled={currentIndex === 0}
-                    className="inline-flex h-11 items-center rounded-xl px-5 text-sm font-semibold text-slate-500 hover:bg-slate-100 disabled:opacity-0 disabled:pointer-events-none transition-colors cursor-pointer"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:pointer-events-none disabled:opacity-0 cursor-pointer"
                   >
                     {t("viewer.stepper.back")}
                   </button>
                   <button
                     type="button"
                     onClick={handleNext}
-                    className="inline-flex h-11 items-center rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-on-primary hover:bg-indigo-500 shadow-sm transition-colors cursor-pointer"
+                    className="inline-flex h-12 items-center gap-2 rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-on-primary shadow-sm transition-colors hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 cursor-pointer"
                   >
                     {t("viewer.stepper.next")}
                   </button>
@@ -364,13 +336,7 @@ export default function QuestionStepper({
             )
           )}
         </StepTransition>
-
-        {isSubmitAttempted && Object.keys(localErrors).length > 0 && isReview && (
-          <p className="text-xs text-rose-600 text-center">
-            {t("viewer.stepper.reviewErrorsHint")}
-          </p>
-        )}
       </div>
-    </div>
+    </ViewerShell>
   );
 }

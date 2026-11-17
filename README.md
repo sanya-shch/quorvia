@@ -19,7 +19,7 @@ The project focuses on a non-trivial form engine rather than plain CRUD: conditi
 
 **Form builder**
 
-- 11 question types: text, number, boolean, date, single and multiple choice (with an optional “Other” answer), star rating, linear scale, NPS, ranking, and matrix (including Likert statements)
+- 14 question types: text, number, boolean, date, single and multiple choice (with an optional “Other” answer), image choice, star rating, linear scale, NPS, ranking, matrix (including Likert statements), file upload, and calculation fields
 - Conditional question visibility with `AND` / `OR` rules, graph validation and cycle detection
 - Welcome and end screens, with conditional end screens (result rules): a different message and redirect depending on the answers, decided on the server
 - Quotas: a limit of completed responses per group of respondents, kept atomically on the server, with an early warning while the form is being filled
@@ -29,9 +29,14 @@ The project focuses on a non-trivial form engine rather than plain CRUD: conditi
 
 **Respondents**
 
-- Step-by-step and all-at-once completion modes
-- Autosaved attempts, a review screen before submitting
+- Step-by-step and all-at-once completion modes, in one shared page frame (header with the form name, progress bar, save status, language pill)
+- Autosaved attempts with a live “saved” indicator
+- A review screen before submitting in **both** modes: step-by-step opens it after the last question, the all-at-once form opens it from “Review answers”; every answer is shown as text with an “Edit” button back to its question
 - Language chosen from `?lang=`, the browser, or a switcher
+
+**Public site**
+
+- A landing page at `/` that presents the product (features, use cases, how it works) in the interface language; signed-in users get a “Dashboard” button instead of “Get started”
 
 **Analytics and exports**
 
@@ -50,19 +55,19 @@ The project focuses on a non-trivial form engine rather than plain CRUD: conditi
 
 ## Documentation
 
-| Document                                       | Contents                                                                     |
-| ---------------------------------------------- | ---------------------------------------------------------------------------- |
-| [Architecture](docs/architecture.md)           | Monorepo layout, high-level diagram, data flow, design decisions, trade-offs |
-| [Frontend](docs/frontend.md)                   | React host, Vue micro-frontend, state management, performance, motion        |
-| [Conditional logic](docs/conditional-logic.md) | The condition engine, dependency validation, server-side invariants          |
-| [Calculation fields](docs/calculation.md)      | Formula language, exact decimals, editor, live value, exports and analytics  |
-| [Question types](docs/question-types.md)       | Supported types and the checklist for adding a new one                       |
-| [Content languages](docs/content-languages.md) | Translating forms and how respondents pick a language                        |
-| [Analytics](docs/analytics.md)                 | Attempts, reached vs. visible questions, funnel and per-type analytics       |
-| [Exports](docs/exports.md)                     | The asynchronous export pipeline                                             |
-| [Security](docs/security.md)                   | Implemented measures, data retention, known gaps and deployment notes        |
-| [API](docs/API.md)                             | Endpoint reference                                                           |
-| [Local development](docs/development.md)       | Setup, environment variables, running and testing                            |
+| Document                                       | Contents                                                                              |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------- |
+| [Architecture](docs/architecture.md)           | Monorepo layout, high-level diagram, data flow, design decisions, trade-offs          |
+| [Frontend](docs/frontend.md)                   | React host, Vue micro-frontend, landing page, public form viewer, performance, motion |
+| [Conditional logic](docs/conditional-logic.md) | The condition engine, dependency validation, server-side invariants                   |
+| [Calculation fields](docs/calculation.md)      | Formula language, exact decimals, editor, live value, exports and analytics           |
+| [Question types](docs/question-types.md)       | Supported types and the checklist for adding a new one                                |
+| [Content languages](docs/content-languages.md) | Translating forms and how respondents pick a language                                 |
+| [Analytics](docs/analytics.md)                 | Attempts, reached vs. visible questions, funnel and per-type analytics                |
+| [Exports](docs/exports.md)                     | The asynchronous export pipeline                                                      |
+| [Security](docs/security.md)                   | Implemented measures, data retention, known gaps and deployment notes                 |
+| [API](docs/API.md)                             | Endpoint reference                                                                    |
+| [Local development](docs/development.md)       | Setup, environment variables, running and testing                                     |
 
 ## Quick start
 

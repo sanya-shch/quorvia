@@ -26,6 +26,7 @@ import { getOrCreateSessionKey } from "./sessionKey";
 import { type FieldValidationError } from "./questionValidation";
 import { getApiErrorMessage } from "../../i18n/errorCodes";
 import ViewerLanguageSwitcher from "./components/ViewerLanguageSwitcher";
+import ViewerShell from "./components/ViewerShell";
 import {
   getMainLanguage,
   getRequestedLanguages,
@@ -222,6 +223,15 @@ export default function PublicFormPage() {
       );
   };
 
+  // The switcher lives in the page header; only multilingual forms have one.
+  const languageSwitcher = isMultilingual ? (
+    <ViewerLanguageSwitcher
+      languages={formLanguages}
+      value={language}
+      onChange={handleLanguageChange}
+    />
+  ) : undefined;
+
   const logoSource = localized ?? closedForm;
   const logoUrl = logoSource?.logoAssetId ? assetUrl(logoSource.logoAssetId) : undefined;
 
@@ -244,20 +254,9 @@ export default function PublicFormPage() {
 
     const closedScreen = (
       <ThemeScope theme={source.theme}>
-        <>
-          {isMultilingual && (
-            <div className="bg-slate-50 px-4 pt-3">
-              <div className="mx-auto max-w-3xl">
-                <ViewerLanguageSwitcher
-                  languages={formLanguages}
-                  value={language}
-                  onChange={handleLanguageChange}
-                />
-              </div>
-            </div>
-          )}
+        <ViewerShell title={closedTitle} headerRight={languageSwitcher} width="md" centered>
           <ClosedScreen title={closedTitle} reason={closedReason} logoUrl={logoUrl} />
-        </>
+        </ViewerShell>
       </ThemeScope>
     );
 
@@ -273,24 +272,13 @@ export default function PublicFormPage() {
 
     const quotaScreen = (
       <ThemeScope theme={openForm.theme}>
-        <>
-          {isMultilingual && (
-            <div className="bg-slate-50 px-4 pt-3">
-              <div className="mx-auto max-w-3xl">
-                <ViewerLanguageSwitcher
-                  languages={formLanguages}
-                  value={language}
-                  onChange={handleLanguageChange}
-                />
-              </div>
-            </div>
-          )}
+        <ViewerShell title={quotaTitle} headerRight={languageSwitcher} width="md" centered>
           <QuotaFullScreen
             title={quotaTitle}
             message={quotaFullBySubmit.message}
             logoUrl={logoUrl}
           />
-        </>
+        </ViewerShell>
       </ThemeScope>
     );
 
@@ -338,69 +326,49 @@ export default function PublicFormPage() {
       ? normalizeEndScreen(submitResult.endScreen)
       : localized.endScreen;
 
+  const quotaNotice = quotaWarning ? (
+    <div
+      role="alert"
+      className="mb-5 whitespace-pre-line rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800"
+    >
+      {quotaWarning.message?.trim() ? quotaWarning.message : t("viewer.quotaFull.warning")}
+    </div>
+  ) : undefined;
+
+  const viewerProps = {
+    formTitle: localized.title,
+    logoUrl,
+    formDescription: localized.description,
+    questions: localized.questions,
+    serverErrors: formServerErrors,
+    onClearServerError: handleClearServerError,
+    onSubmit: handleFormSubmit,
+    shareId,
+    sessionKey,
+    languageSwitcher,
+    notice: quotaNotice,
+  };
+
   const content = isSubmitted ? (
-    <EndScreen screen={endScreen} />
+    <ViewerShell title={localized.title} headerRight={languageSwitcher} width="md" centered>
+      <EndScreen screen={endScreen} />
+    </ViewerShell>
+  ) : showWelcome && localized.welcomeScreen ? (
+    <ViewerShell title={localized.title} headerRight={languageSwitcher} width="lg" centered>
+      <WelcomeScreen
+        screen={localized.welcomeScreen}
+        logoUrl={logoUrl}
+        onStart={() => setStarted(true)}
+      />
+    </ViewerShell>
   ) : (
-    <>
-      {isMultilingual && (
-        <div className="bg-slate-50 px-4 pt-3">
-          <div className="mx-auto max-w-3xl">
-            <ViewerLanguageSwitcher
-              languages={formLanguages}
-              value={language}
-              onChange={handleLanguageChange}
-            />
-          </div>
-        </div>
-      )}
-
-      {quotaWarning && (
-        <div className="bg-slate-50 px-4 pt-3">
-          <div
-            role="alert"
-            className="mx-auto max-w-3xl whitespace-pre-line rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800"
-          >
-            {quotaWarning.message?.trim() ? quotaWarning.message : t("viewer.quotaFull.warning")}
-          </div>
-        </div>
-      )}
-
-      {showWelcome && localized.welcomeScreen ? (
-        <WelcomeScreen
-          screen={localized.welcomeScreen}
-          logoUrl={logoUrl}
-          onStart={() => setStarted(true)}
-        />
+    <div className={isSubmitting ? "opacity-60 pointer-events-none transition-opacity" : ""}>
+      {localized.responseMode === "STEP_BY_STEP" ? (
+        <QuestionStepper {...viewerProps} />
       ) : (
-        <div className={isSubmitting ? "opacity-60 pointer-events-none transition-opacity" : ""}>
-          {localized.responseMode === "STEP_BY_STEP" ? (
-            <QuestionStepper
-              formTitle={localized.title}
-              logoUrl={logoUrl}
-              formDescription={localized.description}
-              questions={localized.questions}
-              serverErrors={formServerErrors}
-              onClearServerError={handleClearServerError}
-              onSubmit={handleFormSubmit}
-              shareId={shareId}
-              sessionKey={sessionKey}
-            />
-          ) : (
-            <FormViewer
-              formTitle={localized.title}
-              logoUrl={logoUrl}
-              formDescription={localized.description}
-              questions={localized.questions}
-              serverErrors={formServerErrors}
-              onClearServerError={handleClearServerError}
-              onSubmit={handleFormSubmit}
-              shareId={shareId}
-              sessionKey={sessionKey}
-            />
-          )}
-        </div>
+        <FormViewer {...viewerProps} />
       )}
-    </>
+    </div>
   );
 
   // The theme applies to the public page only (a form without one renders unchanged).

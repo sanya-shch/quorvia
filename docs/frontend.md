@@ -7,6 +7,7 @@ The main application is built with React and contains:
 - authentication;
 - dashboard;
 - form builder;
+- landing page;
 - public form viewer;
 - response analytics;
 - raw responses;
@@ -43,6 +44,25 @@ Zustand is used for local application state:
 - transient UI state.
 
 This avoids duplicating server data inside a global client store.
+
+## Landing page
+
+`/` is a public, lazily loaded route (`pages/landing/LandingPage.tsx`). Every other route keeps its previous path; unknown paths still go to `/dashboard`.
+
+- The text lives in the `landing` i18n bundle (`uk` and `en`, kept identical by the parity test). Numbers that depend on the product are read from the code, not typed in: the number of question types is `QUESTION_TYPES.length` and the translation limit is `MAX_ADDITIONAL_LANGUAGES`, so the page cannot drift from what the builder offers.
+- The product previews (`LandingMocks.tsx`) are drawn with markup instead of screenshots: they follow the interface language, cost no image requests and are `aria-hidden` (the text beside each one says what it shows).
+- A signed-in user (`useAuthStore.isAuthenticated`) sees “Dashboard” instead of “Get started”. The session is restored by `ProtectedRoute`, so after a full page reload a signed-in user sees the visitor version until they open a protected page.
+- The page uses plain Tailwind palette classes: it is not part of the form theme.
+
+## Public form viewer
+
+All public form screens share `ViewerShell`: a sticky header (mark, form name, save status, language switcher), an optional progress bar, the content column and a footer. The shell, the question card, the review screen and the language pill use only the palette classes that `ThemeScope` re-points (`slate`, `indigo`, `surface`, `on-primary`), so a themed form keeps its colors everywhere; `viewerTheme.contract.test.ts` rejects plain `white`/`black` utilities.
+
+- **All-at-once mode** (`FormViewer`): an intro card with the “N of M questions answered” summary, numbered question cards (the badge and border light up while a field inside has focus and turn red on an error), and a submit bar with “Submit” and “Review answers”. The progress bar is the share of answered questions; calculations are not counted (`answerProgress.ts`).
+- **Step-by-step mode** (`QuestionStepper`): one numbered card per step. The total is unknown while branches can change the path, so the bar is an estimate that fills up on the review screen.
+- **Review screen** (`ReviewScreen`, rows from `buildReviewItems`): used by both modes, so an answer is written the same way in both (`formatReviewAnswer`: option texts instead of ids, “Yes/No”, matrix rows, file names, computed values). “Edit” goes back to the question with its answers intact (all-at-once: scrolls to it and focuses the first control; step-by-step: opens that step). A required question without an answer is marked in red. Submitting from the review checks everything again: if something is wrong, the respondent lands on the form at the first problem with the errors shown.
+- **Save status**: `useAttemptAutosave` returns `idle | saving | saved`. “Saved” means the last successful save holds exactly the current answers, so typing again drops it back until the next save lands. A failed save is not shown to the respondent (autosave stays best-effort).
+- Welcome, thank-you, closed and quota-full screens are plain cards inside the same shell, so the header and footer look the same on every screen.
 
 ## Vue Analytics Micro-Frontend
 

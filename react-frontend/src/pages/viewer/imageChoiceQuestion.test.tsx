@@ -100,6 +100,6 @@ describe("FormViewer - IMAGE_CHOICE", () => {
     await user.click(screen.getByRole("button", SUBMIT));
 
     expect(onSubmit).not.toHaveBeenCalled();
-    expect(await screen.findByText(/обов/i)).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent(/обов/i);
   });
 });
