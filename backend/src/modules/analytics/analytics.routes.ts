@@ -3,6 +3,8 @@ import {
   getFormFunnelHandler,
   getAnalyticsHandler,
   getFormPathsHandler,
+  getFormJourneysHandler,
+  getFormSummaryHandler,
   getQuestionAnalyticsHandler,
   getResponseByIdHandler,
   getResponsesHandler,
@@ -17,5 +19,7 @@ router.get("/:formId/questions/:questionId/analytics", authMiddleware, getQuesti
 router.get("/:formId/responses", authMiddleware, getResponsesHandler);
 router.get("/:formId/responses/:responseId", authMiddleware, getResponseByIdHandler);
 router.get("/:formId/analytics/funnel", authMiddleware, getFormFunnelHandler);
+router.get("/:formId/analytics/summary", authMiddleware, getFormSummaryHandler);
+router.get("/:formId/analytics/journeys", authMiddleware, getFormJourneysHandler);
 
 export default router;

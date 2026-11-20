@@ -535,13 +535,108 @@ export interface QuestionFunnelNode {
   text: string;
   order: number;
   reachedCount: number;
+  // Attempts that were NOT submitted and whose last reached question is this one: where people
+  // really gave up. Unlike reachedCount[i-1] - reachedCount[i] it is not blurred by branching
+  // (a question skipped by a condition is not an exit).
+  exitedCount: number;
 }
 
 export interface FormFunnelDto {
   totalAttempts: number;
   totalCompletions: number;
   completionRate: number;
+  // Median of (completedAt - startedAt) over the submitted attempts, in seconds; null without
+  // any. It includes time the tab sat idle, so it is a "time to finish", not "time on task".
+  medianCompletionSeconds: number | null;
   nodes: QuestionFunnelNode[];
+}
+
+/**
+ * The period the analytics are limited to (ISO 8601 instants). Both ends are inclusive and
+ * optional: no `from` is "since the beginning", no `to` is "until now".
+ */
+export interface AnalyticsPeriodDto {
+  from: string | null;
+  to: string | null;
+}
+
+// Numbers of one period, shared by the KPI cards and their change against the previous period.
+export interface AnalyticsPeriodTotals {
+  // Submitted responses (Response rows created in the period).
+  responses: number;
+  // Attempts started in the period (autosaved sessions, finished or not).
+  started: number;
+  // Of those started: submitted / not submitted.
+  completed: number;
+  abandoned: number;
+  // completed / started, 0..1; 0 without attempts.
+  completionRate: number;
+  medianCompletionSeconds: number | null;
+}
+
+export interface AnalyticsDailyPoint {
+  // UTC calendar day, YYYY-MM-DD.
+  date: string;
+  started: number;
+  submitted: number;
+}
+
+export interface AnalyticsSummaryDto {
+  period: AnalyticsPeriodDto;
+  current: AnalyticsPeriodTotals;
+  // The same numbers for the period of equal length right before this one; null when the period
+  // is open on either side (there is nothing to compare "all time" with).
+  previous: AnalyticsPeriodTotals | null;
+  // Per UTC day inside the period (only for a closed period of at most ANALYTICS_MAX_DAILY_DAYS
+  // days; empty otherwise).
+  daily: AnalyticsDailyPoint[];
+}
+
+export const ANALYTICS_MAX_DAILY_DAYS = 366;
+
+export const JOURNEY_STATUSES = ["all", "completed", "abandoned"] as const;
+export type JourneyStatus = (typeof JOURNEY_STATUSES)[number];
+
+export const JOURNEY_DEFAULT_STEPS = 6;
+export const JOURNEY_MAX_STEPS = 20;
+
+/**
+ * A node of the journey map (a Sankey diagram of how respondents move through the form).
+ *  - start: every attempt begins here;
+ *  - question: the question reached at the given step (the step is its position in the
+ *    respondent's own path, so with branches one column holds several questions);
+ *  - more: everything after the last shown step, when the path is longer than `steps`;
+ *  - exit: attempts that stopped after the node they come from, without submitting;
+ *  - submitted: attempts that finished.
+ */
+export interface JourneyNode {
+  id: string;
+  kind: "start" | "question" | "more" | "exit" | "submitted";
+  // Column of the diagram: 0 is the start, the outcome nodes are in the last column.
+  column: number;
+  questionId: string | null;
+  // The question text (question and exit-at-question nodes); null for the others.
+  text: string | null;
+  // Position in the form (question and exit nodes) to sort a column by.
+  order: number | null;
+  // Attempts passing through the node.
+  count: number;
+}
+
+export interface JourneyLink {
+  source: string;
+  target: string;
+  count: number;
+}
+
+export interface FormJourneysDto {
+  status: JourneyStatus;
+  steps: number;
+  totalAttempts: number;
+  // Number of columns, including the start and the outcome column.
+  columns: number;
+  nodes: JourneyNode[];
+  links: JourneyLink[];
 }
 
 export interface ResponseSummary {

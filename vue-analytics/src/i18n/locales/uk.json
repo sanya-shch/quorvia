@@ -27,12 +27,18 @@
       "questionDetailsLoadFailed": "Не вдалося завантажити деталі питання",
       "responseDetailLoadFailed": "Не вдалося завантажити деталі відповіді",
       "responsesListLoadFailed": "Не вдалося завантажити відповіді",
-      "exportListLoadFailed": "Не вдалося завантажити список експортів"
+      "exportListLoadFailed": "Не вдалося завантажити список експортів",
+      "summaryLoadFailed": "Не вдалося завантажити підсумкові показники.",
+      "journeysLoadFailed": "Не вдалося завантажити карту маршрутів."
     },
     "header": {
       "title": "Аналітика форми",
-      "subtitle": "Vue 3 · завантажено через Module Federation",
-      "totalResponses": "{count} відповідей"
+      "subtitle": "Результативність, якість відповідей і поведінка гілок в одному місці.",
+      "totalResponses": "{count} відповідей",
+      "published": "Опубліковано",
+      "draft": "Чернетка",
+      "version": "Версія {version}",
+      "updated": "Оновлено {date}"
     },
     "tabs": {
       "overview": "Огляд",
@@ -45,11 +51,28 @@
       "completed": "завершили ({completions} з {total})",
       "hint": "На відміну від \"Шляхів проходження\" вище, тут враховані й покинуті проходження (autosave чернетки), не лише завершені відповіді — це і є справжній funnel.",
       "empty": "Ще немає жодного заходу на форму.",
-      "dropOff": "−{count} відсіялись на цьому кроці"
+      "dropOff": "−{count} відсіялись на цьому кроці",
+      "started": "Розпочато",
+      "submitted": "Надіслано",
+      "highestFriction": "Найбільше труднощів",
+      "exits": "виходів: {count}",
+      "medianTime": "Медіанний час заповнення",
+      "unfinished": "Незавершених: {count}",
+      "sortForm": "Порядок: як у формі",
+      "sortDropoff": "Порядок: найбільше відтоку",
+      "colQuestion": "Питання",
+      "colReached": "Дійшли",
+      "colCompletion": "Проходження",
+      "colExits": "Виходи",
+      "highestDropoff": "Найбільший відтік",
+      "continued": "продовжили: {value}",
+      "viewAll": "Усі питання ({count})",
+      "showFewer": "Показати менше"
     },
     "analyticsSection": {
       "loading": "Завантаження аналітики...",
-      "emptyState": "Ще немає жодної завершеної відповіді на цю форму."
+      "emptyState": "Ще немає жодної завершеної відповіді на цю форму.",
+      "emptyPeriod": "За цей період відповідей немає. Спробуйте довший період або «Весь час»."
     },
     "paths": {
       "sectionTitle": "Шляхи проходження",
@@ -127,6 +150,98 @@
         "EXPORT_FAILED": "Не вдалося створити експорт. Спробуйте ще раз",
         "EXPORT_TOO_LARGE": "Забагато відповідей для експорту"
       }
+    },
+    "period": {
+      "label": "Період",
+      "7d": "7 днів",
+      "30d": "30 днів",
+      "90d": "90 днів",
+      "all": "Весь час",
+      "custom": "Свій",
+      "from": "Від",
+      "to": "До",
+      "invalid": "Початкова дата пізніша за кінцеву."
+    },
+    "kpi": {
+      "sectionLabel": "Ключові показники",
+      "responses": "Усього відповідей",
+      "started": "Розпочаті спроби",
+      "completion": "Частка завершення",
+      "abandoned": "Покинуті спроби",
+      "allTime": "За весь час",
+      "noPrior": "У попередньому періоді даних немає",
+      "vsPrior": "{value}% до попереднього періоду",
+      "vsPriorPoints": "{value} в.п. до попереднього періоду",
+      "includesUnfinished": "Разом із незавершеними: {count}",
+      "ofStarted": "{value} від розпочатих спроб"
+    },
+    "trend": {
+      "title": "Активність у часі",
+      "hint": "Розпочаті спроби та надіслані відповіді за днями (UTC).",
+      "started": "Розпочато",
+      "submitted": "Надіслано",
+      "aria": "Графік за {days} дн.: розпочато спроб - {started}, надіслано - {submitted}.",
+      "tooltip": "розпочато {started}, надіслано {submitted}"
+    },
+    "questions": {
+      "sectionTitle": "Аналітика питань",
+      "sectionHint": "Підсумки за типами питань за {count} надісланими відповідями. Натисніть картку, щоб побачити деталі.",
+      "expandAll": "Розгорнути все",
+      "collapseAll": "Згорнути"
+    },
+    "journey": {
+      "sectionHint": "Основні маршрути, умовні гілки та місця, де респонденти йдуть.",
+      "start": "Початок",
+      "allAttempts": "Усі спроби",
+      "outcome": "Результат",
+      "submitted": "Надіслано",
+      "later": "Далі",
+      "laterSteps": "Наступні кроки",
+      "exit": "Вихід",
+      "exitAt": "Вихід на {question}",
+      "exitAtStart": "Пішли до першого питання",
+      "step": "Крок {step}",
+      "empty": "За цими фільтрами спроб поки немає.",
+      "loading": "Завантажуємо маршрути...",
+      "statusLabel": "Які спроби",
+      "status": {
+        "all": "Усі маршрути",
+        "completed": "Завершені",
+        "abandoned": "Покинуті"
+      },
+      "viewLabel": "Вигляд",
+      "view": {
+        "map": "Карта маршрутів",
+        "steps": "Список кроків",
+        "flow": "Потік питань"
+      },
+      "hideLowVolume": "Сховати рідкісні шляхи",
+      "stepsLabel": "Кількість показаних кроків",
+      "allSteps": "Усі кроки",
+      "stepsCount": "Кроків: {count}",
+      "modeLabel": "Числа показано як",
+      "counts": "Кількість",
+      "percentages": "Відсотки",
+      "reset": "Скинути",
+      "legendMain": "Основний маршрут",
+      "legendBranch": "Умовна гілка",
+      "legendExit": "Вихід",
+      "zoom": "Масштаб",
+      "zoomOut": "Зменшити",
+      "zoomIn": "Збільшити",
+      "hiddenNodes": "Сховано рідкісних вузлів: {count}.",
+      "inspector": "Огляд шляху",
+      "inspectorHelp": "Виберіть вузол, щоб побачити, звідки прийшли його спроби і куди пішли. Наведіть на вузол, щоб підсвітити його шляхи.",
+      "reached": "Дійшли: {count}",
+      "shareOfAttempts": "{value} від усіх спроб",
+      "exitedHere": "Вийшли: {count}",
+      "continued": "Продовжили: {count}",
+      "shareOfReached": "{value} від тих, хто дійшов",
+      "cameFrom": "Звідки прийшли",
+      "wentTo": "Куди пішли",
+      "inspectQuestion": "Аналітика питання",
+      "attemptsInMap": "Спроб у цьому вигляді: {count}",
+      "largestExit": "Найбільший вихід: {question}, спроб: {count}"
     }
   }
 }

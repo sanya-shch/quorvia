@@ -11,6 +11,8 @@ const {
   getFormPaths,
   buildFormFunnel,
   getFormFunnel,
+  getFormSummary,
+  getFormJourneys,
 } = await import("./analytics.service.js");
 
 vi.mock("../../prisma/prisma.js", () => ({
@@ -524,9 +526,9 @@ describe("buildFormFunnel", () => {
     expect(result.totalAttempts).toBe(3);
     expect(result.totalCompletions).toBe(1);
     expect(result.nodes).toEqual([
-      { questionId: "q1", text: "Питання 1", order: 0, reachedCount: 3 }, // all three reached it
-      { questionId: "q2", text: "Питання 2", order: 1, reachedCount: 2 }, // two
-      { questionId: "q3", text: "Питання 3", order: 2, reachedCount: 1 }, // only the completed one
+      { questionId: "q1", text: "Питання 1", order: 0, reachedCount: 3, exitedCount: 1 }, // all three reached it, one left here
+      { questionId: "q2", text: "Питання 2", order: 1, reachedCount: 2, exitedCount: 1 }, // two, one left here
+      { questionId: "q3", text: "Питання 3", order: 2, reachedCount: 1, exitedCount: 0 }, // only the completed one
     ]);
   });
 
@@ -621,11 +623,176 @@ describe("getFormFunnel", () => {
 
     expect(prisma.responseAttempt.findMany).toHaveBeenCalledWith({
       where: { formId: FORM_ID },
-      select: { id: true, reachedQuestionIds: true, visibleQuestionIds: true, completedAt: true },
+      select: {
+        id: true,
+        reachedQuestionIds: true,
+        visibleQuestionIds: true,
+        startedAt: true,
+        completedAt: true,
+      },
       orderBy: [{ sessionKey: "asc" }, { id: "asc" }],
       take: 2000,
     });
     expect(result.totalAttempts).toBe(1);
     expect(result.totalCompletions).toBe(0);
+  });
+});
+
+describe("періоди й підсумки", () => {
+  const form = {
+    id: FORM_ID,
+    userId: OWNER_ID,
+    questions: questions.map((q, order) => ({ ...q, order })),
+  };
+  const at = (iso: string) => new Date(iso);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (prisma.form.findUnique as any).mockResolvedValue(form);
+  });
+
+  it("getFormFunnel обмежує спроби періодом за startedAt", async () => {
+    (prisma.responseAttempt.findMany as any).mockResolvedValue([]);
+    const period = { from: at("2026-11-01T00:00:00Z"), to: at("2026-11-30T23:59:59Z") };
+
+    await getFormFunnel(FORM_ID, OWNER_ID, period);
+
+    expect((prisma.responseAttempt.findMany as any).mock.calls[0][0].where).toEqual({
+      formId: FORM_ID,
+      startedAt: { gte: period.from, lte: period.to },
+    });
+  });
+
+  it("без періоду where лишається {formId} - запит такий самий, як до появи періодів", async () => {
+    (prisma.responseAttempt.findMany as any).mockResolvedValue([]);
+
+    await getFormFunnel(FORM_ID, OWNER_ID);
+
+    expect((prisma.responseAttempt.findMany as any).mock.calls[0][0].where).toEqual({
+      formId: FORM_ID,
+    });
+  });
+
+  it("медіана часу заповнення та виходи по питаннях у воронці", async () => {
+    (prisma.responseAttempt.findMany as any).mockResolvedValue([
+      {
+        id: "a1",
+        reachedQuestionIds: [questions[0].id],
+        visibleQuestionIds: [],
+        startedAt: at("2026-11-01T10:00:00Z"),
+        completedAt: at("2026-11-01T10:01:00Z"), // 60 s
+      },
+      {
+        id: "a2",
+        reachedQuestionIds: [questions[0].id],
+        visibleQuestionIds: [],
+        startedAt: at("2026-11-01T11:00:00Z"),
+        completedAt: at("2026-11-01T11:03:00Z"), // 180 s
+      },
+      {
+        id: "a3",
+        reachedQuestionIds: [questions[0].id],
+        visibleQuestionIds: [],
+        startedAt: at("2026-11-01T12:00:00Z"),
+        completedAt: null,
+      },
+    ]);
+
+    const funnel = await getFormFunnel(FORM_ID, OWNER_ID);
+
+    expect(funnel.medianCompletionSeconds).toBe(120);
+    expect(funnel.nodes.find((n) => n.questionId === questions[0].id)).toMatchObject({
+      reachedCount: 3,
+      exitedCount: 1,
+    });
+  });
+
+  it("getFormSummary: KPI періоду, порівняння з попереднім і денна серія", async () => {
+    const period = { from: at("2026-11-04T00:00:00Z"), to: at("2026-11-06T23:59:59.999Z") }; // 3 days
+    (prisma.responseAttempt.findMany as any)
+      // current period
+      .mockResolvedValueOnce([
+        {
+          id: "a1",
+          reachedQuestionIds: [],
+          visibleQuestionIds: [],
+          startedAt: at("2026-11-04T09:00:00Z"),
+          completedAt: at("2026-11-04T09:02:00Z"),
+        },
+        {
+          id: "a2",
+          reachedQuestionIds: [],
+          visibleQuestionIds: [],
+          startedAt: at("2026-11-05T09:00:00Z"),
+          completedAt: null,
+        },
+      ])
+      // previous period
+      .mockResolvedValueOnce([
+        {
+          id: "b1",
+          reachedQuestionIds: [],
+          visibleQuestionIds: [],
+          startedAt: at("2026-11-02T09:00:00Z"),
+          completedAt: null,
+        },
+      ]);
+    (prisma.response.count as any).mockResolvedValueOnce(5).mockResolvedValueOnce(2);
+
+    const summary = await getFormSummary(FORM_ID, OWNER_ID, period);
+
+    expect(summary.current).toEqual({
+      responses: 5,
+      started: 2,
+      completed: 1,
+      abandoned: 1,
+      completionRate: 0.5,
+      medianCompletionSeconds: 120,
+    });
+    expect(summary.previous).toMatchObject({ responses: 2, started: 1, completed: 0 });
+    expect(summary.daily).toEqual([
+      { date: "2026-11-04", started: 1, submitted: 1 },
+      { date: "2026-11-05", started: 1, submitted: 0 },
+      { date: "2026-11-06", started: 0, submitted: 0 },
+    ]);
+  });
+
+  it("getFormSummary без періоду: порівняння й денної серії немає", async () => {
+    (prisma.responseAttempt.findMany as any).mockResolvedValue([]);
+    (prisma.response.count as any).mockResolvedValue(0);
+
+    const summary = await getFormSummary(FORM_ID, OWNER_ID);
+
+    expect(summary.previous).toBeNull();
+    expect(summary.daily).toEqual([]);
+    expect(summary.current.completionRate).toBe(0);
+    expect(summary.current.medianCompletionSeconds).toBeNull();
+  });
+
+  it("getFormSummary і getFormJourneys: чужа форма - 403, відсутня - 404", async () => {
+    (prisma.form.findUnique as any).mockResolvedValueOnce({ ...form, userId: OTHER_USER_ID });
+    await expect(getFormSummary(FORM_ID, OWNER_ID)).rejects.toMatchObject({ statusCode: 403 });
+
+    (prisma.form.findUnique as any).mockResolvedValueOnce(null);
+    await expect(
+      getFormJourneys(FORM_ID, OWNER_ID, { status: "all", steps: 6 }),
+    ).rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it("getFormJourneys будує карту зі спроб", async () => {
+    (prisma.responseAttempt.findMany as any).mockResolvedValue([
+      {
+        id: "a1",
+        reachedQuestionIds: [questions[0].id],
+        visibleQuestionIds: [],
+        startedAt: at("2026-11-01T10:00:00Z"),
+        completedAt: null,
+      },
+    ]);
+
+    const journeys = await getFormJourneys(FORM_ID, OWNER_ID, { status: "all", steps: 6 });
+
+    expect(journeys.totalAttempts).toBe(1);
+    expect(journeys.nodes.map((n) => n.kind)).toEqual(["start", "question", "exit"]);
   });
 });

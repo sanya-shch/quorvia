@@ -92,6 +92,15 @@ When the backend answers `401`, the Vue API client asks the host for a fresh tok
 
 Because a federated remote runs in the same page as the host, the remote's origin is a trusted code source - see [Security](security.md) for the CSP that restricts it.
 
+### The overview page
+
+`AnalyticsApp.vue` composes: a header (form title, Published/Draft badge, version and date, from `/forms/:id/admin`; if that request fails the header simply has no badge), a period picker (7 / 30 / 90 days, all time, custom), the KPI cards with their change against the previous period, the activity trend, the completion funnel, the score summary, the question cards ("Expand all insights" shows every ranked item and matrix row instead of three) and the journey panel.
+
+- **One period for every block.** The picker owns a `from`/`to` pair that every composable receives as a ref and reloads on; `useQueryResource` gives each load a ticket so a slow earlier response cannot overwrite a newer one while someone clicks through periods. A reversed custom range is not applied (the picker explains why) and the last valid period stays on screen. The Responses tab and the export are not filtered by the period.
+- **Funnel**: tiles (started, submitted, highest friction, median time), a sortable table (form order / highest drop-off) with exits per question and the "lost since the previous question" hint, collapsed to eight rows. A row opens the question's analytics when it has any.
+- **Journey map**: `sankeyLayout.ts` is a pure function (columns, node heights, stacked ribbon slots) so it is unit tested; nodes are focusable buttons over SVG ribbons. Hover or focus lights up a node's paths, a click pins it and fills the inspector. Controls: all / completed / abandoned, steps, hide low-volume, counts / percentages, zoom, reset. A text "step list" shows the same data and is the default on narrow screens.
+- The Vue app styles itself with scoped CSS (it has no Tailwind), using the same indigo / slate palette as the React pages.
+
 **Why Module Federation?**
 
 The project intentionally demonstrates cross-framework integration rather than migrating the entire application to another framework.

@@ -27,12 +27,18 @@
       "questionDetailsLoadFailed": "Failed to load question details",
       "responseDetailLoadFailed": "Failed to load response details",
       "responsesListLoadFailed": "Failed to load responses",
-      "exportListLoadFailed": "Failed to load the export list"
+      "exportListLoadFailed": "Failed to load the export list",
+      "summaryLoadFailed": "Failed to load the summary numbers.",
+      "journeysLoadFailed": "Failed to load the journey map."
     },
     "header": {
       "title": "Form analytics",
-      "subtitle": "Vue 3 · loaded via Module Federation",
-      "totalResponses": "{count} responses"
+      "subtitle": "Performance, response quality, and branching behavior in one view.",
+      "totalResponses": "{count} responses",
+      "published": "Published",
+      "draft": "Draft",
+      "version": "Version {version}",
+      "updated": "Updated {date}"
     },
     "tabs": {
       "overview": "Overview",
@@ -45,11 +51,28 @@
       "completed": "completed ({completions} of {total})",
       "hint": "Unlike \"Response paths\" below, this includes abandoned attempts (autosave drafts), not just completed responses - this is the true funnel.",
       "empty": "No one has started this form yet.",
-      "dropOff": "-{count} dropped off at this step"
+      "dropOff": "-{count} dropped off at this step",
+      "started": "Started",
+      "submitted": "Submitted",
+      "highestFriction": "Highest friction",
+      "exits": "{count} exits",
+      "medianTime": "Median time to finish",
+      "unfinished": "{count} unfinished",
+      "sortForm": "Sort: form order",
+      "sortDropoff": "Sort: highest drop-off",
+      "colQuestion": "Question",
+      "colReached": "Reached",
+      "colCompletion": "Completion",
+      "colExits": "Exits",
+      "highestDropoff": "Highest drop-off",
+      "continued": "{value} continued",
+      "viewAll": "View all {count} question steps",
+      "showFewer": "Show fewer"
     },
     "analyticsSection": {
       "loading": "Loading analytics...",
-      "emptyState": "There are no completed responses for this form yet."
+      "emptyState": "There are no completed responses for this form yet.",
+      "emptyPeriod": "There are no responses in this period. Try a longer period or \"All time\"."
     },
     "paths": {
       "sectionTitle": "Response paths",
@@ -127,6 +150,98 @@
         "EXPORT_FAILED": "Export failed. Please try again",
         "EXPORT_TOO_LARGE": "Too many responses to export"
       }
+    },
+    "period": {
+      "label": "Period",
+      "7d": "7 days",
+      "30d": "30 days",
+      "90d": "90 days",
+      "all": "All time",
+      "custom": "Custom",
+      "from": "From",
+      "to": "To",
+      "invalid": "The start date is after the end date."
+    },
+    "kpi": {
+      "sectionLabel": "Key numbers",
+      "responses": "Total responses",
+      "started": "Started attempts",
+      "completion": "Completion rate",
+      "abandoned": "Abandoned attempts",
+      "allTime": "All time",
+      "noPrior": "No data in the prior period",
+      "vsPrior": "{value}% vs. prior period",
+      "vsPriorPoints": "{value} pts vs. prior period",
+      "includesUnfinished": "Includes {count} unfinished attempts",
+      "ofStarted": "{value} of started attempts"
+    },
+    "trend": {
+      "title": "Activity over time",
+      "hint": "Attempts started and responses submitted per day (UTC).",
+      "started": "Started",
+      "submitted": "Submitted",
+      "aria": "Chart of {days} days: {started} attempts started and {submitted} submitted.",
+      "tooltip": "{started} started, {submitted} submitted"
+    },
+    "questions": {
+      "sectionTitle": "Question analytics",
+      "sectionHint": "Type-aware summaries from {count} submitted responses. Select a card for detail.",
+      "expandAll": "Expand all insights",
+      "collapseAll": "Collapse insights"
+    },
+    "journey": {
+      "sectionHint": "Follow main routes, conditional branches, and the points where respondents leave.",
+      "start": "Start",
+      "allAttempts": "All attempts",
+      "outcome": "Outcome",
+      "submitted": "Submitted",
+      "later": "Later",
+      "laterSteps": "Later steps",
+      "exit": "Exit",
+      "exitAt": "Exit at {question}",
+      "exitAtStart": "Left before the first question",
+      "step": "Step {step}",
+      "empty": "No attempts match these filters yet.",
+      "loading": "Loading journeys...",
+      "statusLabel": "Which attempts",
+      "status": {
+        "all": "All journeys",
+        "completed": "Completed",
+        "abandoned": "Abandoned"
+      },
+      "viewLabel": "View",
+      "view": {
+        "map": "Journey map",
+        "steps": "Step list",
+        "flow": "Question flow"
+      },
+      "hideLowVolume": "Hide low-volume paths",
+      "stepsLabel": "Number of steps shown",
+      "allSteps": "All steps",
+      "stepsCount": "{count} steps",
+      "modeLabel": "Numbers shown as",
+      "counts": "Counts",
+      "percentages": "Percentages",
+      "reset": "Reset",
+      "legendMain": "Main journey",
+      "legendBranch": "Conditional route",
+      "legendExit": "Exit point",
+      "zoom": "Zoom",
+      "zoomOut": "Zoom out",
+      "zoomIn": "Zoom in",
+      "hiddenNodes": "{count} low-volume nodes are hidden.",
+      "inspector": "Path inspection",
+      "inspectorHelp": "Select any node to see where its attempts came from and where they went. Hover a node to highlight its paths.",
+      "reached": "{count} reached",
+      "shareOfAttempts": "{value} of all attempts",
+      "exitedHere": "{count} exited",
+      "continued": "{count} continued",
+      "shareOfReached": "{value} of those who reached it",
+      "cameFrom": "Came from",
+      "wentTo": "Went to",
+      "inspectQuestion": "Inspect question analytics",
+      "attemptsInMap": "{count} attempts in this view",
+      "largestExit": "Largest exit: {question}, {count} attempts"
     }
   }
 }

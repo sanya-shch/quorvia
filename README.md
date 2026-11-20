@@ -40,7 +40,9 @@ The project focuses on a non-trivial form engine rather than plain CRUD: conditi
 
 **Analytics and exports**
 
-- Funnel analytics based on the questions respondents actually reached, plus branch/path statistics
+- Funnel analytics based on the questions respondents actually reached, with exits per question and the median time to finish
+- A period filter (7 / 30 / 90 days, all time, custom) for the whole overview, KPI cards compared with the previous period and an activity trend
+- A journey map (Sankey) built from attempts: branches, exits and outcomes, filterable (all / completed / abandoned), with a path inspector, a step list for phones, and the classic question-flow view
 - Per-type summaries: distributions and averages for scales, NPS breakdown, average ranking position, matrix tables
 - PDF, CSV and Excel exports processed asynchronously by a BullMQ worker with retries
 

@@ -18,9 +18,27 @@ import {
   type UploadedFileDto,
 } from "@quorvia/shared-types";
 import { formatCalcValue } from "@quorvia/calculation-engine";
+import type {
+  AnalyticsDailyPoint,
+  AnalyticsPeriodTotals,
+  AnalyticsSummaryDto,
+  FormJourneysDto,
+  JourneyStatus,
+} from "@quorvia/shared-types";
+import { ANALYTICS_MAX_DAILY_DAYS } from "@quorvia/shared-types";
 import { Answers } from "../response/response.types.js";
 import { paginate } from "../../shared/utils/paginate.js";
 import { analyticsConfig } from "./analytics.config.js";
+import {
+  AnalyticsPeriod,
+  daysOf,
+  isOpenPeriod,
+  median,
+  periodFilter,
+  previousPeriod,
+  toPeriodDto,
+} from "./analytics.period.js";
+import { createJourneyAccumulator } from "./analytics.journeys.js";
 import { createScoreAccumulator, toResponseScore } from "./analytics.score.js";
 import {
   EnrichedAnswer,
@@ -61,11 +79,11 @@ type StoredOption = { id: string; text: string; isOther?: boolean };
  * not by the number of responses. The (createdAt, id) order is deterministic and served
  * by the (formId, createdAt, id) index.
  */
-const responseBatches = (formId: string) =>
+const responseBatches = (formId: string, period?: AnalyticsPeriod) =>
   paginate(
     (page) =>
       prisma.response.findMany({
-        where: { formId },
+        where: { formId, ...periodFilter("createdAt", period) },
         select: {
           id: true,
           answers: true,
@@ -81,15 +99,16 @@ const responseBatches = (formId: string) =>
   );
 
 // Same for attempts; the (sessionKey, id) order follows the form's unique index.
-const attemptBatches = (formId: string) =>
+const attemptBatches = (formId: string, period?: AnalyticsPeriod) =>
   paginate(
     (page) =>
       prisma.responseAttempt.findMany({
-        where: { formId },
+        where: { formId, ...periodFilter("startedAt", period) },
         select: {
           id: true,
           reachedQuestionIds: true,
           visibleQuestionIds: true,
+          startedAt: true,
           completedAt: true,
         },
         orderBy: [{ sessionKey: "asc" }, { id: "asc" }],
@@ -248,6 +267,7 @@ type QuestionAccumulator = {
 export const getFormAnalytics = async (
   formId: string,
   userId: string,
+  period?: AnalyticsPeriod,
 ): Promise<FormAnalyticsDto> => {
   const form = await prisma.form.findUnique({
     where: { id: formId },
@@ -292,7 +312,7 @@ export const getFormAnalytics = async (
     });
   }
 
-  for await (const batch of responseBatches(formId)) {
+  for await (const batch of responseBatches(formId, period)) {
     for (const response of batch) {
       totalResponses++;
       scoreAccumulator.add(response);
@@ -561,7 +581,11 @@ export const buildFormPaths = (
   return acc.result();
 };
 
-export const getFormPaths = async (formId: string, userId: string): Promise<FormPathsDto> => {
+export const getFormPaths = async (
+  formId: string,
+  userId: string,
+  period?: AnalyticsPeriod,
+): Promise<FormPathsDto> => {
   const form = await prisma.form.findUnique({
     where: { id: formId },
     include: { questions: true },
@@ -573,7 +597,7 @@ export const getFormPaths = async (formId: string, userId: string): Promise<Form
   const orderedQuestions = [...form.questions].sort((a, b) => a.order - b.order);
   const acc = createPathsAccumulator(orderedQuestions);
 
-  for await (const batch of responseBatches(formId)) {
+  for await (const batch of responseBatches(formId, period)) {
     for (const response of batch) acc.add(response);
   }
 
@@ -595,6 +619,7 @@ export const getFormPaths = async (formId: string, userId: string): Promise<Form
 type FunnelAttempt = {
   reachedQuestionIds?: unknown;
   visibleQuestionIds: unknown;
+  startedAt?: Date;
   completedAt: Date | null;
 };
 
@@ -602,19 +627,39 @@ const createFunnelAccumulator = (
   orderedQuestions: { id: string; text: string; order: number }[],
 ) => {
   const reachedCount: Record<string, number> = {};
+  const exitedCount: Record<string, number> = {};
+  const durations: number[] = [];
+  const orderOf = new Map(orderedQuestions.map((q) => [q.id, q.order]));
   let totalAttempts = 0;
   let totalCompletions = 0;
 
   return {
     add(attempt: FunnelAttempt) {
       totalAttempts++;
-      if (attempt.completedAt !== null) totalCompletions++;
+      const completed = attempt.completedAt !== null;
+      if (completed) {
+        totalCompletions++;
+        if (attempt.startedAt && attempt.completedAt) {
+          durations.push((attempt.completedAt.getTime() - attempt.startedAt.getTime()) / 1000);
+        }
+      }
 
       const source = attempt.reachedQuestionIds ?? attempt.visibleQuestionIds;
       const reachedIds = Array.isArray(source) ? (source as string[]) : [];
 
       for (const id of reachedIds) {
         reachedCount[id] = (reachedCount[id] || 0) + 1;
+      }
+
+      // An unfinished attempt left at the last question it reached (the farthest in form order).
+      if (!completed) {
+        let exitId: string | null = null;
+        for (const id of reachedIds) {
+          const order = orderOf.get(id);
+          if (order === undefined) continue;
+          if (exitId === null || order > (orderOf.get(exitId) ?? -1)) exitId = id;
+        }
+        if (exitId !== null) exitedCount[exitId] = (exitedCount[exitId] || 0) + 1;
       }
     },
 
@@ -624,12 +669,14 @@ const createFunnelAccumulator = (
         text: q.text,
         order: q.order,
         reachedCount: reachedCount[q.id] || 0,
+        exitedCount: exitedCount[q.id] || 0,
       }));
 
       return {
         totalAttempts,
         totalCompletions,
         completionRate: totalAttempts > 0 ? totalCompletions / totalAttempts : 0,
+        medianCompletionSeconds: median(durations),
         nodes,
       };
     },
@@ -645,7 +692,11 @@ export const buildFormFunnel = (
   return acc.result();
 };
 
-export const getFormFunnel = async (formId: string, userId: string): Promise<FormFunnelDto> => {
+export const getFormFunnel = async (
+  formId: string,
+  userId: string,
+  period?: AnalyticsPeriod,
+): Promise<FormFunnelDto> => {
   const form = await prisma.form.findUnique({
     where: { id: formId },
     include: { questions: true },
@@ -657,7 +708,96 @@ export const getFormFunnel = async (formId: string, userId: string): Promise<For
   const orderedQuestions = [...form.questions].sort((a, b) => a.order - b.order);
   const acc = createFunnelAccumulator(orderedQuestions);
 
-  for await (const batch of attemptBatches(formId)) {
+  for await (const batch of attemptBatches(formId, period)) {
+    for (const attempt of batch) acc.add(attempt);
+  }
+
+  return acc.result();
+};
+
+const summaryTotals = async (formId: string, period: AnalyticsPeriod) => {
+  const durations: number[] = [];
+  const daily = new Map<string, AnalyticsDailyPoint>(
+    daysOf(period).map((date) => [date, { date, started: 0, submitted: 0 }]),
+  );
+  let started = 0;
+  let completed = 0;
+
+  for await (const batch of attemptBatches(formId, period)) {
+    for (const attempt of batch) {
+      started++;
+      daily.get(attempt.startedAt.toISOString().slice(0, 10))!.started++;
+
+      if (attempt.completedAt) {
+        completed++;
+        durations.push((attempt.completedAt.getTime() - attempt.startedAt.getTime()) / 1000);
+        daily.get(attempt.completedAt.toISOString().slice(0, 10))!.submitted++;
+      }
+    }
+  }
+
+  const responses = await prisma.response.count({
+    where: { formId, ...periodFilter("createdAt", period) },
+  });
+
+  const totals: AnalyticsPeriodTotals = {
+    responses,
+    started,
+    completed,
+    abandoned: started - completed,
+    completionRate: started > 0 ? completed / started : 0,
+    medianCompletionSeconds: median(durations),
+  };
+
+  return { totals, daily: [...daily.values()] };
+};
+
+// KPI numbers of the period, their change against the period right before it, and a per-day
+// series for the trend chart.
+export const getFormSummary = async (
+  formId: string,
+  userId: string,
+  period: AnalyticsPeriod = {},
+): Promise<AnalyticsSummaryDto> => {
+  const form = await prisma.form.findUnique({ where: { id: formId }, select: { userId: true } });
+
+  if (!form) throw new AppError(ErrorCode.FORM_NOT_FOUND, 404);
+  if (form.userId !== userId) throw new AppError(ErrorCode.FORM_FORBIDDEN, 403);
+
+  const closed = !isOpenPeriod(period);
+  const dayCount = closed ? daysOf(period).length : 0;
+  // A day-by-day series of years would be a huge, unreadable payload.
+  const withDaily = closed && dayCount <= ANALYTICS_MAX_DAILY_DAYS;
+  const current = await summaryTotals(formId, period);
+  const previous = previousPeriod(period);
+
+  return {
+    period: toPeriodDto(period),
+    current: current.totals,
+    previous: previous ? (await summaryTotals(formId, previous)).totals : null,
+    daily: withDaily ? current.daily : [],
+  };
+};
+
+// The journey map (see analytics.journeys.ts). `status` narrows it to submitted or abandoned
+// attempts; `steps` is how many questions of the path are shown before "later steps".
+export const getFormJourneys = async (
+  formId: string,
+  userId: string,
+  options: { status: JourneyStatus; steps: number; period?: AnalyticsPeriod },
+): Promise<FormJourneysDto> => {
+  const form = await prisma.form.findUnique({
+    where: { id: formId },
+    include: { questions: true },
+  });
+
+  if (!form) throw new AppError(ErrorCode.FORM_NOT_FOUND, 404);
+  if (form.userId !== userId) throw new AppError(ErrorCode.FORM_FORBIDDEN, 403);
+
+  const orderedQuestions = [...form.questions].sort((a, b) => a.order - b.order);
+  const acc = createJourneyAccumulator(orderedQuestions, options);
+
+  for await (const batch of attemptBatches(formId, options.period)) {
     for (const attempt of batch) acc.add(attempt);
   }
 
@@ -690,6 +830,7 @@ export const getQuestionAnalytics = async (
   formId: string,
   questionId: string,
   userId: string,
+  period?: AnalyticsPeriod,
 ): Promise<QuestionAnalyticsDto> => {
   const form = await prisma.form.findUnique({
     where: { id: formId },
@@ -738,7 +879,7 @@ export const getQuestionAnalytics = async (
   let falseCount = 0;
   let totalAnswers = 0;
 
-  for await (const batch of responseBatches(formId)) {
+  for await (const batch of responseBatches(formId, period)) {
     for (const response of batch) {
       const value = (response.answers as Answers)[questionId];
       if (value === undefined) continue;

@@ -72,6 +72,31 @@ The question was not shown because its condition evaluated to false.
 
 This makes analytics meaningful for branching forms instead of treating every question as if it were displayed to every respondent.
 
+## Period
+
+All analytics reads accept `?from=&to=` (see [API.md](API.md#analytics-owner-)). The overview page defaults to the last 30 days (the 30 days ending today, today included); "All time" removes the filter. A period is a cohort of **attempts started** in it (and of responses created in it), so an attempt started on the last day and finished the next day counts as completed, not as abandoned.
+
+## Summary (KPI cards and trend)
+
+`GET /analytics/summary` returns, for the period and for the period of equal length right before it:
+
+- `responses` (submitted rows), `started` (attempts), `completed`, `abandoned` (`started - completed`), `completionRate` (`completed / started`) and `medianCompletionSeconds`;
+- `daily`: attempts started and submitted per UTC day, for a closed period of at most 366 days.
+
+"Abandoned" follows the rule of the funnel: it only means "not submitted yet" and is not told apart from "still filling in" by any time threshold. The page compares counts in percent and the completion rate in percentage points; with no earlier data it says so instead of showing an infinite change, and for "All time" there is no comparison.
+
+## Funnel
+
+Besides `reachedCount` every question has `exitedCount`: unfinished attempts whose **last reached question** is this one. It differs from "reached the previous question minus reached this one" in branching forms, where a skipped question is not an exit. The funnel also returns `medianCompletionSeconds` (`completedAt - startedAt` of submitted attempts). It includes time a tab sat idle, so read it as "time to finish", not "time on task".
+
+## Journey map
+
+`GET /analytics/journeys` builds a Sankey-style diagram from **attempts**, so unlike the older paths view (submitted responses only) it shows where people leave. An attempt's path is the questions it reached in form order; the n-th one is step n. Respondents who saw different questions at the same step end up in one column as different nodes, which is how a branch appears. Nodes: `start`, `question` (per step), `more` (everything after the last shown step), `exit` (one per node people leave after) and `submitted`.
+
+- `status` narrows it to completed or abandoned attempts; `steps` (1-20, default 6) is how many questions of the path are drawn before "later steps".
+- Conservation holds: what enters a node (except the start) equals its count, and what leaves a node that is not a final one equals its count. The tests check it, because the inspector derives "exited" and "continued" from the links.
+- The page can hide nodes carrying less than 3% of the attempts, switch between counts and percentages, zoom, and show the same data as a step list (the default on a phone, and a text alternative to the diagram). Selecting a node shows where its attempts came from and went, and opens the question's analytics. The older "question flow" view stays available.
+
 ## Per-question analytics
 
 Each question type has its own summary (full field reference: [API.md](API.md#analytics-owner-)):
@@ -105,4 +130,5 @@ It is accumulated one response at a time, like the other statistics. The Vue ove
 
 ## Performance notes
 
+- **The summary and the journey map read attempts in batches too** (keyset pagination, bounded memory), the summary twice for a closed period (the period and the previous one). Journey nodes are bounded by `steps x questions`.
 - **Analytics reads responses in batches, not all at once.** Overview, paths, funnel and per-question analytics walk a form's responses with keyset pagination (2,000 rows per query, ordered by `createdAt, id` and served by the `(formId, createdAt, id)` index) and aggregate incrementally, so memory is bounded by the batch size. Time is still linear in the number of responses, because every request re-scans them; for very large forms the next step is caching with a short TTL or pre-aggregated counters. Free-text questions are capped (top 5 / top 100 values and the first 1,000 raw answers, flagged by `answersTruncated`), and at most 10,000 distinct text values per question are tracked.

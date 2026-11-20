@@ -9,7 +9,7 @@ export default function FormAnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <AnalyticsHeader formId={formId} />
+      <AnalyticsHeader formId={formId} wide />
       <div className="flex-1">
         <VueAnalyticsHost formId={formId} />
       </div>

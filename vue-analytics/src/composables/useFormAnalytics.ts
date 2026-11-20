@@ -1,6 +1,8 @@
-import { ref, shallowRef } from "vue";
+import type { Ref } from "vue";
 import type { FormAnalyticsDto } from "@quorvia/shared-types";
-import { apiGet, ApiError } from "../api/client";
+import { ApiError } from "../api/client";
+import type { QueryParams } from "../period";
+import { useQueryResource } from "./useQueryResource";
 
 export const getAnalyticsErrorMessage = (e: unknown): string => {
   if (e instanceof ApiError) {
@@ -10,24 +12,15 @@ export const getAnalyticsErrorMessage = (e: unknown): string => {
   return "analytics.errors.loadFailed";
 };
 
-export function useFormAnalytics(apiBaseUrl: string, formId: string) {
-  const data = shallowRef<FormAnalyticsDto | null>(null);
-  const isLoading = ref(true);
-  const error = ref<string | null>(null);
-
-  const load = async () => {
-    isLoading.value = true;
-    error.value = null;
-    try {
-      data.value = await apiGet<FormAnalyticsDto>(apiBaseUrl, `/forms/${formId}/analytics`);
-    } catch (e) {
-      error.value = getAnalyticsErrorMessage(e);
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
-  load();
-
-  return { data, isLoading, error, reload: load };
+export function useFormAnalytics(
+  apiBaseUrl: string,
+  formId: string,
+  params?: Readonly<Ref<QueryParams>>,
+) {
+  return useQueryResource<FormAnalyticsDto>(
+    apiBaseUrl,
+    `/forms/${formId}/analytics`,
+    getAnalyticsErrorMessage,
+    params,
+  );
 }

@@ -283,11 +283,16 @@ export type QuestionFunnelNode = {
   text: string;
   order: number;
   reachedCount: number;
+  // Unfinished attempts whose last reached question is this one (where people gave up).
+  exitedCount: number;
 };
 
 export type FormFunnelDto = {
   totalAttempts: number;
   totalCompletions: number;
   completionRate: number;
+  // Median of completedAt - startedAt over the submitted attempts (seconds); null without any.
+  // It includes time a tab sat idle: a "time to finish", not "time on task".
+  medianCompletionSeconds: number | null;
   nodes: QuestionFunnelNode[];
 };

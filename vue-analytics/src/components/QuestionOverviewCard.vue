@@ -6,6 +6,9 @@ import { isScaleQuestionType, type QuestionOverview } from "@quorvia/shared-type
 const props = defineProps<{
   question: QuestionOverview;
   totalResponses: number;
+  // "Expand all insights": show every ranked item / matrix row / written answer instead of the
+  // first three.
+  expanded?: boolean;
 }>();
 
 defineEmits<{ (e: "open-detail", questionId: string): void }>();
@@ -29,7 +32,7 @@ const topRanking = computed(() =>
   [...(props.question.ranking ?? [])]
     .filter((item) => item.avgPosition !== null)
     .sort((a, b) => (a.avgPosition as number) - (b.avgPosition as number))
-    .slice(0, 3),
+    .slice(0, props.expanded ? undefined : 3),
 );
 
 // For each of the first three rows: the most popular column and its share.
@@ -37,7 +40,7 @@ const matrixSummary = computed(() => {
   const matrix = props.question.matrix;
   if (!matrix) return [];
 
-  return matrix.rows.slice(0, 3).map((row) => {
+  return matrix.rows.slice(0, props.expanded ? undefined : 3).map((row) => {
     const best = row.counts.reduce(
       (bestIndex, count, i, all) => (count > all[bestIndex] ? i : bestIndex),
       0,
@@ -52,7 +55,9 @@ const matrixSummary = computed(() => {
   });
 });
 
-const topPreview = computed(() => props.question.preview?.slice(0, 3) ?? []);
+const topPreview = computed(
+  () => props.question.preview?.slice(0, props.expanded ? undefined : 3) ?? [],
+);
 const topDistribution = computed(() => props.question.distribution ?? []);
 const maxDistributionCount = computed(() =>
   Math.max(1, ...topDistribution.value.map((d) => d.count)),

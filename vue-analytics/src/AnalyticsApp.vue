@@ -1,15 +1,27 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useFormAnalytics } from "./composables/useFormAnalytics";
 import { useFormPaths } from "./composables/useFormPaths";
 import { useFormFunnel } from "./composables/useFormFunnel";
+import { useFormSummary } from "./composables/useFormSummary";
+import { useFormMeta } from "./composables/useFormMeta";
+import {
+  isValidRange,
+  resolvePeriod,
+  type PeriodPreset,
+  type PeriodRange,
+  type QueryParams,
+} from "./period";
 import { useQuestionAnalytics } from "./composables/useQuestionAnalytics";
 import { useResponsesList } from "./composables/useResponsesList";
 import { useResponseDetail } from "./composables/useResponseDetail";
 import QuestionOverviewCard from "./components/QuestionOverviewCard.vue";
-import PathsDiagram from "./components/PathsDiagram.vue";
-import FunnelChart from "./components/FunnelChart.vue";
+import CompletionFunnel from "./components/CompletionFunnel.vue";
+import KpiCards from "./components/KpiCards.vue";
+import TrendChart from "./components/TrendChart.vue";
+import PeriodPicker from "./components/PeriodPicker.vue";
+import JourneyPanel from "./components/JourneyPanel.vue";
 import QuestionDetailPanel from "./components/QuestionDetailPanel.vue";
 import ResponsesList from "./components/ResponsesList.vue";
 import ResponseDetailView from "./components/ResponseDetailView.vue";
@@ -49,27 +61,59 @@ setAuthBridge(
     : null,
 );
 
+// The period every block of the overview is limited to. The default is the last 30 days, like
+// the reference design; "all time" is one click away. A half-typed or reversed custom range is
+// not applied (the picker shows why), the previous valid period stays on screen.
+const preset = ref<PeriodPreset>("30d");
+const custom = ref<PeriodRange>({});
+const periodParams = ref<QueryParams>(resolvePeriod("30d", new Date()));
+
+watch(
+  [preset, custom],
+  () => {
+    if (preset.value === "custom" && !isValidRange(custom.value)) return;
+    periodParams.value = resolvePeriod(preset.value, new Date(), custom.value);
+  },
+  { deep: true },
+);
+
 const {
   data: analytics,
   isLoading: analyticsLoading,
   error: analyticsError,
-} = useFormAnalytics(apiBaseUrl, props.formId);
+} = useFormAnalytics(apiBaseUrl, props.formId, periodParams);
 const {
   data: paths,
   isLoading: pathsLoading,
   error: pathsError,
-} = useFormPaths(apiBaseUrl, props.formId);
+} = useFormPaths(apiBaseUrl, props.formId, periodParams);
 const {
   data: funnel,
   isLoading: funnelLoading,
   error: funnelError,
-} = useFormFunnel(apiBaseUrl, props.formId);
+} = useFormFunnel(apiBaseUrl, props.formId, periodParams);
+const {
+  data: summary,
+  isLoading: summaryLoading,
+  error: summaryError,
+} = useFormSummary(apiBaseUrl, props.formId, periodParams);
+const { data: meta } = useFormMeta(apiBaseUrl, props.formId);
 const {
   data: detail,
   isLoading: detailLoading,
   error: detailError,
   load: loadDetail,
-} = useQuestionAnalytics(apiBaseUrl, props.formId);
+} = useQuestionAnalytics(apiBaseUrl, props.formId, periodParams);
+
+// Only these questions have a detail panel (files and calculations are summarized on the card).
+const inspectableIds = computed(
+  () =>
+    analytics.value?.questions
+      .filter((q) => q.type !== "FILE" && q.type !== "CALCULATION")
+      .map((q) => q.id) ?? [],
+);
+
+const expandedInsights = ref(false);
 
 const activeQuestionId = ref<string | null>(null);
 
@@ -103,36 +147,69 @@ const selectResponse = (responseId: string) => {
   selectedResponseId.value = responseId;
   loadResponseDetail(responseId);
 };
+
+// "Oct 24, 2026" in the interface language; the form meta is decoration, so it may be absent.
+const updatedLabel = computed(() =>
+  meta.value?.updatedAt
+    ? new Intl.DateTimeFormat(locale.value, { dateStyle: "medium" }).format(
+        new Date(meta.value.updatedAt),
+      )
+    : null,
+);
+
+const hasPeriodFilter = computed(() => preset.value !== "all");
 </script>
 
 <template>
   <div class="analytics-root">
     <header class="header">
-      <div>
-        <h1 class="page-title">{{ t("analytics.header.title") }}</h1>
+      <div class="title-block">
+        <div class="meta-row">
+          <span
+            v-if="meta && meta.isPublished !== undefined"
+            class="status"
+            :class="meta.isPublished ? 'status--published' : 'status--draft'"
+          >
+            {{ meta.isPublished ? t("analytics.header.published") : t("analytics.header.draft") }}
+          </span>
+          <span v-if="meta?.version" class="meta-text">
+            {{ t("analytics.header.version", { version: meta.version }) }}
+            <template v-if="updatedLabel">
+              · {{ t("analytics.header.updated", { date: updatedLabel }) }}</template
+            >
+          </span>
+        </div>
+        <h1 class="page-title">{{ meta?.title || t("analytics.header.title") }}</h1>
         <p class="page-subtitle">{{ t("analytics.header.subtitle") }}</p>
       </div>
+
       <div class="header-right">
-        <div v-if="analytics" class="total-badge">
-          {{ t("analytics.header.totalResponses", { count: analytics.totalResponses }) }}
-        </div>
-        <ExportMenu v-if="activeTab === 'responses'" :api-base-url="apiBaseUrl" :form-id="formId" />
+        <PeriodPicker
+          v-if="activeTab === 'overview'"
+          v-model:preset="preset"
+          v-model:custom="custom"
+        />
+        <ExportMenu :api-base-url="apiBaseUrl" :form-id="formId" />
       </div>
     </header>
 
-    <nav class="tabs">
+    <nav class="tabs" role="tablist">
       <button
         type="button"
+        role="tab"
         class="tab-btn"
         :class="{ 'tab-btn--active': activeTab === 'overview' }"
+        :aria-selected="activeTab === 'overview'"
         @click="activeTab = 'overview'"
       >
         {{ t("analytics.tabs.overview") }}
       </button>
       <button
         type="button"
+        role="tab"
         class="tab-btn"
         :class="{ 'tab-btn--active': activeTab === 'responses' }"
+        :aria-selected="activeTab === 'responses'"
         @click="activeTab = 'responses'"
       >
         {{ t("analytics.tabs.responses") }}
@@ -140,15 +217,30 @@ const selectResponse = (responseId: string) => {
     </nav>
 
     <template v-if="activeTab === 'overview'">
-      <section class="funnel-section">
-        <h2 class="section-title">{{ t("analytics.funnel.sectionTitle") }}</h2>
-
-        <div v-if="funnelLoading" class="state-msg">{{ t("analytics.funnel.loading") }}</div>
-        <div v-else-if="funnelError" class="state-msg state-msg--error">{{ t(funnelError) }}</div>
-        <FunnelChart v-else-if="funnel" :funnel="funnel" />
+      <section class="kpi-section" :aria-label="t('analytics.kpi.sectionLabel')">
+        <KpiCards :summary="summary" :is-loading="summaryLoading" :error="summaryError" />
       </section>
 
-      <section v-if="analyticsLoading" class="state-msg">
+      <section v-if="summary && summary.daily.length > 1" class="block-section">
+        <TrendChart :daily="summary.daily" />
+      </section>
+
+      <section class="card-section">
+        <h2 class="section-title">{{ t("analytics.funnel.sectionTitle") }}</h2>
+
+        <div v-if="funnelLoading && !funnel" class="state-msg">
+          {{ t("analytics.funnel.loading") }}
+        </div>
+        <div v-else-if="funnelError" class="state-msg state-msg--error">{{ t(funnelError) }}</div>
+        <CompletionFunnel
+          v-else-if="funnel"
+          :funnel="funnel"
+          :inspectable-ids="inspectableIds"
+          @open-question="openDetail"
+        />
+      </section>
+
+      <section v-if="analyticsLoading && !analytics" class="state-msg">
         {{ t("analytics.analyticsSection.loading") }}
       </section>
       <section v-else-if="analyticsError" class="state-msg state-msg--error">
@@ -157,7 +249,11 @@ const selectResponse = (responseId: string) => {
 
       <template v-else-if="analytics">
         <section v-if="analytics.totalResponses === 0" class="empty-state">
-          {{ t("analytics.analyticsSection.emptyState") }}
+          {{
+            hasPeriodFilter
+              ? t("analytics.analyticsSection.emptyPeriod")
+              : t("analytics.analyticsSection.emptyState")
+          }}
         </section>
 
         <template v-else>
@@ -167,31 +263,61 @@ const selectResponse = (responseId: string) => {
             <ScoreSummary :scoring="analytics.scoring" />
           </section>
 
-          <section class="cards-grid">
-            <QuestionOverviewCard
-              v-for="q in analytics.questions"
-              :key="q.id"
-              :question="q"
-              :total-responses="analytics.totalResponses"
-              @open-detail="openDetail"
-            />
-          </section>
+          <section class="questions-section">
+            <div class="section-head">
+              <div>
+                <h2 class="section-title">{{ t("analytics.questions.sectionTitle") }}</h2>
+                <p class="section-hint section-hint--tight">
+                  {{ t("analytics.questions.sectionHint", { count: analytics.totalResponses }) }}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="outline-btn"
+                :aria-pressed="expandedInsights"
+                @click="expandedInsights = !expandedInsights"
+              >
+                {{
+                  expandedInsights
+                    ? t("analytics.questions.collapseAll")
+                    : t("analytics.questions.expandAll")
+                }}
+              </button>
+            </div>
 
-          <section class="paths-section">
-            <h2 class="section-title">{{ t("analytics.paths.sectionTitle") }}</h2>
-            <p class="section-hint">{{ t("analytics.paths.sectionHint") }}</p>
-
-            <div v-if="pathsLoading" class="state-msg">{{ t("analytics.paths.loading") }}</div>
-            <div v-else-if="pathsError" class="state-msg state-msg--error">{{ t(pathsError) }}</div>
-            <PathsDiagram
-              v-else-if="paths"
-              :nodes="paths.nodes"
-              :edges="paths.edges"
-              :total-responses="paths.totalResponses"
-            />
+            <div class="cards-grid">
+              <QuestionOverviewCard
+                v-for="q in analytics.questions"
+                :key="q.id"
+                :question="q"
+                :total-responses="analytics.totalResponses"
+                :expanded="expandedInsights"
+                @open-detail="openDetail"
+              />
+            </div>
           </section>
         </template>
       </template>
+
+      <section class="card-section">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">{{ t("analytics.paths.sectionTitle") }}</h2>
+            <p class="section-hint section-hint--tight">{{ t("analytics.journey.sectionHint") }}</p>
+          </div>
+        </div>
+
+        <JourneyPanel
+          :api-base-url="apiBaseUrl"
+          :form-id="formId"
+          :period-params="periodParams"
+          :paths="paths"
+          :paths-loading="pathsLoading"
+          :paths-error="pathsError"
+          :inspectable-ids="inspectableIds"
+          @open-question="openDetail"
+        />
+      </section>
 
       <QuestionDetailPanel
         v-if="activeQuestionId"
@@ -235,7 +361,7 @@ const selectResponse = (responseId: string) => {
 .analytics-root {
   min-height: 100vh;
   background: #f8fafc;
-  padding: 32px 24px 64px;
+  padding: 28px 20px 64px;
   font-family:
     ui-sans-serif,
     system-ui,
@@ -244,46 +370,70 @@ const selectResponse = (responseId: string) => {
     Roboto,
     sans-serif;
 }
+.analytics-root > * {
+  max-width: 1120px;
+  margin-left: auto;
+  margin-right: auto;
+}
 .header {
-  max-width: 960px;
-  margin: 0 auto 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.meta-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.status {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.status--published {
+  background: #059669;
+  color: white;
+}
+.status--draft {
+  background: #e2e8f0;
+  color: #475569;
+}
+.meta-text {
+  font-size: 12px;
+  color: #64748b;
 }
 .page-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 .page-subtitle {
-  font-size: 12px;
-  color: #94a3b8;
-  margin: 2px 0 0;
-}
-.total-badge {
-  background: #eef2ff;
-  color: #4f46e5;
-  font-size: 13px;
-  font-weight: 700;
-  padding: 6px 14px;
-  border-radius: 999px;
+  font-size: 14px;
+  color: #64748b;
+  margin: 4px 0 0;
 }
 .header-right {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
+  flex-wrap: wrap;
 }
 .tabs {
-  max-width: 960px;
-  margin: 0 auto 24px;
   display: flex;
   gap: 4px;
   background: #f1f5f9;
   padding: 4px;
   border-radius: 12px;
   width: fit-content;
+  margin-bottom: 20px;
 }
 .tab-btn {
   border: none;
@@ -299,14 +449,92 @@ const selectResponse = (responseId: string) => {
 .tab-btn:hover {
   color: #334155;
 }
+.tab-btn:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
 .tab-btn--active {
   background: white;
   color: #4f46e5;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
 }
-.responses-tab {
-  max-width: 960px;
-  margin: 0 auto;
+.kpi-section {
+  margin-bottom: 16px;
+}
+.block-section {
+  margin-bottom: 16px;
+}
+.card-section {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 22px;
+  margin-top: 24px;
+}
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 4px;
+}
+.section-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0 0 20px;
+}
+.section-hint--tight {
+  margin: 0;
+}
+.outline-btn {
+  border: 1px solid #c7d2fe;
+  background: white;
+  color: #4f46e5;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.outline-btn:hover {
+  background: #eef2ff;
+}
+.outline-btn:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+.questions-section {
+  margin-top: 32px;
+}
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.score-section {
+  margin-top: 32px;
+}
+.state-msg {
+  margin: 40px auto;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+}
+.state-msg--error {
+  color: #dc2626;
+}
+.empty-state {
+  margin: 48px auto;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
 }
 .responses-grid {
   display: grid;
@@ -333,60 +561,21 @@ const selectResponse = (responseId: string) => {
   text-align: center;
   padding: 0 16px;
 }
-.state-msg {
-  max-width: 960px;
-  margin: 40px auto;
-  text-align: center;
-  color: #94a3b8;
-  font-size: 14px;
-}
-.state-msg--error {
-  color: #dc2626;
-}
-.empty-state {
-  max-width: 960px;
-  margin: 60px auto;
-  text-align: center;
-  color: #94a3b8;
-  font-size: 14px;
-}
-.cards-grid {
-  max-width: 960px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-}
-.score-section {
-  max-width: 960px;
-  margin: 40px auto 0;
-}
-
-.paths-section {
-  max-width: 960px;
-  margin: 40px auto 0;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 28px;
-}
-.funnel-section {
-  max-width: 960px;
-  margin: 0 auto 32px;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 28px;
-}
-.section-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 4px;
-}
-.section-hint {
-  font-size: 12px;
-  color: #94a3b8;
-  margin: 0 0 20px;
+@media (max-width: 640px) {
+  .analytics-root {
+    padding: 20px 12px 48px;
+  }
+  .page-title {
+    font-size: 22px;
+  }
+  .card-section {
+    padding: 16px;
+    border-radius: 16px;
+  }
+  .header-right {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 </style>
