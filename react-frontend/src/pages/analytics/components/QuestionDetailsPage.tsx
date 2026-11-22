@@ -2,7 +2,7 @@ import { isScaleQuestionType } from "@quorvia/shared-types";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuestionAnalyticsQuery } from "../hooks/useAnalytics";
-import AnalyticsHeader from "./AnalyticsHeader";
+import { Link } from "react-router-dom";
 
 export default function QuestionDetailsPage() {
   const { formId, questionId } = useParams<{ formId: string; questionId: string }>();
@@ -13,7 +13,7 @@ export default function QuestionDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-24">
         <div className="h-7 w-7 animate-spin rounded-full border-4 border-slate-200 border-t-indigo-600" />
       </div>
     );
@@ -21,7 +21,7 @@ export default function QuestionDetailsPage() {
 
   if (error || !data || !formId) {
     return (
-      <div className="min-h-screen bg-slate-50 p-8 flex items-center justify-center">
+      <div className="flex items-center justify-center py-16">
         <div className="text-center bg-white p-6 border rounded-2xl max-w-sm">
           <p className="text-sm font-semibold text-rose-500">{t("analytics.detail.loadError")}</p>
           <button
@@ -49,15 +49,14 @@ export default function QuestionDetailsPage() {
   } = data;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <AnalyticsHeader
-        formId={formId}
-        currentBreadcrumb={
-          question.text || t("analytics.detail.questionIdFallback", { id: question.id.slice(-6) })
-        }
-      />
-
-      <main className="flex-1 max-w-3xl w-full mx-auto py-8 px-4 sm:px-6">
+    <div className="flex flex-col">
+      <main className="w-full max-w-3xl mx-auto space-y-4">
+        <Link
+          to={`/forms/${formId}/analytics`}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:underline"
+        >
+          ← {t("analytics.detail.goBack")}
+        </Link>
         <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
           <div className="border-b pb-4 border-slate-200 flex justify-between items-start gap-4">
             <div>

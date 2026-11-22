@@ -1,216 +1,254 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { useAuthStore } from "../../store/useAuthStore";
-import { authApi } from "../../api/auth";
 import { formsApi } from "../../api/forms";
-import { LanguageSwitcher } from "../../components/ui/LanguageSwitcher";
-import FormCard from "./components/FormCard";
+import { workspaceApi } from "../../api/workspaceApi";
+import AppIcon, { type AppIconName } from "../../components/ui/AppIcon";
+import AppShell from "../../components/layout/AppShell";
+import ConfirmModal from "../../components/ui/ConfirmModal";
+import { type FormSummary } from "../../types/form";
+import ActivityChart from "../workspace/overview/ActivityChart";
+import { BlockError, Skeleton } from "../workspace/overview/Card";
+import {
+  percentChange,
+  resolveOverviewPeriod,
+  type OverviewPreset,
+} from "../workspace/overview/period";
+import FormsTable from "./components/FormsTable";
+import SearchField from "./SearchField";
+import { useFormsActions } from "./useFormsActions";
 
-export default function Dashboard() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { user, clearAuth } = useAuthStore();
-  const [searchQuery, setSearchQuery] = useState("");
+const PRESETS: OverviewPreset[] = ["7d", "30d", "90d"];
+
+const Delta = ({ value, unit }: { value: number | null; unit: "%" | "pts" }) => {
   const { t } = useTranslation();
-
-  const { data: forms = [], isLoading } = useQuery({
-    queryKey: ["forms"],
-    queryFn: formsApi.getAll,
-  });
-
-  const createFormMutation = useMutation({
-    mutationFn: formsApi.create,
-    onSuccess: (newForm) => {
-      navigate(`/builder/${newForm.id}`);
-    },
-  });
-
-  const deleteFormMutation = useMutation({
-    mutationFn: formsApi.delete,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["forms"] }),
-  });
-
-  const togglePublishMutation = useMutation({
-    mutationFn: ({ id, isPublished }: { id: string; isPublished: boolean }) =>
-      isPublished ? formsApi.unpublish(id) : formsApi.publish(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["forms"] }),
-  });
-
-  const duplicateFormMutation = useMutation({
-    mutationFn: formsApi.duplicate,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["forms"] }),
-  });
-
-  const handleLogout = () => {
-    // /auth/logout used to be a no-op, so the client only cleared local state. Now the server really
-    // revokes the refresh token in the DB; we call it but do not wait for it or block logging out if it
-    // fails (for example the network dropped): the local logout must still happen.
-    authApi.logout().catch(() => {});
-    clearAuth();
-    navigate("/login");
-  };
-
-  const filteredForms = forms.filter(
-    (form) =>
-      form.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      form.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+  if (value === null)
+    return <span className="text-slate-400">{t("workspace.overview.kpi.noPrior")}</span>;
+  const rounded = Math.abs(value) < 0.05 ? 0 : value;
+  const tone = rounded > 0 ? "text-emerald-600" : rounded < 0 ? "text-rose-600" : "text-slate-500";
+  return (
+    <span className={tone}>
+      {rounded > 0 ? "+" : rounded < 0 ? "-" : ""}
+      {Math.abs(rounded).toFixed(1)}
+      {unit === "%" ? "%" : ` ${t("workspace.overview.kpi.points")}`}{" "}
+      {t("dashboard.kpi.vsPrevious")}
+    </span>
   );
+};
 
-  const totalResponses = forms.reduce((acc, form) => acc + (form._count?.responses ?? 0), 0);
+// The workspace dashboard: totals over all forms, response activity, and the list of forms. The
+// numbers come from one endpoint (/dashboard/summary) that is the per-form analytics summed over
+// the user's forms, so they agree with each form's own overview.
+export default function Dashboard() {
+  const { t } = useTranslation();
+  const actions = useFormsActions();
+  const [query, setQuery] = useState("");
+  const [preset, setPreset] = useState<OverviewPreset>("30d");
+  const [toDelete, setToDelete] = useState<FormSummary | null>(null);
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-indigo-600" />
-      </div>
-    );
-  }
+  const forms = useQuery({ queryKey: ["forms"], queryFn: formsApi.getAll });
+  const { params } = useMemo(() => resolveOverviewPeriod(preset, new Date()), [preset]);
+  const summary = useQuery({
+    queryKey: ["dashboard", "summary", params],
+    queryFn: () => workspaceApi.getDashboardSummary(params),
+  });
+
+  const current = summary.data?.current;
+  const previous = summary.data?.previous;
+  const list = forms.data ?? [];
+
+  const cards: { key: string; icon: AppIconName; value: string; note: React.ReactNode }[] = [
+    {
+      key: "forms",
+      icon: "layers",
+      value: String(summary.data?.forms.total ?? list.length),
+      note: t("dashboard.kpi.createdInPeriod", { count: summary.data?.forms.createdInPeriod ?? 0 }),
+    },
+    {
+      key: "active",
+      icon: "checkCircle",
+      value: String(summary.data?.forms.published ?? list.filter((f) => f.isPublished).length),
+      note: t("dashboard.kpi.acceptingResponses"),
+    },
+    {
+      key: "responses",
+      icon: "inbox",
+      value: String(current?.responses ?? 0),
+      note: previous ? (
+        <Delta value={percentChange(current!.responses, previous.responses)} unit="%" />
+      ) : (
+        t("dashboard.kpi.inPeriod")
+      ),
+    },
+    {
+      key: "completion",
+      icon: "pulse",
+      value: current && current.started > 0 ? `${(current.completionRate * 100).toFixed(1)}%` : "-",
+      note:
+        previous && current && current.started > 0 && previous.started > 0 ? (
+          <Delta value={(current.completionRate - previous.completionRate) * 100} unit="pts" />
+        ) : (
+          t("dashboard.kpi.ofAttempts")
+        ),
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-900 font-sans antialiased">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2 font-bold text-xl text-indigo-600 tracking-tight">
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2.5"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z"
-              />
-            </svg>
-            Quorvia
-          </div>
+    <AppShell
+      topBarStart={<SearchField value={query} onChange={setQuery} />}
+      topBarEnd={
+        <button
+          type="button"
+          onClick={() => actions.create.mutate()}
+          disabled={actions.create.isPending}
+          className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60 cursor-pointer"
+        >
+          <AppIcon name="plus" />
+          <span className="hidden sm:inline">
+            {actions.create.isPending ? t("dashboard.creating") : t("dashboard.createButton")}
+          </span>
+        </button>
+      }
+    >
+      <div className="mx-auto max-w-[1180px] space-y-6">
+        <header>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">
+            {t("dashboard.eyebrow")}
+          </p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
+            {t("dashboard.title")}
+          </h1>
+          <p className="mt-1 text-slate-500">{t("dashboard.subtitle")}</p>
+        </header>
 
-          <div className="flex items-center gap-4">
-            <LanguageSwitcher />
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-slate-700">
-                {t("dashboard.header.userLabel")}
-              </p>
-              <p className="text-xs text-slate-500">{user?.email}</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-50 hover:text-rose-600 transition-colors cursor-pointer"
-              title={t("dashboard.header.logoutTitle")}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          {cards.map((card) => (
+            <article
+              key={card.key}
+              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
             >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="2"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"
-                />
-              </svg>
-            </button>
-          </div>
+              <header className="flex items-center justify-between gap-2">
+                <h2 className="text-sm font-medium text-slate-500">
+                  {t(`dashboard.kpi.${card.key}`)}
+                </h2>
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <AppIcon name={card.icon} className="h-4 w-4" />
+                </span>
+              </header>
+              {summary.isLoading && card.key !== "forms" && card.key !== "active" ? (
+                <Skeleton className="mt-3 h-9 w-24" />
+              ) : (
+                <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
+                  {card.value}
+                </p>
+              )}
+              <p className="mt-1 text-xs">{card.note}</p>
+            </article>
+          ))}
         </div>
-      </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">{t("dashboard.stats.totalForms")}</p>
-            <p className="mt-2 text-3xl font-bold tracking-tight">{forms.length}</p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">{t("dashboard.stats.published")}</p>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-emerald-600">
-              {forms.filter((f) => f.isPublished).length}
-            </p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">
-              {t("dashboard.stats.totalResponses")}
-            </p>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-indigo-600">
-              {totalResponses}
-            </p>
-          </div>
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-slate-900">
+                {t("dashboard.activity.title")}
+              </h2>
+              <p className="mt-0.5 text-sm text-slate-500">
+                <span className="mr-1.5 text-2xl font-bold text-slate-900">
+                  {current?.responses ?? 0}
+                </span>
+                {t("dashboard.activity.totalResponses")}
+              </p>
+            </div>
+            <div
+              role="group"
+              aria-label={t("workspace.overview.period.label")}
+              className="inline-flex rounded-xl bg-slate-100 p-1"
+            >
+              {PRESETS.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  aria-pressed={preset === p}
+                  onClick={() => setPreset(p)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer ${
+                    preset === p
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  {t(`workspace.overview.period.${p}`)}
+                </button>
+              ))}
+            </div>
+          </header>
+          {summary.isError ? (
+            <BlockError
+              message={t("workspace.overview.loadFailed")}
+              onRetry={() => summary.refetch()}
+              retryLabel={t("workspace.overview.retry")}
+            />
+          ) : summary.isLoading ? (
+            <Skeleton className="h-56 w-full" />
+          ) : (
+            <ActivityChart daily={summary.data?.daily ?? []} />
+          )}
         </section>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-          <div className="relative max-w-md w-full">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="2"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.603 10.603Z"
-                />
-              </svg>
-            </span>
-            <input
-              type="text"
-              placeholder={t("dashboard.searchPlaceholder")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-shadow"
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <header className="mb-5">
+            <h2 className="text-base font-semibold text-slate-900">{t("dashboard.forms.title")}</h2>
+            <p className="mt-0.5 text-sm text-slate-500">{t("dashboard.forms.subtitle")}</p>
+          </header>
+          {forms.isLoading ? (
+            <Skeleton className="h-48 w-full" />
+          ) : forms.isError ? (
+            <BlockError
+              message={t("dashboard.forms.loadFailed")}
+              onRetry={() => forms.refetch()}
+              retryLabel={t("workspace.overview.retry")}
             />
-          </div>
+          ) : (
+            <FormsTable
+              forms={list}
+              limit={5}
+              query={query}
+              onDelete={setToDelete}
+              onTogglePublish={(form) =>
+                actions.togglePublish.mutate({ id: form.id, isPublished: form.isPublished })
+              }
+              onDuplicate={(form) => actions.duplicate.mutate(form.id)}
+            />
+          )}
+        </section>
 
+        <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-5">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">{t("dashboard.cta.title")}</h2>
+            <p className="text-sm text-slate-500">{t("dashboard.cta.text")}</p>
+          </div>
           <button
-            onClick={() => createFormMutation.mutate(t("dashboard.newFormTitle"))}
-            disabled={createFormMutation.isPending}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:bg-slate-300 shadow-sm transition-colors cursor-pointer"
+            type="button"
+            onClick={() => actions.create.mutate()}
+            disabled={actions.create.isPending}
+            className="h-10 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60 cursor-pointer"
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2.5"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            {createFormMutation.isPending ? t("dashboard.creating") : t("dashboard.createButton")}
+            {t("dashboard.createButton")}
           </button>
-        </div>
+        </section>
+      </div>
 
-        {filteredForms.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center">
-            <h3 className="text-sm font-semibold text-slate-900">
-              {t("dashboard.emptyState.title")}
-            </h3>
-            <p className="mt-1 text-sm text-slate-500">{t("dashboard.emptyState.subtitle")}</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredForms.map((form) => (
-              <FormCard
-                key={form.id}
-                form={form}
-                onClick={() => navigate(`/builder/${form.id}`)}
-                onDelete={() => deleteFormMutation.mutate(form.id)}
-                onDuplicate={() => duplicateFormMutation.mutate(form.id)}
-                onTogglePublish={() =>
-                  togglePublishMutation.mutate({ id: form.id, isPublished: form.isPublished })
-                }
-                onAnalytics={() => navigate(`/analytics/${form.id}`)}
-              />
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
+      <ConfirmModal
+        isOpen={toDelete !== null}
+        title={t("workspace.confirm.deleteTitle")}
+        description={t("workspace.confirm.deleteText")}
+        confirmLabel={t("workspace.confirm.deleteAction")}
+        onCancel={() => setToDelete(null)}
+        onConfirm={() => {
+          if (toDelete) actions.remove.mutate(toDelete.id);
+          setToDelete(null);
+        }}
+      />
+    </AppShell>
   );
 }

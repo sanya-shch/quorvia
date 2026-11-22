@@ -14,11 +14,14 @@ interface ViewerShellProps {
   // Centers the content vertically (welcome, closing and thank-you screens).
   centered?: boolean;
   // Width of the content column.
-  width?: "md" | "lg" | "xl";
+  width?: "md" | "lg" | "xl" | "wide";
+  // Inside another page (the builder's live preview): no site header or footer, just the
+  // progress bar and the content, sized by the container instead of the window.
+  embedded?: boolean;
   children: ReactNode;
 }
 
-const WIDTHS = { md: "max-w-md", lg: "max-w-xl", xl: "max-w-2xl" } as const;
+const WIDTHS = { md: "max-w-md", lg: "max-w-xl", xl: "max-w-2xl", wide: "max-w-5xl" } as const;
 
 // The frame of every public form page: a header with the form name, the content column and a
 // footer. It uses only the palette classes the form theme re-points (slate, indigo, surface), so
@@ -31,9 +34,38 @@ export default function ViewerShell({
   notice,
   centered = false,
   width = "xl",
+  embedded = false,
   children,
 }: ViewerShellProps) {
   const { t } = useTranslation();
+
+  if (embedded) {
+    return (
+      <div className="bg-slate-50">
+        {progress !== undefined && (
+          <div
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress}
+            aria-label={progressLabel}
+            className="h-1 w-full bg-slate-200"
+          >
+            <div
+              className="h-full bg-indigo-600 transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        )}
+        <div
+          className={`mx-auto w-full px-4 py-6 sm:px-6 ${centered ? "flex flex-col justify-center" : ""} ${WIDTHS[width]}`}
+        >
+          {notice}
+          {children}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">

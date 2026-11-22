@@ -594,6 +594,17 @@ export interface AnalyticsSummaryDto {
 
 export const ANALYTICS_MAX_DAILY_DAYS = 366;
 
+// The dashboard: the same numbers as one form's summary, totalled over ALL of the user's forms,
+// plus how many forms there are. `previous` and `daily` follow the same rules as the form's.
+export interface DashboardSummaryDto extends AnalyticsSummaryDto {
+  forms: {
+    total: number;
+    published: number;
+    // Forms created inside the period (0 for an open period).
+    createdInPeriod: number;
+  };
+}
+
 export const JOURNEY_STATUSES = ["all", "completed", "abandoned"] as const;
 export type JourneyStatus = (typeof JOURNEY_STATUSES)[number];
 

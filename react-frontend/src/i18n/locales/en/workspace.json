@@ -1,0 +1,266 @@
+{
+  "loading": "Loading...",
+  "breadcrumb": {
+    "label": "Breadcrumb"
+  },
+  "status": {
+    "published": "Published",
+    "draft": "Draft",
+    "unpublished": "Unpublished"
+  },
+  "tabs": {
+    "label": "Form sections",
+    "overview": "Overview",
+    "builder": "Builder",
+    "responses": "Responses",
+    "analytics": "Analytics",
+    "settings": "Settings"
+  },
+  "header": {
+    "untitled": "Untitled form",
+    "updated": "Updated {{date}}",
+    "continueEditing": "Continue editing",
+    "edit": "Edit form",
+    "publish": "Publish",
+    "publishAgain": "Publish again",
+    "publishBlocked": "Fix the issues listed in the form readiness first",
+    "preview": "Preview",
+    "share": "Share",
+    "moreActions": "More actions",
+    "unpublish": "Unpublish",
+    "duplicate": "Duplicate form",
+    "delete": "Delete form",
+    "questions_one": "{{count}} question",
+    "questions_other": "{{count}} questions"
+  },
+  "save": {
+    "unsaved": "Unsaved changes",
+    "saving": "Saving...",
+    "failed": "Save failed",
+    "conflict": "Version conflict",
+    "action": "Save",
+    "invalid": "The form has issues, so it was not saved. Check the readiness list on the Overview or the highlighted questions in the Builder."
+  },
+  "actions": {
+    "failed": "The action failed. Try again.",
+    "published": "The form is published",
+    "unpublished": "The form is unpublished",
+    "duplicated": "A copy of the form was created",
+    "deleted": "The form was deleted"
+  },
+  "confirm": {
+    "deleteTitle": "Delete this form?",
+    "deleteText": "The form, all its questions, responses, attempts and exports are deleted permanently. This cannot be undone.",
+    "deleteAction": "Delete the form",
+    "unpublishTitle": "Unpublish this form?",
+    "unpublishText": "The public link stops working until you publish the form again. Collected responses are kept.",
+    "unpublishAction": "Unpublish"
+  },
+  "loadError": {
+    "title": "The form could not be loaded",
+    "text": "It may have been deleted, or you do not have access to it.",
+    "retry": "Try again",
+    "back": "Back to my forms"
+  },
+  "share": {
+    "title": "Share the form",
+    "description": "Anyone with the link can fill in the published form.",
+    "notPublished": "The form is not published, so these links do not work yet.",
+    "publicLink": "Public link",
+    "byLanguage": "Link for a specific language",
+    "copy": "Copy",
+    "copied": "Copied",
+    "open": "Open the form in a new tab"
+  },
+  "details": {
+    "title": "Edit details",
+    "formTitle": "Form title",
+    "formDescription": "Description",
+    "titleRequired": "The title is required.",
+    "save": "Save details"
+  },
+  "export": {
+    "title": "Export responses",
+    "description": "The file is built in the background. You can close this window and come back.",
+    "formats": {
+      "CSV": "CSV",
+      "EXCEL": "Excel",
+      "PDF": "PDF"
+    },
+    "history": "Recent exports",
+    "empty": "No exports yet.",
+    "status": {
+      "PENDING": "Queued",
+      "PROCESSING": "Processing",
+      "COMPLETED": "Ready",
+      "FAILED": "Failed"
+    },
+    "download": "Download",
+    "failed": "The export could not be started.",
+    "downloadFailed": "The file could not be downloaded."
+  },
+  "readiness": {
+    "title": "Form readiness",
+    "ready": "Ready to publish",
+    "fix": "Fix in the builder",
+    "checks": {
+      "questionsOk": "The form has questions",
+      "questionsMissing": "Add at least one question",
+      "titleOk": "The form has a title",
+      "titleMissing": "The form needs a title",
+      "questionTitlesOk": "Every question has a title",
+      "questionTitlesMissing": "Some questions have no title",
+      "conditionsOk": "Conditions are valid",
+      "conditionsInvalid": "Some conditions are invalid",
+      "formulasOk": "Formulas are valid",
+      "formulasInvalid": "Some formulas are invalid",
+      "rulesOk": "Scoring and end rules are valid",
+      "rulesInvalid": "Scoring or end rules need attention",
+      "translationsOk": "Translations are complete",
+      "translationsMissing_one": "{{count}} translation is missing",
+      "translationsMissing_other": "{{count}} translations are missing"
+    },
+    "issues_one": "{{count}} issue to fix before publishing",
+    "issues_other": "{{count}} issues to fix before publishing"
+  },
+  "overview": {
+    "retry": "Try again",
+    "loadFailed": "This block could not be loaded.",
+    "period": {
+      "label": "Period",
+      "7d": "7 days",
+      "30d": "30 days",
+      "90d": "90 days",
+      "all": "All time"
+    },
+    "kpi": {
+      "attempts": "Total attempts",
+      "responses": "Completed responses",
+      "completion": "Completion rate",
+      "questions": "Questions",
+      "attemptsHint": "People who started the form",
+      "responsesHint": "Successfully submitted",
+      "completionHint": "Share of attempts completed",
+      "questionsHint": "In the response flow",
+      "noPrior": "No data before",
+      "points": "pts",
+      "vsPrior": "vs. prior period"
+    },
+    "activity": {
+      "title": "Response activity",
+      "subtitle": "How responses change over time.",
+      "inPeriod": "responses in this period",
+      "submitted": "Submitted",
+      "started": "Started",
+      "noSeries": "A day-by-day chart is not available for this period.",
+      "aria": "Chart of {{days}} days with {{count}} submitted responses.",
+      "tooltip": "{{date}}: {{started}} started, {{submitted}} submitted"
+    },
+    "funnel": {
+      "title": "Response funnel",
+      "viewAnalytics": "View analytics",
+      "started": "Started",
+      "completed": "Completed",
+      "rate": "Completion rate",
+      "dropOff": "Where people leave",
+      "untitled": "Untitled question",
+      "exits_one": "{{count}} exit",
+      "exits_other": "{{count}} exits"
+    },
+    "recent": {
+      "title": "Recent responses",
+      "subtitle": "Latest submissions.",
+      "viewAll": "View all responses",
+      "id": "Response",
+      "submitted": "Submitted",
+      "status": "Status",
+      "completed": "Completed",
+      "open": "Open",
+      "empty": "No responses yet."
+    },
+    "setup": {
+      "title": "Form setup",
+      "edit": "Edit settings",
+      "questions": "Questions",
+      "mode": "Response mode",
+      "modes": {
+        "ALL_AT_ONCE": "All at once",
+        "STEP_BY_STEP": "One at a time"
+      },
+      "mainLanguage": "Main language",
+      "otherLanguages": "Additional languages",
+      "none": "None",
+      "status": "Status"
+    },
+    "actions": {
+      "title": "Quick actions",
+      "subtitle": "Manage this form without leaving its workspace.",
+      "edit": "Edit form",
+      "preview": "Preview",
+      "share": "Share form",
+      "responses": "View responses",
+      "analytics": "View analytics",
+      "export": "Export responses",
+      "duplicate": "Duplicate form"
+    },
+    "info": {
+      "title": "Form information",
+      "edit": "Edit details",
+      "noDescription": "No description yet.",
+      "created": "Created",
+      "updated": "Last updated",
+      "languages": "Languages",
+      "complete": "Complete",
+      "missing_one": "{{count}} missing",
+      "missing_other": "{{count}} missing"
+    },
+    "noQuestions": {
+      "title": "This form has no questions yet",
+      "text": "Add the first question in the builder to get started.",
+      "action": "Add the first question"
+    },
+    "published": {
+      "title": "Your form is live",
+      "text": "No one has responded yet. Share the link to start collecting responses."
+    }
+  },
+  "settings": {
+    "nav": "Settings sections",
+    "allSaved": "All settings are saved.",
+    "unsavedHint": "You have unsaved changes.",
+    "sections": {
+      "general": {
+        "title": "General",
+        "description": "The form's name, description, response mode and logo."
+      },
+      "languages": {
+        "title": "Content & languages",
+        "description": "The main language and translations of the form."
+      },
+      "respondent": {
+        "title": "Respondent experience",
+        "description": "Welcome and thank-you screens, result rules and appearance."
+      },
+      "scoring": {
+        "title": "Scoring",
+        "description": "Points per answer and result categories."
+      },
+      "limits": {
+        "title": "Limits & quotas",
+        "description": "When the form closes and who can still respond."
+      },
+      "publication": {
+        "title": "Publication",
+        "description": "Publish or unpublish the form and get its public link."
+      },
+      "data": {
+        "title": "Data & exports",
+        "description": "Export the collected responses."
+      },
+      "danger": {
+        "title": "Danger zone",
+        "description": "Deleting a form cannot be undone."
+      }
+    }
+  }
+}

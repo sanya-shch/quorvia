@@ -6,9 +6,18 @@ import { refreshAccessToken } from "../../../api/axios";
 
 interface VueAnalyticsHostProps {
   formId: string;
+  // Inside the form workspace: no title/tabs of the Vue app (the workspace has its own).
+  embedded?: boolean;
+  initialTab?: "overview" | "responses";
+  initialResponseId?: string;
 }
 
-export default function VueAnalyticsHost({ formId }: VueAnalyticsHostProps) {
+export default function VueAnalyticsHost({
+  formId,
+  embedded = false,
+  initialTab,
+  initialResponseId,
+}: VueAnalyticsHostProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const appRef = useRef<App | null>(null);
   const token = useAuthStore((s) => s.token);
@@ -23,6 +32,9 @@ export default function VueAnalyticsHost({ formId }: VueAnalyticsHostProps) {
   const vueProps = useRef(
     reactive({
       formId,
+      embedded,
+      initialTab,
+      initialResponseId,
       apiBaseUrl: import.meta.env.VITE_API_URL || "http://localhost:5001/api",
       locale: i18n.language,
       // Explicit auth bridge for the Vue remote: the token lives only in the host's memory (not

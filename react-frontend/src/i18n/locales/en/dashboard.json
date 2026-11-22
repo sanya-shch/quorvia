@@ -34,5 +34,69 @@
     "publish": "Publish",
     "duplicate": "Duplicate",
     "delete": "Delete"
+  },
+  "eyebrow": "Workspace overview",
+  "title": "Dashboard",
+  "subtitle": "Here is what is happening across your forms.",
+  "search": {
+    "label": "Search forms",
+    "placeholder": "Search forms"
+  },
+  "kpi": {
+    "forms": "Total forms",
+    "active": "Active forms",
+    "responses": "Total responses",
+    "completion": "Completion rate",
+    "acceptingResponses": "Currently accepting responses",
+    "inPeriod": "In the selected period",
+    "ofAttempts": "Share of attempts completed",
+    "vsPrevious": "vs. previous period",
+    "createdInPeriod_one": "{{count}} created in this period",
+    "createdInPeriod_other": "{{count}} created in this period"
+  },
+  "activity": {
+    "title": "Response activity",
+    "totalResponses": "total responses"
+  },
+  "forms": {
+    "title": "Your forms",
+    "subtitle": "Create, publish and manage your survey collection.",
+    "loadFailed": "Your forms could not be loaded."
+  },
+  "cta": {
+    "title": "Ready to create something new?",
+    "text": "Build your next form from scratch."
+  },
+  "table": {
+    "filter": "Filter by status",
+    "filters": {
+      "all": "All",
+      "draft": "Draft",
+      "published": "Published"
+    },
+    "sort": "Sort forms",
+    "sorts": {
+      "updated": "Last updated",
+      "created": "Newest",
+      "responses": "Most responses",
+      "title": "Name"
+    },
+    "view": "View",
+    "views": {
+      "list": "List",
+      "grid": "Cards"
+    },
+    "empty": "You have no forms yet.",
+    "noMatches": "No forms match your search.",
+    "form": "Form",
+    "status": "Status",
+    "questions": "Questions",
+    "responses": "Responses",
+    "updated": "Last updated",
+    "edit": "Edit",
+    "open": "Open",
+    "settings": "Settings of {{title}}",
+    "showing": "Showing {{shown}} of {{total}} forms",
+    "viewAll": "View all forms"
   }
 }

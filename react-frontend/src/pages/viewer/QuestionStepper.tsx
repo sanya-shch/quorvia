@@ -1,5 +1,5 @@
 import { otherAnswerKey } from "@quorvia/shared-types";
-import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { type Question } from "../../types/formBuilder";
 import { type FormAnswers } from "../../types/formViewer";
@@ -38,6 +38,20 @@ interface QuestionStepperProps {
   // The language switcher and a banner (the quota warning), placed by the page.
   languageSwitcher?: ReactNode;
   notice?: ReactNode;
+  // Builder preview: no page chrome, a way to jump to a question from outside, and a report of
+  // what is on screen (the current question, the questions the conditions currently show).
+  embedded?: boolean;
+  focusQuestionId?: string | null;
+  onViewChange?: (view: StepperView) => void;
+}
+
+export interface StepperView {
+  currentId: string | null;
+  // 0-based position in the visible path; equals total on the review screen.
+  index: number;
+  total: number;
+  isReview: boolean;
+  visibleIds: string[];
 }
 
 export default function QuestionStepper({
@@ -52,6 +66,9 @@ export default function QuestionStepper({
   sessionKey = "",
   languageSwitcher,
   notice,
+  embedded = false,
+  focusQuestionId,
+  onViewChange,
 }: QuestionStepperProps) {
   const { t, i18n } = useTranslation();
   // A calculation hidden from the respondent is never shown (the server does not even send it).
@@ -100,6 +117,45 @@ export default function QuestionStepper({
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
 
   const isReview = currentIndex >= path.length;
+
+  // The builder asks to show a question (the one selected in its list): jump there if the
+  // respondent would see it. Done while rendering, when the requested question changes, so the
+  // view never shows the old step first; the preview can then be navigated freely again.
+  const [appliedFocus, setAppliedFocus] = useState(focusQuestionId);
+  if (focusQuestionId !== appliedFocus) {
+    setAppliedFocus(focusQuestionId);
+
+    if (focusQuestionId) {
+      // A question the respondent has not reached yet is reached by following the form's own
+      // flow with the answers given so far (the same getNextQuestion the "Next" button uses), so
+      // the preview can show any question that the current answers would lead to.
+      let extended = path;
+      while (!extended.some((q) => q.id === focusQuestionId)) {
+        const last = extended[extended.length - 1];
+        const next = last ? getNextQuestion(orderedQuestions, answers, last.order) : null;
+        if (!next) break;
+        extended = [...extended, next];
+      }
+
+      const index = extended.findIndex((q) => q.id === focusQuestionId);
+      if (index !== -1) {
+        if (extended !== path) setPath(extended);
+        setCurrentIndex(index);
+      }
+    }
+  }
+
+  const visibleIdsKey = path.map((q) => q.id ?? "").join("|");
+  useEffect(() => {
+    onViewChange?.({
+      currentId: path[currentIndex]?.id ?? null,
+      index: currentIndex,
+      total: path.length,
+      isReview,
+      visibleIds: path.map((q) => q.id ?? ""),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, visibleIdsKey, isReview]);
   const current = isReview ? null : path[currentIndex];
 
   // Questions the respondent actually saw on screen: the path to the current step (the whole path on
@@ -206,7 +262,13 @@ export default function QuestionStepper({
 
   if (path.length === 0) {
     return (
-      <ViewerShell title={formTitle} headerRight={languageSwitcher} notice={notice} centered>
+      <ViewerShell
+        title={formTitle}
+        headerRight={languageSwitcher}
+        notice={notice}
+        centered
+        embedded={embedded}
+      >
         <p className="text-center text-sm text-slate-500">{t("viewer.noQuestions")}</p>
       </ViewerShell>
     );
@@ -240,6 +302,7 @@ export default function QuestionStepper({
       }
       notice={notice}
       width="lg"
+      embedded={embedded}
     >
       <div className="space-y-4">
         {logoUrl && <FormLogo url={logoUrl} />}

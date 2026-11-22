@@ -1,0 +1,9 @@
+{
+  "nav": {
+    "label": "Main navigation",
+    "dashboard": "Dashboard",
+    "forms": "My Forms"
+  },
+  "logout": "Log out",
+  "openMenu": "Open the menu"
+}

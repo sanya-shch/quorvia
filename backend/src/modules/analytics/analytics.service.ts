@@ -99,7 +99,10 @@ const responseBatches = (formId: string, period?: AnalyticsPeriod) =>
   );
 
 // Same for attempts; the (sessionKey, id) order follows the form's unique index.
-const attemptBatches = (formId: string, period?: AnalyticsPeriod) =>
+// `formId` is one form, or {in: [...]} for several (the dashboard totals over all of a user's forms).
+type FormScope = string | { in: string[] };
+
+const attemptBatches = (formId: FormScope, period?: AnalyticsPeriod) =>
   paginate(
     (page) =>
       prisma.responseAttempt.findMany({
@@ -715,7 +718,7 @@ export const getFormFunnel = async (
   return acc.result();
 };
 
-const summaryTotals = async (formId: string, period: AnalyticsPeriod) => {
+export const summaryTotals = async (formId: FormScope, period: AnalyticsPeriod) => {
   const durations: number[] = [];
   const daily = new Map<string, AnalyticsDailyPoint>(
     daysOf(period).map((date) => [date, { date, started: 0, submitted: 0 }]),

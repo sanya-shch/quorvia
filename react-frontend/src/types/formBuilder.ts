@@ -89,6 +89,11 @@ interface ServerScoring {
 // A form from the admin endpoint: FormState plus the version for optimistic locking.
 export interface AdminForm extends Omit<FormState, "scoring">, ServerScoring {
   version: number;
+  // Columns of the form row that the admin endpoint returns as they are.
+  isPublished?: boolean;
+  shareId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Save body: version is the one the client loaded (the server answers 409 if it is stale).

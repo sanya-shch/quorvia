@@ -37,13 +37,39 @@ TanStack Query is responsible for server state:
 - mutations;
 - cache invalidation.
 
-Zustand is used for local application state:
-
-- authentication;
-- builder state;
-- transient UI state.
+Zustand is used for authentication. The editable copy of a form (the builder's draft) is plain React state in `useFormDraft`, owned by the form workspace (below); transient UI state (selected question, collapsed panels, preview device) is local state of the page that uses it.
 
 This avoids duplicating server data inside a global client store.
+
+## Form workspace
+
+Everything about one form lives under `/forms/:formId/*`: **Overview**, **Builder**, **Responses**, **Analytics**, **Settings**. Older links (`/builder/:id`, `/analytics/:id[/questions/:q]`) redirect to the new places.
+
+- **One layout owns the form.** `FormWorkspaceLayout` loads the form once (`useFormDraft`: TanStack Query for the server copy, `useFormBuilder` for the editable draft, one save with the optimistic-lock `version`), and every section reads and edits that one draft through `useWorkspace()`. Edits made in the Builder are still there, still unsaved, when the owner opens Settings; nothing is copied between pages. Leaving the workspace with unsaved changes asks first (`useBlocker`, `beforeunload`).
+- **There is no autosave of the form.** Autosave in this project is for respondents' attempts. The owner saves explicitly; the header shows the draft's real state (saved / unsaved / saving / failed / version conflict). A conflict never overwrites the other copy: the owner chooses to load the latest.
+- **Publication status.** The model has one flag (`isPublished`), so "unpublished" is a form that is not published but has responses (they can only come through the public link); a form that was published and unpublished before its first response looks like a draft. Publishing is blocked in the UI when the form has blocking problems (see readiness); the server itself accepts any publish.
+- **Overview** (`workspace/overview/`): KPI cards, response activity, form setup, funnel snapshot, recent responses, quick actions, form information. Every block loads on its own (a failing widget shows an error with a retry, the rest stays), a draft gets its readiness and configuration instead of cards of zeros, and a published form with no activity gets a "your form is live" message with the link. All numbers are the analytics endpoints (`/analytics/summary`, `/analytics/funnel`, `/responses`), nothing is estimated on the client; "All time" runs from the creation day so the chart has a per-day series, and then shows no comparison. Recent responses are listed by id and time (forms are anonymous) and open in the Responses section. Exports use the existing asynchronous jobs (the dialog polls only while a job is queued or running).
+- **Readiness** (`workspace/readiness.ts`) adds no rules: every blocking check is the builder's own `validateFormState` (also used by the builder), so the overview and the builder cannot disagree. A missing translation is a warning, not a blocker.
+- **Settings** (`workspace/settings/`) holds everything that applies to the whole form, moved out of the builder with its editors unchanged: title, description, response mode, logo; languages and translations; welcome and end screens, result rules, appearance; scoring; closing and quotas; publication; exports; delete. Question-level settings stay in the Builder.
+- **Responses and Analytics** embed the Vue analytics app (`VueAnalyticsHost` with `embedded`, `initialTab`, `initialResponseId`): the workspace supplies the title and tabs, the Vue app only its period picker, export menu and content.
+
+## Builder
+
+A full-screen, three-column editor over the workspace draft (`builder/BuilderPage.tsx`, components in `builder/editor/`).
+
+- **Left: the question list** (`QuestionSidebar`): number, title, type, a "Logic" mark, a red mark when the question has a validation error, a context menu (duplicate, move up/down, delete), drag and drop, a "+" between questions and "Add question" at the bottom. All **14** question types are offered (`QuestionTypePicker`: basic and advanced), not only the 11 of the first design.
+- **Centre: the live preview** (`PreviewWorkspace`): the public form's own components (`FormViewer` for "all at once", `QuestionStepper` for "step by step", and `WelcomeScreen` when the author turned the welcome screen on), rendered with no shareId and no session. So the rendering, validation and branching are the published form's, and nothing is sent: the autosave and the file upload need a shareId and a submit is intercepted. The answers live in those components, so "Reset answers" remounts them; none of it is form data. Test logic opens a sandbox over the condition-engine (`resolveVisibleQuestionIds`, `validateConditionGraph`). The preview language, the device size and the selected question are UI state and are never saved. Selecting a question in the list moves the preview to it (in step mode by following the form's flow with the current preview answers), and the preview can then be used independently; if the selected question is hidden by its condition in the current answers, the preview says so.
+- **Right: the inspector** (`QuestionInspector`): type, title, description, required; the type's settings and validation (the same editors the stacked cards used); scoring; conditional logic; translations of this question (the same fields as the language panel in Settings, narrowed to one question). The type can be changed only while the form has no responses (the old answers would no longer fit it); the type's own settings are then replaced by the new type's defaults after a confirmation.
+- **Dependency rules** (`editor/dependencies.ts`, on `validateConditionGraph`): a condition may only look at an earlier question. A move that would break one is refused with the names of the affected questions; deleting a question other questions depend on says which, and after confirmation removes only those conditions (they become always shown). Nothing is rewritten silently.
+- On a phone the three columns become three panes (Questions / Preview / Settings) switched by tabs.
+
+## Dashboard and My forms
+
+`/dashboard` shows totals over all forms (total, active, responses, completion rate, with the change against the previous period), the response activity and the latest forms; `/forms` is the whole list. Both use `FormsTable` (filter by status, sort, list or cards, search from the top bar, `Ctrl/Cmd+K` focuses it) inside `AppShell` (sidebar, top bar, drawer on a phone). The totals come from one endpoint, `GET /api/dashboard/summary`, which is the per-form summary summed over the user's forms, so the dashboard and a form's overview agree on every definition.
+
+## Respondent introduction
+
+The introduction page is the welcome screen: the author turns it on and writes its title, text and button in Settings, and without it the form opens on the first question (and the same in the builder preview). The page adds only facts read from the form: the number of questions, an _estimated_ time (about 15 seconds per question, shown as "about N minutes"), the language, and notes that depend on the response mode and on whether the form has conditions.
 
 ## Landing page
 

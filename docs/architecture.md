@@ -104,6 +104,7 @@ backend/src/
 │   ├── response/
 │   ├── attempt/
 │   ├── analytics/
+│   ├── dashboard/    (totals over all of a user's forms; reuses the analytics summary)
 │   └── export/
 │
 ├── shared/
@@ -201,6 +202,7 @@ Quorvia/
 │   │   │   ├── response/
 │   │   │   ├── attempt/
 │   │   │   ├── analytics/
+│   │   │   ├── dashboard/
 │   │   │   └── export/
 │   │   │
 │   │   ├── shared/
@@ -212,8 +214,11 @@ Quorvia/
 │   ├── src/
 │   │   ├── api/
 │   │   ├── pages/
-│   │   │   ├── dashboard/
-│   │   │   ├── builder/
+│   │   │   ├── landing/
+│   │   │   ├── dashboard/   (dashboard, "my forms")
+│   │   │   ├── forms/
+│   │   │   ├── workspace/   (one form: layout, overview, settings)
+│   │   │   ├── builder/     (three-column editor)
 │   │   │   ├── viewer/
 │   │   │   └── analytics/
 │   │   ├── store/

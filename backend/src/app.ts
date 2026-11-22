@@ -10,6 +10,7 @@ import attemptRoutes from "./modules/attempt/attempt.routes.js";
 import analyticsRoutes from "./modules/analytics/analytics.routes.js";
 import quotaRoutes from "./modules/quota/quota.routes.js";
 import exportRoutes from "./modules/export/export.routes.js";
+import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 import { formAssetRoutes, publicAssetRoutes } from "./modules/asset/asset.routes.js";
 import { fileRoutes } from "./modules/file/file.routes.js";
 
@@ -54,6 +55,7 @@ app.use("/api/forms", quotaRoutes);
 app.use("/api/forms", formAssetRoutes);
 app.use("/api/forms", fileRoutes);
 app.use("/api/assets", publicAssetRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 app.use(errorHandler);
 

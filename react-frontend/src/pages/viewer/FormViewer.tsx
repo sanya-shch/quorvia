@@ -38,6 +38,10 @@ interface FormViewerProps {
   // The language switcher and a banner (the quota warning), placed by the page.
   languageSwitcher?: ReactNode;
   notice?: ReactNode;
+  // Builder preview (see QuestionStepper).
+  embedded?: boolean;
+  focusQuestionId?: string | null;
+  onViewChange?: (visibleIds: string[]) => void;
 }
 
 export default function FormViewer({
@@ -52,6 +56,9 @@ export default function FormViewer({
   sessionKey = "",
   languageSwitcher,
   notice,
+  embedded = false,
+  focusQuestionId,
+  onViewChange,
 }: FormViewerProps) {
   const { t, i18n } = useTranslation();
   const uploadedFiles = useUploadedFiles();
@@ -97,6 +104,20 @@ export default function FormViewer({
     () => withCalculatedValues(answers, calculated),
     [answers, calculated],
   );
+
+  // The builder asks to show a question: bring its card into view.
+  useEffect(() => {
+    if (!focusQuestionId) return;
+    document
+      .getElementById(`card-${focusQuestionId}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [focusQuestionId]);
+
+  const visibleKey = visibleQuestions.map((q) => q.id ?? "").join("|");
+  useEffect(() => {
+    onViewChange?.(visibleQuestions.map((q) => q.id ?? ""));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleKey]);
 
   const progress = useMemo(
     () => getAnswerProgress(visibleQuestions, shownAnswers),
@@ -258,6 +279,7 @@ export default function FormViewer({
           total: progress.total,
         })}
         notice={notice}
+        embedded={embedded}
       >
         <ReviewScreen
           items={items}
@@ -281,6 +303,7 @@ export default function FormViewer({
         total: progress.total,
       })}
       notice={notice}
+      embedded={embedded}
     >
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
         <section className="rounded-2xl border border-slate-200 border-t-4 border-t-indigo-600 bg-surface p-5 shadow-sm sm:p-8">

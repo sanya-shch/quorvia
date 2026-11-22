@@ -36,6 +36,12 @@ const props = defineProps<{
   // Auth bridge from the React host (the token lives only in the host's memory).
   getAccessToken?: () => string | null;
   refreshAccessToken?: () => Promise<string | null>;
+  // Inside the form workspace the page title, status and the Overview/Responses tabs belong to
+  // the React shell: the app then shows only the period picker, the export menu and the content.
+  embedded?: boolean;
+  initialTab?: "overview" | "responses";
+  // Opens this response in the Responses tab right away (a link from the form overview).
+  initialResponseId?: string;
 }>();
 
 const { t, locale } = useI18n();
@@ -125,7 +131,7 @@ const closeDetail = () => {
   activeQuestionId.value = null;
 };
 
-const activeTab = ref<"overview" | "responses">("overview");
+const activeTab = ref<"overview" | "responses">(props.initialTab ?? "overview");
 
 const {
   data: responsesList,
@@ -148,6 +154,8 @@ const selectResponse = (responseId: string) => {
   loadResponseDetail(responseId);
 };
 
+if (props.initialResponseId) selectResponse(props.initialResponseId);
+
 // "Oct 24, 2026" in the interface language; the form meta is decoration, so it may be absent.
 const updatedLabel = computed(() =>
   meta.value?.updatedAt
@@ -162,8 +170,8 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
 
 <template>
   <div class="analytics-root">
-    <header class="header">
-      <div class="title-block">
+    <header class="header" :class="{ 'header--embedded': embedded }">
+      <div v-if="!embedded" class="title-block">
         <div class="meta-row">
           <span
             v-if="meta && meta.isPublished !== undefined"
@@ -193,7 +201,7 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
       </div>
     </header>
 
-    <nav class="tabs" role="tablist">
+    <nav v-if="!embedded" class="tabs" role="tablist">
       <button
         type="button"
         role="tab"
@@ -419,6 +427,9 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
   font-size: 14px;
   color: #64748b;
   margin: 4px 0 0;
+}
+.header--embedded {
+  justify-content: flex-end;
 }
 .header-right {
   display: flex;

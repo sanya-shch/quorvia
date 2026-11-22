@@ -6,14 +6,14 @@ The project focuses on a non-trivial form engine rather than plain CRUD: conditi
 
 ## Screenshots
 
+![Landing](/assets/landing.png)
 ![Dashboard](/assets/Dashboard.png)
-![BuilderEmpty](/assets/BuilderEmpty.png)
+![FormDashboard](/assets/FormDashboard.png)
 ![Builder](/assets/Builder.png)
+![FormSettings](/assets/FormSettings.png)
 ![ViewerOneAtTime](/assets/ViewerOneAtTime.png)
 ![ViewerAllInOne](/assets/ViewerAllInOne.png)
-![Dashboard2](/assets/Dashboard2.png)
 ![Analytics](/assets/Analytics.png)
-![AnalyticsRaw](/assets/AnalyticsRaw.png)
 
 ## Features
 
@@ -33,6 +33,14 @@ The project focuses on a non-trivial form engine rather than plain CRUD: conditi
 - Autosaved attempts with a live “saved” indicator
 - A review screen before submitting in **both** modes: step-by-step opens it after the last question, the all-at-once form opens it from “Review answers”; every answer is shown as text with an “Edit” button back to its question
 - Language chosen from `?lang=`, the browser, or a switcher
+
+**Workspace**
+
+- A dashboard (totals over all forms with the change against the previous period, response activity, the latest forms) and a full "My forms" list with search, status filter, sorting and list/card views
+- A workspace for every form with Overview, Builder, Responses, Analytics and Settings; one editable draft is shared by all of them, with one explicit save and an optimistic version lock
+- The Overview shows the form's health: readiness for publishing, attempts vs. completed responses, completion rate, response activity, funnel snapshot, recent responses, sharing (with a link per language) and asynchronous exports
+- A three-column Builder: the question list (drag and drop, "+" between questions, all question types), a live preview that uses the public form's own components (both modes, branching, the welcome screen, desktop/tablet/mobile) and an inspector with every setting of the selected question, including its translations; moves and deletions that would break a condition are explained, never applied silently
+- Form-wide settings (languages, screens, appearance, scoring, quotas, publication) in Settings
 
 **Public site**
 

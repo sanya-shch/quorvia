@@ -1,24 +1,31 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
+import {
+  AnalyticsRoute,
+  BuilderRoute,
+  LegacyRedirect,
+  OverviewRoute,
+  QuestionDetailsRoute,
+  ResponsesRoute,
+  SettingsRoute,
+} from "./pages/workspace/routeElements";
 
 const loadLanding = () => import("./pages/landing/LandingPage");
 const loadLogin = () => import("./pages/auth/Login");
 const loadRegister = () => import("./pages/auth/Register");
+const loadMyForms = () => import("./pages/forms/MyFormsPage");
 const loadDashboard = () => import("./pages/dashboard/Dashboard");
-const loadFormBuilder = () => import("./pages/builder/FormBuilder");
+const loadWorkspace = () => import("./pages/workspace/FormWorkspaceLayout");
 const loadPublicFormPage = () => import("./pages/viewer/PublicFormPage");
-const loadFormAnalyticsPage = () => import("./pages/analytics/FormAnalyticsPage");
-const loadQuestionDetailsPage = () => import("./pages/analytics/components/QuestionDetailsPage");
 
 const LandingPage = lazy(loadLanding);
 const Login = lazy(loadLogin);
 const Register = lazy(loadRegister);
 const Dashboard = lazy(loadDashboard);
-const FormBuilder = lazy(loadFormBuilder);
+const MyFormsPage = lazy(loadMyForms);
+const FormWorkspaceLayout = lazy(loadWorkspace);
 const PublicFormPage = lazy(loadPublicFormPage);
-const FormAnalyticsPage = lazy(loadFormAnalyticsPage);
-const QuestionDetailsPage = lazy(loadQuestionDetailsPage);
 
 // Protected pages are only rendered after session restore and /auth/me, so
 // their chunks would otherwise start downloading at the end of that chain.
@@ -29,9 +36,8 @@ const preloaders: Array<[RegExp, () => Promise<unknown>]> = [
   [/^\/register\/?$/, loadRegister],
   [/^\/public\/forms\//, loadPublicFormPage],
   [/^\/dashboard\/?$/, loadDashboard],
-  [/^\/builder\//, loadFormBuilder],
-  [/^\/analytics\/[^/]+\/questions\//, loadQuestionDetailsPage],
-  [/^\/analytics\//, loadFormAnalyticsPage],
+  [/^\/forms\/?$/, loadMyForms],
+  [/^\/forms\/[^/]+/, loadWorkspace],
 ];
 
 export const preloadRouteChunk = (pathname: string): void => {
@@ -55,28 +61,37 @@ export const router = createBrowserRouter([
     ),
   },
   {
-    path: "/builder/:formId",
+    path: "/forms",
     element: (
       <ProtectedRoute>
-        <FormBuilder />
+        <MyFormsPage />
       </ProtectedRoute>
     ),
   },
+  // The form workspace: one layout owns the form and its draft; the sections are its children.
   {
-    path: "/analytics/:formId",
+    path: "/forms/:formId",
     element: (
       <ProtectedRoute>
-        <FormAnalyticsPage />
+        <FormWorkspaceLayout />
       </ProtectedRoute>
     ),
+    children: [
+      { index: true, element: <Navigate to="overview" replace /> },
+      { path: "overview", element: <OverviewRoute /> },
+      { path: "builder", element: <BuilderRoute /> },
+      { path: "responses", element: <ResponsesRoute /> },
+      { path: "analytics", element: <AnalyticsRoute /> },
+      { path: "analytics/questions/:questionId", element: <QuestionDetailsRoute /> },
+      { path: "settings", element: <SettingsRoute /> },
+    ],
   },
+  // Links from before the workspace existed.
+  { path: "/builder/:formId", element: <LegacyRedirect section="builder" /> },
+  { path: "/analytics/:formId", element: <LegacyRedirect section="analytics" /> },
   {
     path: "/analytics/:formId/questions/:questionId",
-    element: (
-      <ProtectedRoute>
-        <QuestionDetailsPage />
-      </ProtectedRoute>
-    ),
+    element: <LegacyRedirect section="analytics" />,
   },
   { path: "*", element: <Navigate to="/dashboard" replace /> },
 ]);

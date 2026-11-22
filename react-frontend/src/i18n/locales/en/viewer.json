@@ -67,7 +67,22 @@
     "label": "Language"
   },
   "welcome": {
-    "start": "Start"
+    "start": "Start",
+    "questions_one": "{{count}} question",
+    "questions_other": "{{count}} questions",
+    "questionsHint": "Quick and focused",
+    "time_one": "About {{count}} minute",
+    "time_other": "About {{count}} minutes",
+    "timeHint": "At your own pace",
+    "languageHint": "Available now",
+    "languageSwitch": "Change language anytime",
+    "beforeTitle": "Before you begin",
+    "noteStep": "One question at a time, with clear progress throughout.",
+    "noteAll": "All questions are on one page; scroll back to change an answer.",
+    "noteBranching": "Only questions relevant to your answers will appear.",
+    "noteAutosave": "Your answers are autosaved as you go.",
+    "reviewNote": "You can review your answers before submitting.",
+    "privacy": "Your responses are private and saved securely."
   },
   "endScreen": {
     "redirecting_one": "Redirecting in {{count}} second.",

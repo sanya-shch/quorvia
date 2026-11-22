@@ -4,25 +4,23 @@ import userEvent from "@testing-library/user-event";
 import { QUESTION_TYPES } from "@quorvia/shared-types";
 import i18n from "../../i18n";
 import { QUESTION_TYPE_LABEL_KEYS } from "../../constants";
-import { getSidebarItems } from "./constants";
-import InlineAddButton from "./components/InlineAddButton";
+import QuestionTypePicker from "./editor/QuestionTypePicker";
+import { ADVANCED_TYPES, ALL_TYPES, BASIC_TYPES, TYPE_ICONS } from "./editor/questionTypeMeta";
 
-// Completeness guard: TypeScript cannot see that for a new question type the builder palette entry
+// Completeness guard: TypeScript cannot see that for a new question type the picker entry, the icon
 // or the uk/en translation was forgotten. This test walks the whole QUESTION_TYPES from
 // shared-types and fails if anything is missing.
 describe("покриття типів питань у конструкторі", () => {
-  const t = i18n.t.bind(i18n) as never;
-
-  it("кожен тип має ключ підпису", () => {
+  it("кожен тип має ключ підпису й іконку", () => {
     for (const type of QUESTION_TYPES) {
       expect(QUESTION_TYPE_LABEL_KEYS[type], type).toBeTruthy();
+      expect(TYPE_ICONS[type], type).toBeTruthy();
     }
   });
 
-  it("кожен тип є в палітрі конструктора рівно один раз", () => {
-    const paletteTypes = getSidebarItems(t).map((item) => item.type);
-
-    expect([...paletteTypes].sort()).toEqual([...QUESTION_TYPES].sort());
+  it("кожен тип є у списку вибору рівно один раз (базові + розширені не перетинаються)", () => {
+    expect([...ALL_TYPES].sort()).toEqual([...QUESTION_TYPES].sort());
+    expect(BASIC_TYPES.filter((type) => ADVANCED_TYPES.includes(type))).toEqual([]);
   });
 
   it.each(["uk", "en"])("кожен тип має переклад підпису (%s)", (lng) => {
@@ -33,22 +31,19 @@ describe("покриття типів питань у конструкторі",
     }
   });
 
-  it("швидке додавання (+ між питаннями) пропонує кожен тип рівно один раз", async () => {
+  it("вибір типу пропонує кожен тип рівно один раз і додає саме його", async () => {
     const user = userEvent.setup();
-    const onAdd = vi.fn();
+    const onPick = vi.fn();
 
-    render(<InlineAddButton onAdd={onAdd} />);
-    await user.click(screen.getByRole("button", { name: /додати/i }));
+    render(<QuestionTypePicker onPick={onPick} onClose={vi.fn()} />);
 
-    const items = screen.getAllByRole("menuitem");
+    const items = screen.getAllByRole("button");
     expect(items).toHaveLength(QUESTION_TYPES.length);
 
-    // each item adds its own type
-    for (const [index, type] of QUESTION_TYPES.entries()) {
-      onAdd.mockClear();
-      await user.click(screen.getAllByRole("menuitem")[index]);
-      expect(onAdd).toHaveBeenCalledWith(type);
-      await user.click(screen.getByRole("button", { name: /додати/i }));
+    for (const [index, type] of ALL_TYPES.entries()) {
+      onPick.mockClear();
+      await user.click(screen.getAllByRole("button")[index]);
+      expect(onPick).toHaveBeenCalledWith(type);
     }
   });
 });

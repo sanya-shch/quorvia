@@ -27,6 +27,7 @@ import { type FieldValidationError } from "./questionValidation";
 import { getApiErrorMessage } from "../../i18n/errorCodes";
 import ViewerLanguageSwitcher from "./components/ViewerLanguageSwitcher";
 import ViewerShell from "./components/ViewerShell";
+import { getLanguageName } from "../../i18n/languageNames";
 import {
   getMainLanguage,
   getRequestedLanguages,
@@ -354,11 +355,17 @@ export default function PublicFormPage() {
       <EndScreen screen={endScreen} />
     </ViewerShell>
   ) : showWelcome && localized.welcomeScreen ? (
-    <ViewerShell title={localized.title} headerRight={languageSwitcher} width="lg" centered>
+    <ViewerShell title={localized.title} headerRight={languageSwitcher} width="wide" centered>
       <WelcomeScreen
         screen={localized.welcomeScreen}
         logoUrl={logoUrl}
         onStart={() => setStarted(true)}
+        formTitle={localized.title}
+        questionCount={localized.questions.length}
+        languageName={getLanguageName(isMultilingual ? language : mainLanguage, language)}
+        isMultilingual={isMultilingual}
+        responseMode={localized.responseMode}
+        hasBranching={localized.questions.some((q) => Boolean(q.condition))}
       />
     </ViewerShell>
   ) : (

@@ -553,5 +553,129 @@
     "closedByDate": "The closing date has passed: the survey no longer accepts responses.",
     "closedByLimit": "The maximum number of responses has been reached: the survey no longer accepts responses.",
     "pastDateHint": "Choose a later date or clear it to reopen."
+  },
+  "editor": {
+    "header": {
+      "back": "Overview",
+      "editTitle": "Edit form title",
+      "titleLabel": "Form title",
+      "saved": "All changes saved",
+      "savedAt": "Saved at {{time}}",
+      "saving": "Saving...",
+      "dirty": "Unsaved changes",
+      "error": "Save failed",
+      "conflict": "Version conflict",
+      "previewLanguage": "Preview language",
+      "previewPublished": "Open the published form in a new tab",
+      "previewRestart": "Restart the preview from the first question",
+      "saveFirst": "Save your changes before publishing"
+    },
+    "sidebar": {
+      "title": "Questions",
+      "count_one": "{{count}} question",
+      "count_other": "{{count}} questions",
+      "collapse": "Collapse the question list",
+      "expand": "Expand the question list",
+      "empty": "No questions yet. Add the first one below.",
+      "untitled": "Untitled question",
+      "logic": "Logic",
+      "menu": "Actions for question {{number}}",
+      "addAfter": "Add a question after question {{number}}",
+      "add": "Add question",
+      "chooseFrom": "Choose from {{count}} question types",
+      "menuItems": {
+        "duplicate": "Duplicate",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "delete": "Delete"
+      }
+    },
+    "picker": {
+      "title": "Question types",
+      "basic": "Basic",
+      "advanced": "Advanced"
+    },
+    "panes": {
+      "label": "Builder panels",
+      "questions": "Questions",
+      "preview": "Preview",
+      "settings": "Settings"
+    },
+    "preview": {
+      "title": "Live preview",
+      "questionOf": "Question {{current}} of {{total}}",
+      "questionsShown_one": "{{count}} question shown",
+      "questionsShown_other": "{{count}} questions shown",
+      "review": "Review before submitting",
+      "testLogic": "Test logic",
+      "device": "Preview device",
+      "devices": {
+        "desktop": "Desktop",
+        "tablet": "Tablet",
+        "mobile": "Mobile"
+      },
+      "refresh": "Restart the preview",
+      "session": "Preview session · test answers only, nothing is saved",
+      "reset": "Reset answers",
+      "hiddenByLogic": "The selected question is hidden by its condition with the current preview answers.",
+      "empty": "Add a question to see the preview.",
+      "finishedTitle": "Preview finished",
+      "finishedText": "In the published form this sends the answers. Here nothing was sent or saved.",
+      "startAgain": "Start again"
+    },
+    "inspector": {
+      "title": "Question settings",
+      "collapse": "Collapse the settings panel",
+      "expand": "Expand the settings panel",
+      "empty": "Select a question to edit its settings.",
+      "general": "General",
+      "type": "Question type",
+      "typeLocked": "The type cannot be changed once the form has responses.",
+      "questionTitle": "Question title",
+      "description": "Description",
+      "optional": "Optional",
+      "required": "Required answer",
+      "requiredHint": "Respondents must answer",
+      "settings": "Answer settings and validation",
+      "scoring": "Scoring",
+      "logic": "Conditional logic",
+      "translations": {
+        "title": "Translations",
+        "main": "Main",
+        "missing": "Missing {{count}}",
+        "complete": "Complete",
+        "manage": "Add or remove languages in Settings"
+      }
+    },
+    "deleteModal": {
+      "title": "Delete this question?",
+      "description": "The question and its answer options are removed from the form.",
+      "withDependents": "These questions are shown only depending on this one: {{list}}. If you delete it, their visibility condition is removed and they will always be shown.",
+      "confirm": "Delete"
+    },
+    "moveBlocked": {
+      "title": "This move would break a condition",
+      "description": "A condition can only look at an earlier question. After this move the condition of these questions would point at a later one: {{list}}. Change those conditions first, or move the question elsewhere.",
+      "ok": "Understood"
+    },
+    "typeModal": {
+      "title": "Change the question type?",
+      "description": "The title, description, required state and condition are kept. The settings specific to the old type (options, ranges, rows) are replaced with the defaults of the new type.",
+      "confirm": "Change type"
+    },
+    "testLogic": {
+      "title": "Test logic",
+      "description": "Pick answers to the questions that conditions depend on and see which questions would be shown. Nothing is saved.",
+      "invalid": "Some conditions are invalid",
+      "selectedRules": "{{count}} condition(s), match {{logic}}",
+      "noConditions": "No question has a condition yet, so every question is always shown.",
+      "values": "Test answers",
+      "noAnswer": "No answer",
+      "yes": "Yes",
+      "no": "No",
+      "result": "Shown: {{shown}} of {{total}}",
+      "shown": "Shown",
+      "hidden": "Hidden"
+    }
   }
 }
