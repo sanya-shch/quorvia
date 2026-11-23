@@ -41,6 +41,13 @@ model User {
   exportJobs    ExportJob[]
   refreshTokens RefreshToken[]
   createdAt     DateTime       @default(now())
+
+  // Temporary account of the portfolio demo (see modules/demo). A demo account and everything in
+  // it is deleted after demoExpiresAt; regular accounts keep isDemo = false and a null expiry.
+  isDemo        Boolean   @default(false)
+  demoExpiresAt DateTime?
+
+  @@index([isDemo, demoExpiresAt])
 }
 
 model RefreshToken {

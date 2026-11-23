@@ -20,6 +20,10 @@ const envSchema = z
     // or an Express "trust proxy" value ("loopback", etc.). Without it, behind a proxy req.ip is the
     // proxy's own address, and the rate limit (shared by all users) trips for everyone at once.
     TRUST_PROXY: z.string().optional(),
+    // Portfolio deployment: a public demo on free hosting (see docs/deployment.md). Turns on the
+    // demo account and switches off what the host cannot run (exports and the Redis queue behind
+    // them, file uploads, registration). Off by default; read at call time, see isPortfolioMode.
+    IS_FOR_PORTFOLIO: z.enum(["true", "false"]).optional(),
     // How many days finished exports (file + ExportJob row) are kept.
     EXPORT_RETENTION_DAYS: z.coerce.number().int().min(1).default(7),
     // How many days UNFINISHED sessions (ResponseAttempt) are kept. 0 = never delete. Completed
@@ -108,3 +112,10 @@ export const parseTrustProxy = (value: string | undefined): boolean | number | s
 };
 
 export const isProduction = (): boolean => process.env.NODE_ENV === "production";
+
+/**
+ * The one switch for everything the portfolio deployment turns off or adds. Read at CALL time
+ * (like the other getters here), so a test sets process.env.IS_FOR_PORTFOLIO in its own setup and
+ * the default (unset = a normal deployment) leaves every other test untouched.
+ */
+export const isPortfolioMode = (): boolean => process.env.IS_FOR_PORTFOLIO === "true";

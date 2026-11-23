@@ -8,6 +8,7 @@ import {
 } from "../../shared/utils/jwt.js";
 import { AppError } from "../../shared/middleware/errorHandler.js";
 import { ErrorCode } from "@quorvia/shared-types";
+import { toAuthUser } from "./auth.user.js";
 
 // bcrypt cost factor: 12 rounds (~250 ms on a modern CPU), the current sensible minimum.
 // Older hashes (cost 10) stay valid because bcrypt stores the cost inside the hash.
@@ -30,10 +31,14 @@ type TokenPair = {
 };
 
 // Single place that issues a token pair for register/login/refresh. Register and login
-// used to duplicate (and desynchronize) this logic with different TTLs.
-const issueTokenPair = async (userId: string): Promise<TokenPair> => {
+// used to duplicate (and desynchronize) this logic with different TTLs. `notAfter` is the demo
+// account's expiry: its session cannot be extended past the account's life.
+export const issueTokenPair = async (
+  userId: string,
+  notAfter?: Date | null,
+): Promise<TokenPair> => {
   const accessToken = generateAccessToken({ userId });
-  const refresh = generateRefreshToken();
+  const refresh = generateRefreshToken(notAfter);
 
   await prisma.refreshToken.create({
     data: {
@@ -95,14 +100,11 @@ export const loginHandler = async (email: string, password: string) => {
     throw new AppError(ErrorCode.AUTH_INVALID_CREDENTIALS, 401);
   }
 
-  const tokens = await issueTokenPair(user.id);
+  const tokens = await issueTokenPair(user.id, user.demoExpiresAt);
 
   return {
     ...tokens,
-    user: {
-      id: user.id,
-      email: user.email,
-    },
+    user: toAuthUser(user),
   };
 };
 
@@ -131,7 +133,7 @@ export const refreshAccessToken = async (refreshToken: string | undefined) => {
   // separate /auth/me round trip after restoring a session.
   const stored = await prisma.refreshToken.findUnique({
     where: { tokenHash },
-    include: { user: { select: { id: true, email: true } } },
+    include: { user: { select: { id: true, email: true, isDemo: true, demoExpiresAt: true } } },
   });
 
   if (!stored) {
@@ -153,6 +155,12 @@ export const refreshAccessToken = async (refreshToken: string | undefined) => {
     throw new AppError(ErrorCode.AUTH_REFRESH_TOKEN_INVALID, 401);
   }
 
+  // A demo account is deleted by maintenance some time after it expires; until then its session
+  // must already be over.
+  if (stored.user.isDemo && stored.user.demoExpiresAt && stored.user.demoExpiresAt < new Date()) {
+    throw new AppError(ErrorCode.AUTH_DEMO_EXPIRED, 401);
+  }
+
   const { count } = await prisma.refreshToken.updateMany({
     where: { id: stored.id, revokedAt: null },
     data: { revokedAt: new Date() },
@@ -162,9 +170,9 @@ export const refreshAccessToken = async (refreshToken: string | undefined) => {
     throw new AppError(ErrorCode.AUTH_REFRESH_TOKEN_INVALID, 401);
   }
 
-  const tokens = await issueTokenPair(stored.userId);
+  const tokens = await issueTokenPair(stored.userId, stored.user.demoExpiresAt);
 
-  return { ...tokens, user: { id: stored.user.id, email: stored.user.email } };
+  return { ...tokens, user: toAuthUser(stored.user) };
 };
 
 // A real (not no-op) logout: revokes the refresh token in the DB. The access token, as

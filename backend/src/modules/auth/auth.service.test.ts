@@ -234,6 +234,7 @@ describe("refreshAccessToken", () => {
       userId: "user-1",
       revokedAt: null,
       expiresAt: REFRESH_EXPIRES_AT,
+      user: { id: "user-1", email: "a@b.com" },
     });
     (prisma.refreshToken.updateMany as any).mockResolvedValue({ count: 0 });
 
@@ -267,7 +268,7 @@ describe("refreshAccessToken", () => {
 
     expect(prisma.refreshToken.findUnique).toHaveBeenCalledWith({
       where: { tokenHash: "hashed-old-raw-token" },
-      include: { user: { select: { id: true, email: true } } },
+      include: { user: { select: { id: true, email: true, isDemo: true, demoExpiresAt: true } } },
     });
     expect(hashRefreshToken).toHaveBeenCalledWith("old-raw-token");
     expect(prisma.refreshToken.updateMany).toHaveBeenCalledWith({
@@ -286,6 +287,44 @@ describe("refreshAccessToken", () => {
       refreshToken: "raw-refresh-token",
       refreshTokenExpiresAt: REFRESH_EXPIRES_AT,
       user: { id: "user-1", email: "a@b.com" },
+    });
+  });
+});
+
+describe("refreshAccessToken - демо-акаунти", () => {
+  const demoRow = (demoExpiresAt: Date) => ({
+    id: "rt-1",
+    userId: "demo-1",
+    revokedAt: null,
+    expiresAt: REFRESH_EXPIRES_AT,
+    user: { id: "demo-1", email: "demo-x@demo.quorvia.invalid", isDemo: true, demoExpiresAt },
+  });
+
+  it("не оновлює сесію демо-акаунта, чий термін минув: 401 AUTH_DEMO_EXPIRED, токен не ротується", async () => {
+    (prisma.refreshToken.findUnique as any).mockResolvedValue(
+      demoRow(new Date(Date.now() - 60_000)),
+    );
+
+    await expect(refreshAccessToken("demo-token")).rejects.toMatchObject({
+      statusCode: 401,
+      message: ErrorCode.AUTH_DEMO_EXPIRED,
+    });
+    expect(prisma.refreshToken.updateMany).not.toHaveBeenCalled();
+    expect(prisma.refreshToken.create).not.toHaveBeenCalled();
+  });
+
+  it("новий refresh-токен демо-акаунта не живе довше за сам акаунт і відповідь несе термін", async () => {
+    const demoExpiresAt = new Date(Date.now() + 3 * 60 * 60 * 1000);
+    (prisma.refreshToken.findUnique as any).mockResolvedValue(demoRow(demoExpiresAt));
+    (prisma.refreshToken.updateMany as any).mockResolvedValue({ count: 1 });
+
+    const result = await refreshAccessToken("demo-token");
+
+    expect(generateRefreshToken).toHaveBeenCalledWith(demoExpiresAt);
+    expect(result.user).toEqual({
+      id: "demo-1",
+      email: "demo-x@demo.quorvia.invalid",
+      demo: { expiresAt: demoExpiresAt.toISOString() },
     });
   });
 });

@@ -30,6 +30,11 @@ import {
 } from "./form.calculation.js";
 import { removeFileObjects } from "../file/file.service.js";
 import {
+  assertCanAddForm,
+  assertQuestionCountAllowed,
+  assertQuestionTypesAvailable,
+} from "../demo/demo.service.js";
+import {
   assertFormAsset,
   assertFormAssets,
   copyAssetFiles,
@@ -53,6 +58,8 @@ export const createForm = async ({
   defaultLanguage?: string;
   userId: string;
 }) => {
+  await assertCanAddForm(userId);
+
   return prisma.form.create({
     data: {
       title,
@@ -220,6 +227,10 @@ export const updateForm = async (formId: string, userId: string, data: UpdateFor
 
   if (!form) throw new AppError(ErrorCode.FORM_NOT_FOUND, 404);
   if (form.userId !== userId) throw new AppError(ErrorCode.FORM_FORBIDDEN, 403);
+
+  // Portfolio deployment only (no-ops elsewhere): demo limits and the types that need file storage.
+  assertQuestionTypesAvailable(data.questions);
+  await assertQuestionCountAllowed(userId, data.questions.length);
 
   if (data.logoAssetId) {
     await assertFormAsset(data.logoAssetId, formId, "LOGO");
@@ -468,6 +479,8 @@ export const duplicateForm = async (formId: string, userId: string) => {
 
   if (!form) throw new AppError(ErrorCode.FORM_NOT_FOUND, 404);
   if (form.userId !== userId) throw new AppError(ErrorCode.FORM_FORBIDDEN, 403);
+
+  await assertCanAddForm(userId);
 
   // The copy gets its own copies of the logo and the option pictures (files included), so the two
   // forms can be deleted independently.

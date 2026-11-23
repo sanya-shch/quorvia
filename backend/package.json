@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "migrate:deploy": "prisma migrate deploy",
     "worker": "tsx watch src/worker.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

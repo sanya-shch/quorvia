@@ -202,7 +202,7 @@ describe("GET /api/auth/me", () => {
     expect(res.body).toEqual({ id: "user-1", email: "a@b.com" });
     expect(prisma.user.findUnique).toHaveBeenCalledWith({
       where: { id: "user-1" },
-      select: { id: true, email: true },
+      select: { id: true, email: true, isDemo: true, demoExpiresAt: true },
     });
   });
 });

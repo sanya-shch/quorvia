@@ -15,6 +15,15 @@ export const ErrorCode = {
   AUTH_UNAUTHORIZED: "AUTH_UNAUTHORIZED",
   AUTH_TOKEN_INVALID: "AUTH_TOKEN_INVALID",
   AUTH_USER_NOT_FOUND: "AUTH_USER_NOT_FOUND",
+  // Portfolio deployment (IS_FOR_PORTFOLIO): the demo account and everything switched off for it.
+  AUTH_DEMO_EXPIRED: "AUTH_DEMO_EXPIRED",
+  DEMO_UNAVAILABLE: "DEMO_UNAVAILABLE",
+  DEMO_CAPACITY_REACHED: "DEMO_CAPACITY_REACHED",
+  DEMO_FORM_LIMIT_REACHED: "DEMO_FORM_LIMIT_REACHED",
+  DEMO_QUESTION_LIMIT_REACHED: "DEMO_QUESTION_LIMIT_REACHED",
+  DEMO_RESPONSE_LIMIT_REACHED: "DEMO_RESPONSE_LIMIT_REACHED",
+  FEATURE_DISABLED: "FEATURE_DISABLED",
+  REGISTRATION_DISABLED: "REGISTRATION_DISABLED",
 
   FORM_NOT_FOUND: "FORM_NOT_FOUND",
   FORM_FORBIDDEN: "FORM_FORBIDDEN",
@@ -1535,3 +1544,24 @@ export const getClosedReason = (
 
   return null;
 };
+
+/**
+ * Demo accounts of the portfolio deployment (the server runs with IS_FOR_PORTFOLIO=true). A visitor
+ * gets a temporary account without registering; the limits keep a free database small and make
+ * the demo safe to leave open. Shared by the backend (enforcement) and the frontend (disabled
+ * buttons and messages), so the two cannot drift apart.
+ */
+export const DEMO_LIMITS = {
+  // How long a demo account (and everything in it) lives.
+  ttlHours: 24,
+  maxForms: 3,
+  maxQuestionsPerForm: 10,
+  // A public form of a demo account accepts answers from anyone, so it stops at this many.
+  maxResponsesPerForm: 50,
+  // Demo accounts alive at the same time. Beyond it new demos wait (DEMO_CAPACITY_REACHED).
+  maxActiveAccounts: 150,
+} as const;
+
+// Question types that need file storage. The portfolio host has no persistent disk, so they are
+// switched off there instead of losing the files on every restart.
+export const STORAGE_QUESTION_TYPES = ["IMAGE_CHOICE", "FILE"] as const;

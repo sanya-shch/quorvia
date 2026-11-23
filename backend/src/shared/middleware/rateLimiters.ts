@@ -94,6 +94,18 @@ export const createFileUploadLimiter = (limit = 40) =>
     keyGenerator: (req) => ip(req),
   });
 
+// POST /api/auth/demo: every call creates an account (and later deletes it). Per IP and kept low so
+// one visitor cannot fill the free database; an office behind one NAT still fits several people.
+export const createDemoLimiter = (limit = 10) =>
+  rateLimit({
+    windowMs: 60 * 60 * 1000,
+    limit,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: rateLimited,
+    keyGenerator: ip,
+  });
+
 export const apiLimiter = createApiLimiter();
 export const submitResponseLimiter = createSubmitResponseLimiter();
 export const saveAttemptLimiter = createSaveAttemptLimiter();
@@ -101,3 +113,4 @@ export const exportLimiter = createExportLimiter();
 export const uploadLimiter = createUploadLimiter();
 export const fileUploadLimiter = createFileUploadLimiter();
 export const refreshLimiter = createRefreshLimiter();
+export const demoLimiter = createDemoLimiter();

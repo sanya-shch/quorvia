@@ -15,6 +15,7 @@ import {
   scoreConditionAnswers,
   scoreSubmission,
 } from "../form/form.scoring.js";
+import { assertResponseCapacity } from "../demo/demo.service.js";
 import { assertQuotasOpen, claimQuotaPlaces, matchingQuotas } from "../form/form.quotas.js";
 
 export const submitResponse = async (
@@ -42,6 +43,9 @@ export const submitResponse = async (
   // Early answer for a form that is already closed. The authoritative decision is the atomic claim
   // below; this only avoids validating answers that cannot be accepted anyway.
   assertFormOpen(form);
+
+  // Portfolio demo only (no-op elsewhere): a demo form takes a limited number of answers.
+  await assertResponseCapacity(form.id, form.userId);
 
   const visibleQuestionIds = resolveVisibleQuestionIds(
     form.questions as unknown as QuestionLike[],

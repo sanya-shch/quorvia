@@ -34,17 +34,21 @@ export const verifyAccessToken = (token: string): AccessTokenPayload =>
 // A refresh token is NOT a JWT: it is an opaque random string. Only its SHA-256 hash is
 // stored in the DB (just as a password is never stored raw), so a database leak alone does
 // not let anyone mint new access tokens for users.
-export const generateRefreshToken = (): {
+// `notAfter` caps the lifetime: a demo account's tokens must not outlive the account itself.
+export const generateRefreshToken = (
+  notAfter?: Date | null,
+): {
   token: string;
   tokenHash: string;
   expiresAt: Date;
 } => {
   const token = crypto.randomBytes(48).toString("hex");
+  const standardExpiry = Date.now() + REFRESH_TOKEN_TTL_MS;
 
   return {
     token,
     tokenHash: hashRefreshToken(token),
-    expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+    expiresAt: new Date(notAfter ? Math.min(standardExpiry, notAfter.getTime()) : standardExpiry),
   };
 };
 

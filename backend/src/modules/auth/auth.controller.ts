@@ -6,11 +6,14 @@ import {
   registerUser,
   revokeRefreshToken,
 } from "./auth.service.js";
+import { toAuthUser } from "./auth.user.js";
+import { startDemoSession } from "../demo/demo.service.js";
 import {
   AuthUser,
   GetMeDto,
   LoginDto,
   LoginInput,
+  DemoDto,
   RefreshDto,
   RegisterDto,
   RegisterInput,
@@ -25,7 +28,7 @@ import {
 } from "../../shared/utils/cookies.js";
 
 const sendAuthResponse = (
-  res: Response<RegisterDto | LoginDto>,
+  res: Response<RegisterDto | LoginDto | DemoDto>,
   tokens: { accessToken: string; refreshToken: string; refreshTokenExpiresAt: Date },
   user: AuthUser,
 ) => {
@@ -49,6 +52,12 @@ export const login = async (req: Request<{}, {}, LoginInput>, res: Response<Logi
   const { email, password } = req.body;
 
   const { user, ...tokens } = await loginHandler(email, password);
+
+  sendAuthResponse(res, tokens, user);
+};
+
+export const demo = async (req: Request, res: Response<DemoDto>) => {
+  const { user, ...tokens } = await startDemoSession();
 
   sendAuthResponse(res, tokens, user);
 };
@@ -83,6 +92,8 @@ export const getMeHandler = async (req: Request, res: Response<GetMeDto>) => {
     select: {
       id: true,
       email: true,
+      isDemo: true,
+      demoExpiresAt: true,
     },
   });
 
@@ -90,5 +101,5 @@ export const getMeHandler = async (req: Request, res: Response<GetMeDto>) => {
     throw new AppError(ErrorCode.AUTH_USER_NOT_FOUND, 404);
   }
 
-  res.json(user);
+  res.json(toAuthUser(user));
 };

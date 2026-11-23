@@ -7,6 +7,8 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type AuthUser = {
   id: string;
   email: string;
+  // Only present for a demo account (the shape for everyone else is unchanged).
+  demo?: { expiresAt: string };
 };
 
 // accessToken is the only thing frontend JS sees; the refresh token travels separately in
@@ -17,6 +19,11 @@ export type RegisterDto = {
 };
 
 export type LoginDto = {
+  accessToken: string;
+  user: AuthUser;
+};
+
+export type DemoDto = {
   accessToken: string;
   user: AuthUser;
 };
