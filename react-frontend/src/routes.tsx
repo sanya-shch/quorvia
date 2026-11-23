@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { lazy } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { IS_FOR_PORTFOLIO } from "./config/portfolio";
 import {
   AnalyticsRoute,
   BuilderRoute,
@@ -49,8 +50,13 @@ export const preloadRouteChunk = (pathname: string): void => {
 
 export const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
-  { path: "/login", element: <Login /> },
-  { path: "/register", element: <Register /> },
+  // The portfolio demo has no registration or login: visitors start from the demo button on the
+  // landing page, and a visitor who is not signed in is sent there.
+  { path: "/login", element: IS_FOR_PORTFOLIO ? <Navigate to="/" replace /> : <Login /> },
+  {
+    path: "/register",
+    element: IS_FOR_PORTFOLIO ? <Navigate to="/" replace /> : <Register />,
+  },
   { path: "/public/forms/:shareId", element: <PublicFormPage /> },
   {
     path: "/dashboard",

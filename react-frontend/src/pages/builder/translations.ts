@@ -158,6 +158,7 @@ export const listTranslationFields = (form: FormState, language: string): Transl
       refId: category.id,
       source: category.label,
       value: formEntry?.scoreCategories?.[category.id],
+      multiline: false,
     });
   }
 
@@ -276,7 +277,11 @@ const withLanguageEntry = <E extends object>(
 };
 
 // Which key of a form-level translation each form-level field kind writes to.
-const FORM_FIELD_KEYS: Partial<Record<TranslationFieldKind, keyof FormTranslation>> = {
+// Only the keys that hold one string: the end rules and score categories are maps and are written
+// by their own branches above.
+type FormTextKey = Exclude<keyof FormTranslation, "endRules" | "scoreCategories">;
+
+const FORM_FIELD_KEYS: Partial<Record<TranslationFieldKind, FormTextKey>> = {
   formTitle: "title",
   formDescription: "description",
   welcomeTitle: "welcomeTitle",

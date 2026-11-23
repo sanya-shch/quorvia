@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { IS_FOR_PORTFOLIO } from "../../../config/portfolio";
 import { useTranslation } from "react-i18next";
 import AppIcon, { type AppIconName } from "../../../components/ui/AppIcon";
 import { publicFormUrl } from "../formStatus";
@@ -64,10 +65,12 @@ export default function QuickActions({
           {icon("bars")}
           {t("workspace.overview.actions.analytics")}
         </Link>
-        <button type="button" className={tile} onClick={onExport}>
-          {icon("download")}
-          {t("workspace.overview.actions.export")}
-        </button>
+        {!IS_FOR_PORTFOLIO && (
+          <button type="button" className={tile} onClick={onExport}>
+            {icon("download")}
+            {t("workspace.overview.actions.export")}
+          </button>
+        )}
         <button type="button" className={tile} disabled={isDuplicating} onClick={onDuplicate}>
           {icon("copy")}
           {t("workspace.overview.actions.duplicate")}

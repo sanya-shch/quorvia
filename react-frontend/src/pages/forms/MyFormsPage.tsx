@@ -10,6 +10,7 @@ import FormsTable from "../dashboard/components/FormsTable";
 import SearchField from "../dashboard/SearchField";
 import { useFormsActions } from "../dashboard/useFormsActions";
 import { BlockError, Skeleton } from "../workspace/overview/Card";
+import { useDemoLimits } from "../../store/useDemoLimits";
 
 // "My forms": the whole list (the dashboard shows only the latest few).
 export default function MyFormsPage() {
@@ -18,6 +19,8 @@ export default function MyFormsPage() {
   const [query, setQuery] = useState("");
   const [toDelete, setToDelete] = useState<FormSummary | null>(null);
   const forms = useQuery({ queryKey: ["forms"], queryFn: formsApi.getAll });
+  const { maxForms } = useDemoLimits();
+  const formLimitReached = (forms.data?.length ?? 0) >= maxForms;
 
   return (
     <AppShell
@@ -26,7 +29,8 @@ export default function MyFormsPage() {
         <button
           type="button"
           onClick={() => actions.create.mutate()}
-          disabled={actions.create.isPending}
+          disabled={actions.create.isPending || formLimitReached}
+          title={formLimitReached ? t("dashboard.demoFormLimit") : undefined}
           className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60 cursor-pointer"
         >
           <AppIcon name="plus" />

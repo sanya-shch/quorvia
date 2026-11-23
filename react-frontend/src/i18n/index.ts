@@ -1,7 +1,12 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
-import { SUPPORTED_LOCALES, DEFAULT_LOCALE, type SupportedLocale } from "@quorvia/shared-types";
+import {
+  DEFAULT_LOCALE,
+  DEMO_LIMITS,
+  SUPPORTED_LOCALES,
+  type SupportedLocale,
+} from "@quorvia/shared-types";
 
 export const I18N_LOCALSTORAGE_KEY = "quorvia-language";
 
@@ -62,7 +67,17 @@ const baseOptions = {
   supportedLngs: [...SUPPORTED_LOCALES],
   fallbackLng: DEFAULT_LOCALE,
   load: "languageOnly" as const, // "uk-UA" -> "uk", "en-US" -> "en"
-  interpolation: { escapeValue: false },
+  interpolation: {
+    escapeValue: false,
+    // The demo limits live in shared-types (the server enforces them); texts name them through
+    // these variables so a translation never carries its own copy of a number.
+    defaultVariables: {
+      demoMaxForms: DEMO_LIMITS.maxForms,
+      demoMaxQuestions: DEMO_LIMITS.maxQuestionsPerForm,
+      demoMaxResponses: DEMO_LIMITS.maxResponsesPerForm,
+      demoTtlHours: DEMO_LIMITS.ttlHours,
+    },
+  },
 };
 
 // Resolves once the detected language bundle is in place; main.tsx waits for it before the first render.

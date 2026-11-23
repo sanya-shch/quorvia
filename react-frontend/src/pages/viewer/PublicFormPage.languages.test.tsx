@@ -82,8 +82,8 @@ describe("PublicFormPage - мови форми", () => {
   beforeEach(() => {
     mockedFetch.mockReset();
     mockedSubmit.mockReset();
-    mockedSubmit.mockResolvedValue(undefined);
-    vi.mocked(saveFormAttempt).mockResolvedValue(undefined);
+    mockedSubmit.mockResolvedValue(undefined as never);
+    vi.mocked(saveFormAttempt).mockResolvedValue(undefined as never);
     mockedFetch.mockResolvedValue(form());
     setBrowserLanguages(["uk-UA"]);
   });
@@ -217,8 +217,8 @@ describe("PublicFormPage - одномовна форма без змін у по
   beforeEach(() => {
     mockedFetch.mockReset();
     mockedSubmit.mockReset();
-    mockedSubmit.mockResolvedValue(undefined);
-    vi.mocked(saveFormAttempt).mockResolvedValue(undefined);
+    mockedSubmit.mockResolvedValue(undefined as never);
+    vi.mocked(saveFormAttempt).mockResolvedValue(undefined as never);
     setBrowserLanguages(["uk-UA"]);
   });
 

@@ -18,6 +18,7 @@ import BuilderHeader from "./editor/BuilderHeader";
 import PreviewWorkspace from "./editor/PreviewWorkspace";
 import QuestionInspector from "./editor/QuestionInspector";
 import QuestionSidebar from "./editor/QuestionSidebar";
+import { useDemoLimits } from "../../store/useDemoLimits";
 import { clearConditionsOn, findDependents, questionsBrokenByMove } from "./editor/dependencies";
 
 type Pane = "questions" | "preview" | "settings";
@@ -103,6 +104,8 @@ export default function BuilderPage() {
     // On a phone the list was a full pane: selecting shows the preview of that question.
     setPane("preview");
   };
+
+  const { maxQuestions } = useDemoLimits();
 
   const add = (type: QuestionType, index: number) => {
     setSelectedId(addQuestionAtPosition(type, index));
@@ -236,6 +239,7 @@ export default function BuilderPage() {
             errorIds={errorIds}
             onSelect={select}
             onAdd={add}
+            maxQuestions={maxQuestions}
             onDuplicate={duplicate}
             onDelete={requestDelete}
             onMove={move}

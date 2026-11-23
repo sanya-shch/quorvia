@@ -1,9 +1,13 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { MAX_ADDITIONAL_LANGUAGES, QUESTION_TYPES } from "@quorvia/shared-types";
+import { MAX_ADDITIONAL_LANGUAGES } from "@quorvia/shared-types";
 import { LanguageSwitcher } from "../../components/ui/LanguageSwitcher";
 import { useAuthStore } from "../../store/useAuthStore";
+import { IS_FOR_PORTFOLIO } from "../../config/portfolio";
+import { translateErrorCode } from "../../i18n/errorCodes";
+import { useStartDemo } from "./useStartDemo";
+import { AVAILABLE_TYPES } from "../builder/editor/questionTypeMeta";
 import {
   AnalyticsMock,
   AutosaveMock,
@@ -21,7 +25,8 @@ import {
   ValidationMock,
 } from "./LandingMocks";
 
-const QUESTION_TYPE_COUNT = QUESTION_TYPES.length;
+// What the landing page promises: the types a user can pick in this deployment.
+const QUESTION_TYPE_COUNT = AVAILABLE_TYPES.length;
 
 const buttonPrimary =
   "inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2";
@@ -79,6 +84,68 @@ function SectionHeading({
   );
 }
 
+type Demo = ReturnType<typeof useStartDemo>;
+
+// "Try the demo" (portfolio deployment): replaces the sign-up/log-in links, there are none there.
+function DemoButton({
+  demo,
+  className,
+  label,
+  withArrow = false,
+}: {
+  demo: Demo;
+  className: string;
+  label: string;
+  withArrow?: boolean;
+}) {
+  const { t } = useTranslation();
+  const busy = demo.status === "starting" || demo.status === "waking";
+
+  return (
+    <button
+      type="button"
+      onClick={demo.start}
+      disabled={busy}
+      className={`${className} disabled:opacity-70 cursor-pointer`}
+    >
+      {busy ? t("landing.demo.starting") : label}
+      {!busy && withArrow && <span aria-hidden="true">→</span>}
+    </button>
+  );
+}
+
+// What is happening behind the button: the server is waking up (a free host sleeps when idle) or
+// the account could not be created.
+function DemoStatus({ demo, light = false }: { demo: Demo; light?: boolean }) {
+  const { t } = useTranslation();
+
+  if (demo.status !== "waking" && demo.status !== "failed") return null;
+
+  const text =
+    demo.status === "waking"
+      ? t("landing.demo.waking")
+      : demo.errorCode
+        ? translateErrorCode(t, demo.errorCode)
+        : t("landing.demo.failed");
+
+  return (
+    <p
+      role="status"
+      className={`mt-4 text-sm font-medium ${
+        demo.status === "failed"
+          ? light
+            ? "text-white"
+            : "text-rose-600"
+          : light
+            ? "text-indigo-100"
+            : "text-slate-600"
+      }`}
+    >
+      {text}
+    </p>
+  );
+}
+
 function Logo() {
   return (
     <Link to="/" className="flex items-center gap-2.5 font-bold text-slate-900">
@@ -93,7 +160,7 @@ function Logo() {
   );
 }
 
-function Header() {
+function Header({ demo }: { demo: Demo }) {
   const { t } = useTranslation();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
@@ -123,6 +190,12 @@ function Header() {
             <Link to="/dashboard" className={`${buttonPrimary} h-10`}>
               {t("landing.nav.dashboard")}
             </Link>
+          ) : IS_FOR_PORTFOLIO ? (
+            <DemoButton
+              demo={demo}
+              className={`${buttonPrimary} h-10`}
+              label={t("landing.demo.cta")}
+            />
           ) : (
             <>
               <Link
@@ -192,13 +265,16 @@ export default function LandingPage() {
   const { t } = useTranslation();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const startLink = isAuthenticated ? "/dashboard" : "/register";
+  const demo = useStartDemo();
+  // In the portfolio deployment the main buttons start a demo instead of linking to registration.
+  const startsDemo = IS_FOR_PORTFOLIO && !isAuthenticated;
 
   const useCases = ["lead", "quiz", "feedback", "recruit"] as const;
   const steps = ["s1", "s2", "s3", "s4"] as const;
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
-      <Header />
+      <Header demo={demo} />
 
       <main>
         {/* Hero */}
@@ -211,15 +287,27 @@ export default function LandingPage() {
               </h1>
               <p className="mt-6 max-w-xl text-lg text-slate-600">{t("landing.hero.text")}</p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link to={startLink} className={buttonPrimary}>
-                  {t("landing.hero.primary")}
-                  <span aria-hidden="true">→</span>
-                </Link>
+                {startsDemo ? (
+                  <DemoButton
+                    demo={demo}
+                    className={buttonPrimary}
+                    label={t("landing.demo.cta")}
+                    withArrow
+                  />
+                ) : (
+                  <Link to={startLink} className={buttonPrimary}>
+                    {t("landing.hero.primary")}
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                )}
                 <a href="#features" className={buttonSecondary}>
                   {t("landing.hero.secondary")}
                 </a>
               </div>
-              <p className="mt-6 text-sm font-medium text-slate-500">{t("landing.hero.tagline")}</p>
+              {startsDemo && <DemoStatus demo={demo} />}
+              <p className="mt-6 text-sm font-medium text-slate-500">
+                {startsDemo ? t("landing.demo.note") : t("landing.hero.tagline")}
+              </p>
             </div>
             <HeroMock />
           </div>
@@ -375,17 +463,19 @@ export default function LandingPage() {
           </div>
         </Section>
 
-        {/* Exports */}
-        <Section tone="tinted">
-          <div className="grid items-center gap-10 lg:grid-cols-2">
-            <SectionHeading
-              eyebrow={t("landing.exports.eyebrow")}
-              title={t("landing.exports.title")}
-              text={t("landing.exports.text")}
-            />
-            <ExportsMock />
-          </div>
-        </Section>
+        {/* Exports: the portfolio deployment runs none, so it does not advertise them. */}
+        {!IS_FOR_PORTFOLIO && (
+          <Section tone="tinted">
+            <div className="grid items-center gap-10 lg:grid-cols-2">
+              <SectionHeading
+                eyebrow={t("landing.exports.eyebrow")}
+                title={t("landing.exports.title")}
+                text={t("landing.exports.text")}
+              />
+              <ExportsMock />
+            </div>
+          </Section>
+        )}
 
         {/* Use cases */}
         <Section id="use-cases">
@@ -421,7 +511,12 @@ export default function LandingPage() {
                   {t(`landing.how.${key}.title`)}
                 </h3>
                 <p className="mt-1 text-sm text-slate-600">
-                  {t(`landing.how.${key}.text`, { count: QUESTION_TYPE_COUNT })}
+                  {t(
+                    IS_FOR_PORTFOLIO && key === "s4"
+                      ? "landing.demo.analyzeText"
+                      : `landing.how.${key}.text`,
+                    { count: QUESTION_TYPE_COUNT },
+                  )}
                 </p>
               </li>
             ))}
@@ -434,13 +529,23 @@ export default function LandingPage() {
             <Eyebrow light>{t("landing.cta.eyebrow")}</Eyebrow>
             <h2 className="mt-3 text-3xl font-bold sm:text-4xl">{t("landing.cta.title")}</h2>
             <p className="mx-auto mt-4 max-w-2xl text-indigo-100">{t("landing.cta.text")}</p>
-            <Link
-              to={startLink}
-              className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-7 text-sm font-semibold text-indigo-700 shadow-sm transition-colors hover:bg-indigo-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-600"
-            >
-              {t("landing.cta.button")}
-              <span aria-hidden="true">→</span>
-            </Link>
+            {startsDemo ? (
+              <DemoButton
+                demo={demo}
+                className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-7 text-sm font-semibold text-indigo-700 shadow-sm transition-colors hover:bg-indigo-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-600"
+                label={t("landing.demo.cta")}
+                withArrow
+              />
+            ) : (
+              <Link
+                to={startLink}
+                className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-7 text-sm font-semibold text-indigo-700 shadow-sm transition-colors hover:bg-indigo-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-600"
+              >
+                {t("landing.cta.button")}
+                <span aria-hidden="true">→</span>
+              </Link>
+            )}
+            {startsDemo && <DemoStatus demo={demo} light />}
             <p className="mt-6 text-sm text-indigo-200">{t("landing.cta.note")}</p>
           </div>
         </section>
@@ -485,6 +590,14 @@ export default function LandingPage() {
                   <Link to="/dashboard" className="hover:text-slate-900">
                     {t("landing.nav.dashboard")}
                   </Link>
+                </li>
+              ) : IS_FOR_PORTFOLIO ? (
+                <li>
+                  <DemoButton
+                    demo={demo}
+                    className="hover:text-slate-900"
+                    label={t("landing.demo.cta")}
+                  />
                 </li>
               ) : (
                 <>

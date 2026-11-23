@@ -60,5 +60,13 @@
   "INTERNAL_SERVER_ERROR": "Something went wrong. Please try again",
   "UNKNOWN": "An unknown error occurred",
   "FORM_CLOSED_BY_DATE": "This survey is closed: its closing date has passed",
-  "FORM_CLOSED_BY_LIMIT": "This survey is closed: the maximum number of responses has been reached"
+  "FORM_CLOSED_BY_LIMIT": "This survey is closed: the maximum number of responses has been reached",
+  "AUTH_DEMO_EXPIRED": "The demo account has expired. Create a new one",
+  "DEMO_UNAVAILABLE": "The demo is not available right now",
+  "DEMO_CAPACITY_REACHED": "Too many demo accounts exist right now. Try again in a few minutes",
+  "DEMO_FORM_LIMIT_REACHED": "A demo account can have up to {{demoMaxForms}} forms",
+  "DEMO_QUESTION_LIMIT_REACHED": "A form in a demo account can have up to {{demoMaxQuestions}} questions",
+  "FEATURE_DISABLED": "This feature is turned off in the demo",
+  "REGISTRATION_DISABLED": "Registration is turned off in the demo. Try a demo account",
+  "DEMO_RESPONSE_LIMIT_REACHED": "This demo form has reached its limit of {{demoMaxResponses}} responses"
 }

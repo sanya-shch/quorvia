@@ -3,6 +3,7 @@ import { createApp, reactive, type App } from "vue";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { refreshAccessToken } from "../../../api/axios";
+import { IS_FOR_PORTFOLIO } from "../../../config/portfolio";
 
 interface VueAnalyticsHostProps {
   formId: string;
@@ -37,6 +38,8 @@ export default function VueAnalyticsHost({
       initialResponseId,
       apiBaseUrl: import.meta.env.VITE_API_URL || "http://localhost:5001/api",
       locale: i18n.language,
+      // The portfolio deployment runs no exports: the Vue app hides its export menu.
+      exportEnabled: !IS_FOR_PORTFOLIO,
       // Explicit auth bridge for the Vue remote: the token lives only in the host's memory (not
       // localStorage), so the remote gets it through these functions. refreshAccessToken shares one
       // /auth/refresh with React requests.

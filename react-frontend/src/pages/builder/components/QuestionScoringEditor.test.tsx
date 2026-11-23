@@ -11,8 +11,8 @@ const question = (overrides: Partial<Question> = {}): Question => ({
   required: false,
   order: 0,
   options: [
-    { id: "a", text: "Київ" },
-    { id: "b", text: "Львів", score: 2 },
+    { id: "a", text: "Київ", isDefault: false },
+    { id: "b", text: "Львів", isDefault: false, score: 2 },
   ],
   config: null,
   ...overrides,
@@ -53,8 +53,8 @@ describe("QuestionScoringEditor", () => {
 
       expect(onChange).toHaveBeenLastCalledWith({
         options: [
-          { id: "a", text: "Київ", score: 5 },
-          { id: "b", text: "Львів", score: 2 },
+          { id: "a", text: "Київ", isDefault: false, score: 5 },
+          { id: "b", text: "Львів", isDefault: false, score: 2 },
         ],
       });
     });
@@ -66,8 +66,8 @@ describe("QuestionScoringEditor", () => {
 
       expect(onChange).toHaveBeenLastCalledWith({
         options: [
-          { id: "a", text: "Київ" },
-          { id: "b", text: "Львів" },
+          { id: "a", text: "Київ", isDefault: false },
+          { id: "b", text: "Львів", isDefault: false },
         ],
       });
     });
@@ -79,8 +79,8 @@ describe("QuestionScoringEditor", () => {
 
       expect(onChange).toHaveBeenLastCalledWith({
         options: [
-          { id: "a", text: "Київ", score: -0.5 },
-          { id: "b", text: "Львів", score: 2 },
+          { id: "a", text: "Київ", isDefault: false, score: -0.5 },
+          { id: "b", text: "Львів", isDefault: false, score: 2 },
         ],
       });
     });
@@ -106,7 +106,7 @@ describe("QuestionScoringEditor", () => {
     });
 
     it("names an option that has no text yet", () => {
-      setup(question({ options: [{ id: "a", text: "" }] }));
+      setup(question({ options: [{ id: "a", text: "", isDefault: false }] }));
 
       expect(screen.getByRole("group")).toHaveTextContent("Порожній варіант");
     });
@@ -210,8 +210,8 @@ describe("QuestionScoringEditor", () => {
       <QuestionScoringEditor
         question={question({
           options: [
-            { id: "a", text: "Київ", score: 9 },
-            { id: "b", text: "Львів" },
+            { id: "a", text: "Київ", isDefault: false, score: 9 },
+            { id: "b", text: "Львів", isDefault: false },
           ],
         })}
         onChange={() => {}}

@@ -165,7 +165,7 @@ describe("QuestionStepper - autosave передає reachedQuestionIds (реал
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     mockedSave.mockReset();
-    mockedSave.mockResolvedValue(undefined);
+    mockedSave.mockResolvedValue(undefined as never);
   });
 
   afterEach(() => {

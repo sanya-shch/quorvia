@@ -16,7 +16,7 @@ describe("useAttemptAutosave", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     mockedSaveFormAttempt.mockReset();
-    mockedSaveFormAttempt.mockResolvedValue(undefined);
+    mockedSaveFormAttempt.mockResolvedValue(undefined as never);
   });
 
   afterEach(() => {

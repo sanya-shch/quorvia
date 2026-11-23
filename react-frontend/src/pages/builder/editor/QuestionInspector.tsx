@@ -18,7 +18,7 @@ import ScaleConfigEditor from "../components/editors/ScaleConfigEditor";
 import TextConfigEditor from "../components/editors/TextConfigEditor";
 import QuestionScoringEditor from "../components/QuestionScoringEditor";
 import QuestionTranslations from "./QuestionTranslations";
-import { ALL_TYPES } from "./questionTypeMeta";
+import { AVAILABLE_TYPES } from "./questionTypeMeta";
 
 interface QuestionInspectorProps {
   formId: string;
@@ -216,7 +216,7 @@ export default function QuestionInspector({
               onChange={(e) => onChangeType(e.target.value as QuestionType)}
               className={`${field} mt-1.5 disabled:bg-slate-50 disabled:text-slate-500`}
             >
-              {ALL_TYPES.map((type) => (
+              {AVAILABLE_TYPES.map((type) => (
                 <option key={type} value={type}>
                   {t(QUESTION_TYPE_LABEL_KEYS[type])}
                 </option>

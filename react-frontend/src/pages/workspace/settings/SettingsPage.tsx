@@ -7,6 +7,7 @@ import ClosingEditor from "../../builder/components/ClosingEditor";
 import EndRulesEditor from "../../builder/components/EndRulesEditor";
 import LanguageBar from "../../builder/components/LanguageBar";
 import LogoUploader from "../../builder/components/LogoUploader";
+import { IS_FOR_PORTFOLIO } from "../../../config/portfolio";
 import QuotasEditor from "../../builder/components/QuotasEditor";
 import ScoringEditor from "../../builder/components/ScoringEditor";
 import ScreensEditor from "../../builder/components/ScreensEditor";
@@ -140,13 +141,15 @@ export default function SettingsPage({ formId }: { formId: string }) {
             </div>
           </div>
 
-          <div className="border-t border-slate-100 pt-5">
-            <LogoUploader
-              formId={formId}
-              assetId={form.logoAssetId}
-              onChange={(logoAssetId) => updateFormMeta({ logoAssetId })}
-            />
-          </div>
+          {!IS_FOR_PORTFOLIO && (
+            <div className="border-t border-slate-100 pt-5">
+              <LogoUploader
+                formId={formId}
+                assetId={form.logoAssetId}
+                onChange={(logoAssetId) => updateFormMeta({ logoAssetId })}
+              />
+            </div>
+          )}
         </SettingsSection>
 
         <SettingsSection
@@ -274,19 +277,21 @@ export default function SettingsPage({ formId }: { formId: string }) {
           )}
         </SettingsSection>
 
-        <SettingsSection
-          id="settings-data"
-          title={t("workspace.settings.sections.data.title")}
-          description={t("workspace.settings.sections.data.description")}
-        >
-          <button
-            type="button"
-            onClick={() => setDialog("export")}
-            className="h-9 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
+        {!IS_FOR_PORTFOLIO && (
+          <SettingsSection
+            id="settings-data"
+            title={t("workspace.settings.sections.data.title")}
+            description={t("workspace.settings.sections.data.description")}
           >
-            {t("workspace.overview.actions.export")}
-          </button>
-        </SettingsSection>
+            <button
+              type="button"
+              onClick={() => setDialog("export")}
+              className="h-9 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
+            >
+              {t("workspace.overview.actions.export")}
+            </button>
+          </SettingsSection>
+        )}
 
         <SettingsSection
           id="settings-danger"

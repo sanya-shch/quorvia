@@ -98,5 +98,6 @@
     "settings": "Settings of {{title}}",
     "showing": "Showing {{shown}} of {{total}} forms",
     "viewAll": "View all forms"
-  }
+  },
+  "demoFormLimit": "Demo limit: up to {{demoMaxForms}} forms"
 }

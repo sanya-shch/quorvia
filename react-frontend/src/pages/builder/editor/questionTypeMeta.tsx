@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { STORAGE_QUESTION_TYPES } from "@quorvia/shared-types";
+import { IS_FOR_PORTFOLIO } from "../../../config/portfolio";
 import type { QuestionType } from "../../../types/formBuilder";
 import {
   calculationIcon,
@@ -38,6 +40,16 @@ export const ADVANCED_TYPES: QuestionType[] = [
   "CALCULATION",
 ];
 export const ALL_TYPES: QuestionType[] = [...BASIC_TYPES, ...ADVANCED_TYPES];
+
+// The types a user can pick. The portfolio deployment has nowhere to keep uploaded files, so the
+// types that need them (image choice, file upload) are not offered there: not when adding a
+// question and not when changing the type of an existing one.
+export const availableTypes = (types: QuestionType[]): QuestionType[] =>
+  IS_FOR_PORTFOLIO
+    ? types.filter((type) => !(STORAGE_QUESTION_TYPES as readonly string[]).includes(type))
+    : types;
+
+export const AVAILABLE_TYPES = availableTypes(ALL_TYPES);
 
 export const TYPE_ICONS: Record<QuestionType, ReactNode> = {
   TEXT: textIcon,

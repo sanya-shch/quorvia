@@ -40,8 +40,8 @@ const choice = {
   required: false,
   order: 0,
   options: [
-    { id: "pro", text: "Профі" },
-    { id: "new", text: "Новачок" },
+    { id: "pro", text: "Профі", isDefault: false },
+    { id: "new", text: "Новачок", isDefault: false },
   ],
   config: null,
 };

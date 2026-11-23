@@ -17,6 +17,7 @@ import {
 import FormsTable from "./components/FormsTable";
 import SearchField from "./SearchField";
 import { useFormsActions } from "./useFormsActions";
+import { useDemoLimits } from "../../store/useDemoLimits";
 
 const PRESETS: OverviewPreset[] = ["7d", "30d", "90d"];
 
@@ -56,6 +57,8 @@ export default function Dashboard() {
   const current = summary.data?.current;
   const previous = summary.data?.previous;
   const list = forms.data ?? [];
+  const { maxForms } = useDemoLimits();
+  const formLimitReached = list.length >= maxForms;
 
   const cards: { key: string; icon: AppIconName; value: string; note: React.ReactNode }[] = [
     {
@@ -100,7 +103,8 @@ export default function Dashboard() {
         <button
           type="button"
           onClick={() => actions.create.mutate()}
-          disabled={actions.create.isPending}
+          disabled={actions.create.isPending || formLimitReached}
+          title={formLimitReached ? t("dashboard.demoFormLimit") : undefined}
           className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60 cursor-pointer"
         >
           <AppIcon name="plus" />
@@ -230,7 +234,8 @@ export default function Dashboard() {
           <button
             type="button"
             onClick={() => actions.create.mutate()}
-            disabled={actions.create.isPending}
+            disabled={actions.create.isPending || formLimitReached}
+            title={formLimitReached ? t("dashboard.demoFormLimit") : undefined}
             className="h-10 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60 cursor-pointer"
           >
             {t("dashboard.createButton")}

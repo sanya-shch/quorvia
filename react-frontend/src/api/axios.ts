@@ -35,7 +35,7 @@ api.interceptors.request.use((config) => {
  */
 interface RefreshResult {
   accessToken: string;
-  user?: { id: string; email: string };
+  user?: { id: string; email: string; demo?: { expiresAt: string } };
 }
 
 let inFlightRefresh: Promise<RefreshResult | null> | null = null;

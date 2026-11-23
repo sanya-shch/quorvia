@@ -235,5 +235,14 @@
     "getStarted": "Get started",
     "rights": "© {{year}} Quorvia",
     "slogan": "Build forms that think beyond questions."
+  },
+  "demo": {
+    "cta": "Try the demo",
+    "starting": "Creating a demo account…",
+    "waking": "The server is waking up, this can take up to a minute…",
+    "failed": "Could not create a demo account. Please try again",
+    "note": "No sign-up: a temporary account for {{demoTtlHours}} hours.",
+    "open": "Open the dashboard",
+    "analyzeText": "Explore funnels, distributions and respondent journeys."
   }
 }

@@ -5,6 +5,7 @@ import { authApi } from "../../api/auth";
 import { useAuthStore } from "../../store/useAuthStore";
 import { LanguageSwitcher } from "../ui/LanguageSwitcher";
 import AppIcon, { type AppIconName } from "../ui/AppIcon";
+import DemoBanner from "./DemoBanner";
 
 interface AppShellProps {
   // The top bar's left part: the search field on the dashboard, the breadcrumb in a form.
@@ -112,6 +113,7 @@ export default function AppShell({ topBarStart, topBarEnd, children }: AppShellP
       )}
 
       <div className="min-w-0">
+        <DemoBanner />
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
           <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
             <button

@@ -3,6 +3,8 @@ import { create } from "zustand";
 interface User {
   id: string;
   email: string;
+  // Only for a demo account (portfolio deployment): when it and its data are deleted (ISO date).
+  demo?: { expiresAt: string };
 }
 
 interface AuthState {

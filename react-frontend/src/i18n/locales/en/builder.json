@@ -677,5 +677,6 @@
       "shown": "Shown",
       "hidden": "Hidden"
     }
-  }
+  },
+  "demoLimit": "Demo limit: up to {{demoMaxQuestions}} questions per form"
 }

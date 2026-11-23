@@ -11,7 +11,7 @@ const q = (id: string, dependsOn?: string): Question => ({
   options: [],
   config: null,
   condition: dependsOn
-    ? { logic: "AND", rules: [{ questionId: dependsOn, operator: "EQUALS", value: "x" }] }
+    ? { logic: "AND", rules: [{ questionId: dependsOn, operator: "equals", value: "x" }] }
     : null,
 });
 

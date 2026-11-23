@@ -102,5 +102,6 @@
     "settings": "Налаштування «{{title}}»",
     "showing": "Показано {{shown}} з {{total}} форм",
     "viewAll": "Усі форми"
-  }
+  },
+  "demoFormLimit": "Ліміт демо: до {{demoMaxForms}} форм"
 }

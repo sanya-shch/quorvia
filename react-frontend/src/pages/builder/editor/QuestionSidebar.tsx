@@ -5,7 +5,7 @@ import AppIcon from "../../../components/ui/AppIcon";
 import { QUESTION_TYPE_LABEL_KEYS } from "../../../constants";
 import type { Question, QuestionType } from "../../../types/formBuilder";
 import QuestionTypePicker from "./QuestionTypePicker";
-import { ALL_TYPES } from "./questionTypeMeta";
+import { AVAILABLE_TYPES } from "./questionTypeMeta";
 
 interface QuestionSidebarProps {
   questions: Question[];
@@ -14,6 +14,8 @@ interface QuestionSidebarProps {
   errorIds: Set<string>;
   onSelect: (id: string) => void;
   onAdd: (type: QuestionType, index: number) => void;
+  // A cap on the number of questions (the demo account's limit); adding and duplicating stop there.
+  maxQuestions?: number;
   onDuplicate: (index: number) => void;
   onDelete: (index: number) => void;
   // Asks to move; the page decides (it may refuse and explain: a condition would break).
@@ -30,6 +32,7 @@ export default function QuestionSidebar({
   errorIds,
   onSelect,
   onAdd,
+  maxQuestions = Infinity,
   onDuplicate,
   onDelete,
   onMove,
@@ -40,6 +43,7 @@ export default function QuestionSidebar({
   // Where the next added question goes: null = closed, number = at that index.
   const [pickerAt, setPickerAt] = useState<number | null>(null);
   const [menuFor, setMenuFor] = useState<string | null>(null);
+  const atLimit = questions.length >= maxQuestions;
   const listRef = useRef<HTMLDivElement>(null);
 
   // A newly selected question is scrolled into the list.
@@ -197,7 +201,7 @@ export default function QuestionSidebar({
                                     {
                                       key: "duplicate",
                                       run: () => onDuplicate(index),
-                                      disabled: false,
+                                      disabled: atLimit,
                                       danger: false,
                                     },
                                     {
@@ -240,16 +244,18 @@ export default function QuestionSidebar({
                             </div>
 
                             {/* Quick add between two questions. */}
-                            <button
-                              type="button"
-                              onClick={() => setPickerAt(index + 1)}
-                              aria-label={t("builder.editor.sidebar.addAfter", {
-                                number: index + 1,
-                              })}
-                              className="mx-auto my-0.5 flex h-4 w-full items-center justify-center text-slate-300 opacity-0 transition-opacity hover:text-indigo-600 focus:opacity-100 group-hover:opacity-100 [li:hover_&]:opacity-100 cursor-pointer"
-                            >
-                              <AppIcon name="plus" className="h-3.5 w-3.5" />
-                            </button>
+                            {!atLimit && (
+                              <button
+                                type="button"
+                                onClick={() => setPickerAt(index + 1)}
+                                aria-label={t("builder.editor.sidebar.addAfter", {
+                                  number: index + 1,
+                                })}
+                                className="mx-auto my-0.5 flex h-4 w-full items-center justify-center text-slate-300 opacity-0 transition-opacity hover:text-indigo-600 focus:opacity-100 group-hover:opacity-100 [li:hover_&]:opacity-100 cursor-pointer"
+                              >
+                                <AppIcon name="plus" className="h-3.5 w-3.5" />
+                              </button>
+                            )}
                           </li>
                         )}
                       </Draggable>
@@ -276,13 +282,16 @@ export default function QuestionSidebar({
         <button
           type="button"
           onClick={() => setPickerAt(questions.length)}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 cursor-pointer"
+          disabled={atLimit}
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
         >
           <AppIcon name="plus" />
           {t("builder.editor.sidebar.add")}
         </button>
         <p className="mt-2 text-center text-xs text-slate-500">
-          {t("builder.editor.sidebar.chooseFrom", { count: ALL_TYPES.length })}
+          {atLimit
+            ? t("builder.demoLimit")
+            : t("builder.editor.sidebar.chooseFrom", { count: AVAILABLE_TYPES.length })}
         </p>
       </div>
     </aside>

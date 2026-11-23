@@ -43,5 +43,7 @@ describe("prisma/migrations match schema.prisma", () => {
     }
 
     expect(missing).toEqual([]);
-  });
+    // Starting PGlite and applying every migration takes seconds, and several times that when the
+    // whole suite runs in parallel: the default 5 s is not enough.
+  }, 30_000);
 });

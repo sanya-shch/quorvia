@@ -5,5 +5,11 @@
     "forms": "Мої форми"
   },
   "logout": "Вийти",
-  "openMenu": "Відкрити меню"
+  "openMenu": "Відкрити меню",
+  "demo": {
+    "label": "Демо-акаунт",
+    "timeLeft": "залишилось {{hours}} год {{minutes}} хв",
+    "note": "Дані видаляться автоматично. Ліміти: до {{demoMaxForms}} форм, до {{demoMaxQuestions}} питань у формі.",
+    "expiringSoon": "менше години"
+  }
 }

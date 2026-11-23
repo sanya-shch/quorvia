@@ -196,20 +196,25 @@ describe("the points of answers", () => {
 
   it("sets and clears the points of one option, leaving the others alone", () => {
     const options = [
-      { id: "a", text: "A", score: 1 },
-      { id: "b", text: "B" },
+      { id: "a", text: "A", isDefault: false, score: 1 },
+      { id: "b", text: "B", isDefault: false },
     ];
 
     expect(withOptionScore(options, "b", 3)).toEqual([
-      { id: "a", text: "A", score: 1 },
-      { id: "b", text: "B", score: 3 },
+      { id: "a", text: "A", isDefault: false, score: 1 },
+      { id: "b", text: "B", isDefault: false, score: 3 },
     ]);
     expect(withOptionScore(options, "a", null)).toEqual([
-      { id: "a", text: "A" },
-      { id: "b", text: "B" },
+      { id: "a", text: "A", isDefault: false },
+      { id: "b", text: "B", isDefault: false },
     ]);
-    expect(withOptionScore(options, "a", 0)[0]).toEqual({ id: "a", text: "A", score: 0 });
-    expect(options[0]).toEqual({ id: "a", text: "A", score: 1 });
+    expect(withOptionScore(options, "a", 0)[0]).toEqual({
+      id: "a",
+      text: "A",
+      isDefault: false,
+      score: 0,
+    });
+    expect(options[0]).toEqual({ id: "a", text: "A", isDefault: false, score: 1 });
   });
 
   it("a number with a multiplier needs both ends of a range", () => {

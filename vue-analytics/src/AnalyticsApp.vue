@@ -33,6 +33,8 @@ const props = defineProps<{
   formId: string;
   apiBaseUrl?: string;
   locale?: string;
+  // False on a deployment without exports (the React host decides); the menu is then not shown.
+  exportEnabled?: boolean;
   // Auth bridge from the React host (the token lives only in the host's memory).
   getAccessToken?: () => string | null;
   refreshAccessToken?: () => Promise<string | null>;
@@ -197,7 +199,7 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
           v-model:preset="preset"
           v-model:custom="custom"
         />
-        <ExportMenu :api-base-url="apiBaseUrl" :form-id="formId" />
+        <ExportMenu v-if="exportEnabled !== false" :api-base-url="apiBaseUrl" :form-id="formId" />
       </div>
     </header>
 

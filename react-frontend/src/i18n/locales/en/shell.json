@@ -5,5 +5,11 @@
     "forms": "My Forms"
   },
   "logout": "Log out",
-  "openMenu": "Open the menu"
+  "openMenu": "Open the menu",
+  "demo": {
+    "label": "Demo account",
+    "timeLeft": "{{hours}} h {{minutes}} min left",
+    "note": "Data is deleted automatically. Limits: up to {{demoMaxForms}} forms, up to {{demoMaxQuestions}} questions per form.",
+    "expiringSoon": "less than an hour"
+  }
 }
