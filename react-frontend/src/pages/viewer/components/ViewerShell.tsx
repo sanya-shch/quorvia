@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import AppIcon from "../../../components/ui/AppIcon";
 
 interface ViewerShellProps {
   // The form title next to the mark in the header.
@@ -76,7 +77,7 @@ export default function ViewerShell({
               aria-hidden="true"
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-on-primary"
             >
-              Q
+              <AppIcon name="layers" className="h-5 w-5" />
             </span>
             <div className="min-w-0 leading-tight">
               <p className="truncate text-sm font-semibold text-slate-900">{title}</p>

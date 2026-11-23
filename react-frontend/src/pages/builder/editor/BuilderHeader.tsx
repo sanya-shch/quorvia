@@ -86,7 +86,7 @@ export default function BuilderHeader({
           aria-hidden="true"
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-sm font-bold text-white"
         >
-          Q
+          <AppIcon name="layers" className="h-5 w-5" />
         </span>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">

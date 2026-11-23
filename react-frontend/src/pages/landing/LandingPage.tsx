@@ -24,6 +24,7 @@ import {
   StaticFormMock,
   ValidationMock,
 } from "./LandingMocks";
+import AppIcon from "../../components/ui/AppIcon";
 
 // What the landing page promises: the types a user can pick in this deployment.
 const QUESTION_TYPE_COUNT = AVAILABLE_TYPES.length;
@@ -153,7 +154,7 @@ function Logo() {
         aria-hidden="true"
         className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-sm text-white"
       >
-        Q
+        <AppIcon name="layers" className="h-5 w-5" />
       </span>
       Quorvia
     </Link>

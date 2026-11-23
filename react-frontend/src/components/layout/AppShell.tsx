@@ -90,9 +90,9 @@ export default function AppShell({ topBarStart, topBarEnd, children }: AppShellP
             onClick={logout}
             title={t("shell.logout")}
             aria-label={t("shell.logout")}
-            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+            className="rounded-lg p-2 text-slate-400 transition-colors bg-slate-100 hover:bg-red-100 hover:text-slate-700 cursor-pointer"
           >
-            <AppIcon name="user" className="h-4 w-4" />
+            <AppIcon name="close" className="h-4 w-4" />
           </button>
         </div>
       </div>
