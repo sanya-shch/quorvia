@@ -46,16 +46,14 @@ export default function ViewerQuestionCard({
       className={`group rounded-2xl border bg-surface p-5 shadow-sm transition-all duration-200 sm:p-6 ${
         hasError
           ? "border-rose-500 ring-2 ring-rose-100"
-          : "border-slate-200 focus-within:border-indigo-200 focus-within:bg-indigo-50 hover:border-slate-300"
+          : "border-slate-200 hover:border-slate-300"
       }`}
     >
       <div className="flex items-start gap-3 sm:gap-4">
         <span
           aria-hidden="true"
           className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors ${
-            hasError
-              ? "bg-rose-600 text-on-primary"
-              : "bg-slate-100 text-slate-600 group-focus-within:bg-indigo-600 group-focus-within:text-on-primary"
+            hasError ? "bg-rose-600 text-on-primary" : "bg-slate-100 text-slate-600"
           }`}
         >
           {number}

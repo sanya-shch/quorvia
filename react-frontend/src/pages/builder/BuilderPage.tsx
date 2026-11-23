@@ -211,7 +211,7 @@ export default function BuilderPage() {
       <div
         role="tablist"
         aria-label={t("builder.editor.panes.label")}
-        className="flex shrink-0 border-b border-slate-200 bg-white lg:hidden"
+        className="flex shrink-0 border-b border-slate-200 bg-white xl:hidden"
       >
         {(["questions", "preview", "settings"] as Pane[]).map((name) => (
           <button
@@ -232,7 +232,7 @@ export default function BuilderPage() {
       </div>
 
       <div className="flex min-h-0 flex-1">
-        <div className={`${paneClass("questions")} min-h-0 w-full lg:flex lg:w-auto`}>
+        <div className={`${paneClass("questions")} min-h-0 w-full xl:flex xl:w-auto`}>
           <QuestionSidebar
             questions={form.questions}
             selectedId={selectedId}
@@ -248,7 +248,7 @@ export default function BuilderPage() {
           />
         </div>
 
-        <div className={`${paneClass("preview")} min-h-0 min-w-0 flex-1 lg:flex`}>
+        <div className={`${paneClass("preview")} min-h-0 min-w-0 flex-1 xl:flex`}>
           <PreviewWorkspace
             key={previewResetKey}
             form={form}
