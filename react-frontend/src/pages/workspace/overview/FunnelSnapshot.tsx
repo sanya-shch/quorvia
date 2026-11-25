@@ -56,7 +56,7 @@ export default function FunnelSnapshot({
             </div>
             <div className="mt-1.5 h-2 rounded-full bg-slate-100">
               <div
-                className="h-2 rounded-full bg-indigo-600"
+                className="motion-grow-x h-2 rounded-full bg-indigo-600"
                 style={{ width: started > 0 ? "100%" : "0%" }}
               />
             </div>
@@ -68,7 +68,7 @@ export default function FunnelSnapshot({
             </div>
             <div className="mt-1.5 h-2 rounded-full bg-slate-100">
               <div
-                className="h-2 rounded-full bg-emerald-500"
+                className="motion-grow-x h-2 rounded-full bg-emerald-500"
                 style={{ width: started > 0 ? `${(completed / started) * 100}%` : "0%" }}
               />
             </div>

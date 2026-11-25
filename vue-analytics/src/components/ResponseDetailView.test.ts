@@ -58,3 +58,48 @@ describe("ResponseDetailView with a score", () => {
     expect(render(detail()).find('[data-test="detail-score"]').exists()).toBe(false);
   });
 });
+
+describe("ResponseDetailView: перемикання між відповідями", () => {
+  const mountWith = (props: { data: ResponseDetailsDto | null; isLoading: boolean }) =>
+    mount(ResponseDetailView, {
+      props: { error: null, apiBaseUrl: "http://api.test", ...props },
+      global: { plugins: [createAnalyticsI18n("en")] },
+    });
+
+  it("перше відкриття: лоадер з відкладеною появою, без контенту", () => {
+    const wrapper = mountWith({ data: null, isLoading: true });
+
+    expect(wrapper.find(".state-card--delayed").exists()).toBe(true);
+    expect(wrapper.find(".detail").exists()).toBe(false);
+  });
+
+  it("наступна відповідь вантажиться: попередня лишається, не клікається й не підміняється лоадером", () => {
+    const wrapper = mountWith({ data: detail(), isLoading: true });
+
+    expect(wrapper.find(".state-card").exists()).toBe(false);
+    const stale = wrapper.get(".detail");
+    expect(stale.classes()).toContain("detail--stale");
+    expect(stale.attributes("aria-busy")).toBe("true");
+    expect(stale.attributes("inert")).toBeDefined();
+  });
+
+  it("завантажена відповідь: без приглушення та без inert", () => {
+    const wrapper = mountWith({ data: detail(), isLoading: false });
+
+    const current = wrapper.get(".detail");
+    expect(current.classes()).not.toContain("detail--stale");
+    expect(current.attributes("inert")).toBeUndefined();
+    expect(current.attributes("aria-busy")).toBe("false");
+  });
+
+  it("елемент деталі не перемонтовується між відповідями (анімація появи грає лише раз)", async () => {
+    const wrapper = mountWith({ data: detail(), isLoading: false });
+    const before = wrapper.get(".detail").element;
+
+    await wrapper.setProps({ isLoading: true });
+    await wrapper.setProps({ data: { ...detail(), id: "r-2" }, isLoading: false });
+
+    expect(wrapper.get(".detail").element).toBe(before);
+    expect(wrapper.text()).toContain("r-2");
+  });
+});

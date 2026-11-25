@@ -22,6 +22,152 @@
   }
 }
 
+/*
+ * Motion tokens: the one place where timing and distance are decided, so every page moves the
+ * same way. They are plain :root custom properties on purpose: the Vue analytics remote mounts
+ * into the host's DOM (no shadow root), so it reads the very same values.
+ */
+:root {
+  --motion-duration-fast: 160ms;
+  --motion-duration-base: 260ms;
+  --motion-duration-slow: 420ms;
+  --motion-duration-count: 800ms; /* a number counting up (AnimatedNumber) */
+  --motion-duration-draw: 800ms; /* a chart line drawing itself */
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-offset: 12px;
+  --motion-stagger: 45ms;
+}
+
+/* Only a `from` frame: the element's own styles are the end state, so nothing lingers after the
+   animation (no leftover transform that would create a containing block for fixed children). */
+@keyframes motion-reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-offset));
+  }
+}
+
+@keyframes motion-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Charts: a line draws itself (pathLength="1" on the path makes 1 the whole length). */
+@keyframes motion-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes motion-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes motion-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
+
+@keyframes motion-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@layer components {
+  /* A section of the form workspace, or any block that simply appears: a short fade. */
+  .motion-page,
+  .motion-fade-in {
+    animation: motion-fade-in var(--motion-duration-fast) ease-out backwards;
+  }
+
+  /*
+   * Direct children rise in one after another. Pure CSS: no JS, no bundle cost, works in the
+   * lazy page chunks and in the Vue remote alike. `backwards` keeps a child invisible during its
+   * delay (no flash). The delay is capped at the 8th child so a long page never feels slow.
+   * Do not put overlays (dialogs) directly inside a stagger container: they would animate too.
+   */
+  .motion-stagger > * {
+    animation: motion-reveal-up var(--motion-duration-base) var(--motion-ease-out) backwards;
+    animation-delay: calc(var(--motion-index, 0) * var(--motion-stagger));
+  }
+  .motion-stagger > :nth-child(2) {
+    --motion-index: 1;
+  }
+  .motion-stagger > :nth-child(3) {
+    --motion-index: 2;
+  }
+  .motion-stagger > :nth-child(4) {
+    --motion-index: 3;
+  }
+  .motion-stagger > :nth-child(5) {
+    --motion-index: 4;
+  }
+  .motion-stagger > :nth-child(6) {
+    --motion-index: 5;
+  }
+  .motion-stagger > :nth-child(7) {
+    --motion-index: 6;
+  }
+  .motion-stagger > :nth-child(n + 8) {
+    --motion-index: 7;
+  }
+
+  /* A modal: the backdrop fades in, the panel rises and settles (dialogs unmount on close, so
+     there is no exit animation). */
+  .motion-overlay {
+    animation: motion-fade-in var(--motion-duration-fast) ease-out backwards;
+  }
+  .motion-dialog,
+  .motion-pop {
+    animation: motion-dialog-in var(--motion-duration-base) var(--motion-ease-out) backwards;
+  }
+
+  /* Something opening from its trigger (a dropdown, an inline error): a short drop of 4px. */
+  .motion-drop {
+    animation: motion-drop-in var(--motion-duration-fast) ease-out backwards;
+  }
+
+  .motion-draw {
+    stroke-dasharray: 1;
+    animation: motion-draw var(--motion-duration-draw) var(--motion-ease-out) 100ms backwards;
+  }
+  /* The area under a line fades in once the line is on its way. */
+  .motion-fade {
+    animation: motion-fade-in var(--motion-duration-slow) ease-out 250ms backwards;
+  }
+  /* A progress bar grows from the left. */
+  .motion-grow-x {
+    transform-origin: left;
+    animation: motion-grow-x var(--motion-duration-slow) var(--motion-ease-out) 120ms backwards;
+  }
+
+  /* prefers-reduced-motion: no movement, only a quick fade (same rule as the toast and the form). */
+  @media (prefers-reduced-motion: reduce) {
+    .motion-dialog,
+    .motion-pop,
+    .motion-drop {
+      animation: motion-fade-in var(--motion-duration-fast) ease-out backwards;
+    }
+    .motion-page,
+    .motion-draw,
+    .motion-fade,
+    .motion-grow-x {
+      animation: none;
+    }
+    .motion-stagger > * {
+      animation: motion-fade-in var(--motion-duration-fast) ease-out backwards;
+      animation-delay: 0ms;
+    }
+  }
+}
+
 @layer base {
   body {
     @apply bg-slate-50 text-slate-900 antialiased;

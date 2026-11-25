@@ -50,7 +50,7 @@ export default function QuestionDetailsPage() {
 
   return (
     <div className="flex flex-col">
-      <main className="w-full max-w-3xl mx-auto space-y-4">
+      <main className="motion-stagger w-full max-w-3xl mx-auto space-y-4">
         <Link
           to={`/forms/${formId}/analytics`}
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:underline"
@@ -136,7 +136,7 @@ export default function QuestionDetailsPage() {
                           </span>
                           <div className="flex-1 h-3 bg-slate-100 rounded-md overflow-hidden">
                             <div
-                              className="h-full bg-indigo-500 rounded-md"
+                              className="motion-grow-x h-full bg-indigo-500 rounded-md"
                               style={{ width: `${percentage}%` }}
                             />
                           </div>
@@ -217,7 +217,7 @@ export default function QuestionDetailsPage() {
                         </div>
                         <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                            className="motion-grow-x h-full bg-indigo-500 rounded-full transition-all duration-500"
                             style={{ width: `${percentage}%` }}
                           />
                         </div>
@@ -349,7 +349,7 @@ export default function QuestionDetailsPage() {
                           </div>
                           <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                              className="motion-grow-x h-full bg-indigo-500 rounded-full transition-all duration-500"
                               style={{ width: `${score}%` }}
                             />
                           </div>
@@ -374,7 +374,7 @@ export default function QuestionDetailsPage() {
                     </span>
                     <div className="w-full h-2 bg-emerald-100 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-emerald-500 rounded-full"
+                        className="motion-grow-x h-full bg-emerald-500 rounded-full"
                         style={{
                           width: `${totalAnswers > 0 ? ((data.trueCount || 0) / totalAnswers) * 100 : 0}%`,
                         }}
@@ -393,7 +393,7 @@ export default function QuestionDetailsPage() {
                     </span>
                     <div className="w-full h-2 bg-rose-100 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-rose-500 rounded-full"
+                        className="motion-grow-x h-full bg-rose-500 rounded-full"
                         style={{
                           width: `${totalAnswers > 0 ? ((data.falseCount || 0) / totalAnswers) * 100 : 0}%`,
                         }}

@@ -52,7 +52,7 @@ export default function WelcomeScreen({
   ];
 
   return (
-    <div className="grid w-full items-start gap-8 animate-in fade-in duration-200 lg:grid-cols-[1.15fr_1fr] lg:gap-14">
+    <div className="grid w-full items-start gap-8 motion-fade-in lg:grid-cols-[1.15fr_1fr] lg:gap-14">
       <div>
         {logoUrl && (
           <div className="mb-4">

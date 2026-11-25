@@ -38,11 +38,13 @@ export default function ActivityChart({ daily }: { daily: AnalyticsDailyPoint[] 
     );
   }
 
+  // A new series (another period) redraws the chart from the start.
+  const seriesKey = `${daily[0].date}:${daily.length}`;
   const labels = [...new Set([0, Math.floor((daily.length - 1) / 2), daily.length - 1])];
   const columnWidth = innerW / Math.max(1, daily.length - 1);
 
   return (
-    <figure className="m-0">
+    <figure key={seriesKey} className="m-0">
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="h-auto w-full"
@@ -64,6 +66,7 @@ export default function ActivityChart({ daily }: { daily: AnalyticsDailyPoint[] 
           d={`${line("submitted")} L${x(daily.length - 1)},${y(0)} L${x(0)},${y(0)} Z`}
           fill="#6366f1"
           opacity="0.1"
+          className="motion-fade"
         />
         <path
           d={line("started")}
@@ -71,6 +74,8 @@ export default function ActivityChart({ daily }: { daily: AnalyticsDailyPoint[] 
           stroke="#a5b4fc"
           strokeWidth="2"
           strokeLinejoin="round"
+          pathLength={1}
+          className="motion-draw"
         />
         <path
           d={line("submitted")}
@@ -78,6 +83,8 @@ export default function ActivityChart({ daily }: { daily: AnalyticsDailyPoint[] 
           stroke="#4f46e5"
           strokeWidth="2.5"
           strokeLinejoin="round"
+          pathLength={1}
+          className="motion-draw"
         />
         {labels.map((i) => (
           <text

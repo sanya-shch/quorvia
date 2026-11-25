@@ -18,7 +18,7 @@ export default function RatingConfigEditor({ config, onChange }: RatingConfigEdi
   const id = useId();
 
   return (
-    <div className="flex flex-col gap-1.5 animate-in fade-in duration-150">
+    <div className="flex flex-col gap-1.5 motion-fade-in">
       <label htmlFor={id} className="text-xs font-semibold text-slate-500">
         {t("builder.editors.rating.max")}
       </label>

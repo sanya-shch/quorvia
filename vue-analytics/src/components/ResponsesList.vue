@@ -48,11 +48,12 @@ const scoreText = (score: ResponseScoreDto) => {
 
     <div v-else-if="data" class="items">
       <button
-        v-for="resp in data.data"
+        v-for="(resp, index) in data.data"
         :key="resp.id"
         type="button"
-        class="item"
+        class="item va-reveal"
         :class="{ 'item--selected': selectedResponseId === resp.id }"
+        :style="{ '--motion-index': index }"
         @click="emit('select', resp.id)"
       >
         <div class="item-id">ID: {{ resp.id }}</div>
@@ -138,6 +139,12 @@ const scoreText = (score: ResponseScoreDto) => {
 }
 .item:hover {
   background: #f1f5f9;
+  border-color: #4f46e5;
+}
+.item:hover .item-id,
+.item:hover .item-date,
+.item:hover .item-score {
+  color: #334155;
 }
 .item--selected {
   background: #4f46e5;

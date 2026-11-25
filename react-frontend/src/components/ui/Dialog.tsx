@@ -42,7 +42,7 @@ export default function Dialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm motion-overlay"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -53,7 +53,7 @@ export default function Dialog({
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className={`max-h-[90vh] w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-xl focus:outline-none ${
+        className={`max-h-[90vh] w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-xl focus:outline-none motion-dialog ${
           width === "lg" ? "max-w-xl" : "max-w-md"
         }`}
       >

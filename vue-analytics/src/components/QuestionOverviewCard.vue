@@ -109,7 +109,7 @@ const maxDistributionCount = computed(() =>
           >
             <div class="hist-bar-wrap">
               <div
-                class="hist-bar"
+                class="hist-bar va-grow-y"
                 :style="{ height: (d.count / maxDistributionCount) * 100 + '%' }"
               />
             </div>
@@ -180,7 +180,7 @@ const maxDistributionCount = computed(() =>
       <template v-else-if="question.type === 'BOOLEAN'">
         <div class="bool-bar">
           <div
-            class="bool-bar-fill"
+            class="bool-bar-fill va-grow-x"
             :style="{
               width:
                 ((question.trueCount ?? 0) /
@@ -208,7 +208,7 @@ const maxDistributionCount = computed(() =>
           <span class="dist-label">{{ opt.text }}</span>
           <div class="dist-bar">
             <div
-              class="dist-bar-fill"
+              class="dist-bar-fill va-grow-x"
               :style="{ width: (opt.count / maxDistributionCount) * 100 + '%' }"
             />
           </div>

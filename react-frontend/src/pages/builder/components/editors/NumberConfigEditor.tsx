@@ -59,7 +59,7 @@ export default function NumberConfigEditor({ config, onChange }: NumberConfigEdi
   };
 
   return (
-    <div className="flex flex-col gap-3 animate-in fade-in duration-150">
+    <div className="flex flex-col gap-3 motion-fade-in">
       <div className="flex gap-4">
         <div className="w-32 flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-slate-500">

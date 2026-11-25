@@ -78,7 +78,7 @@ export default function MatrixConfigEditor({
     );
 
   return (
-    <div className="flex flex-col gap-5 animate-in fade-in duration-150">
+    <div className="flex flex-col gap-5 motion-fade-in">
       <div className="flex flex-col gap-2">
         <span className="text-xs font-semibold text-slate-500">
           {t("builder.editors.matrix.rowsLabel")}

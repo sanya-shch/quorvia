@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import type { AnalyticsSummaryDto } from "@quorvia/shared-types";
 import { formatPercent, formatSigned, kpiDeltas, trendOf, type Trend } from "../kpi";
+import AnimatedNumber from "./AnimatedNumber.vue";
 
 const props = defineProps<{
   summary: AnalyticsSummaryDto | null;
@@ -40,25 +41,27 @@ const cards = computed(() => {
   return [
     {
       key: "responses",
-      value: String(c.responses),
+      amount: c.responses,
       delta: deltaLine(deltas.value?.responses, "percent"),
       note: null as string | null,
     },
     {
       key: "started",
-      value: String(c.started),
+      amount: c.started,
       delta: deltaLine(deltas.value?.started, "percent"),
       note: t("analytics.kpi.includesUnfinished", { count: c.abandoned }),
     },
     {
       key: "completion",
-      value: formatPercent(c.completionRate),
+      amount: c.completionRate * 100,
+      decimals: 1,
+      suffix: "%",
       delta: deltaLine(deltas.value?.completionPoints, "points"),
       note: null,
     },
     {
       key: "abandoned",
-      value: String(c.abandoned),
+      amount: c.abandoned,
       delta: {
         text: t("analytics.kpi.ofStarted", {
           value: c.started > 0 ? formatPercent(c.abandoned / c.started) : "0.0%",
@@ -79,7 +82,12 @@ const cards = computed(() => {
       <div v-for="n in 4" :key="n" class="card card--skeleton" aria-hidden="true" />
     </template>
 
-    <article v-for="card in cards" :key="card.key" class="card">
+    <article
+      v-for="(card, index) in cards"
+      :key="card.key"
+      class="card va-reveal"
+      :style="{ '--motion-index': index }"
+    >
       <header class="card-head">
         <h3 class="label">{{ t(`analytics.kpi.${card.key}`) }}</h3>
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -100,7 +108,9 @@ const cards = computed(() => {
           </template>
         </svg>
       </header>
-      <p class="value">{{ card.value }}</p>
+      <p class="value">
+        <AnimatedNumber :value="card.amount" :decimals="card.decimals" :suffix="card.suffix" />
+      </p>
       <p class="delta" :class="`delta--${card.key === 'abandoned' ? 'bad' : card.delta.trend}`">
         {{ card.delta.text }}
       </p>

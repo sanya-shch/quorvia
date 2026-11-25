@@ -105,7 +105,7 @@ export default function CalculationConfigEditor({
     : null;
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-150">
+    <div className="space-y-4 motion-fade-in">
       <div className="space-y-1.5">
         <label htmlFor={ids.formula} className={labelClass}>
           {t("builder.editors.calculation.formula")}

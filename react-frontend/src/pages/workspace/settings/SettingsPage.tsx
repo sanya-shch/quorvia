@@ -79,7 +79,7 @@ export default function SettingsPage({ formId }: { formId: string }) {
         </ul>
       </nav>
 
-      <div className="min-w-0 space-y-6">
+      <div className="motion-stagger min-w-0 space-y-6">
         <SettingsSection
           id="settings-general"
           title={t("workspace.settings.sections.general.title")}

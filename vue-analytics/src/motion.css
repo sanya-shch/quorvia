@@ -1,0 +1,106 @@
+/*
+ * Motion for the analytics remote.
+ *
+ * Timing comes from the host's `--motion-*` tokens (react-frontend/src/index.css, :root). Every
+ * var() below carries the same value as a fallback, so the remote also looks right when it runs
+ * standalone; motion.tokens.test.ts keeps the fallbacks equal to the host's values.
+ * Animations use only a `from` frame: the element's own styles are the end state, nothing lingers.
+ */
+
+@keyframes va-reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-offset, 12px));
+  }
+}
+
+@keyframes va-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* A line draws itself: pathLength="1" on the path makes 1 the whole length. */
+@keyframes va-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes va-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes va-grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes va-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+/* A block rises in; its place in the cascade is the inline `--motion-index` (capped at 7). */
+.va-reveal {
+  animation: va-reveal-up var(--motion-duration-base, 260ms)
+    var(--motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) backwards;
+  animation-delay: calc(min(var(--motion-index, 0), 7) * var(--motion-stagger, 45ms));
+}
+
+/* "1 2": a dash as long as the path, then a gap. The gap keeps the round line caps from leaving a
+   dot at the end of the path before the line starts drawing. */
+.va-draw {
+  stroke-dasharray: 1 2;
+  animation: va-draw var(--motion-duration-draw, 800ms)
+    var(--motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 100ms backwards;
+}
+
+/* The area under a line fades in once the line is on its way. */
+.va-fade {
+  animation: va-fade-in var(--motion-duration-slow, 420ms) ease-out 250ms backwards;
+}
+
+/* The question drawer: the backdrop fades in, the panel slides in from the right. */
+.va-overlay {
+  animation: va-fade-in var(--motion-duration-fast, 160ms) ease-out backwards;
+}
+
+.va-drawer {
+  animation: va-drawer-in var(--motion-duration-base, 260ms)
+    var(--motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) backwards;
+}
+
+.va-grow-x {
+  transform-origin: left;
+  animation: va-grow-x var(--motion-duration-slow, 420ms)
+    var(--motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 120ms backwards;
+}
+
+.va-grow-y {
+  transform-origin: bottom;
+  animation: va-grow-y var(--motion-duration-slow, 420ms)
+    var(--motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 120ms backwards;
+}
+
+/* prefers-reduced-motion: no movement, only a quick fade for blocks, nothing for the rest. */
+@media (prefers-reduced-motion: reduce) {
+  .va-reveal {
+    animation: va-fade-in var(--motion-duration-fast, 160ms) ease-out backwards;
+    animation-delay: 0ms;
+  }
+  .va-drawer {
+    animation: va-fade-in var(--motion-duration-fast, 160ms) ease-out backwards;
+  }
+  .va-draw,
+  .va-fade,
+  .va-grow-x,
+  .va-grow-y {
+    animation: none;
+  }
+}

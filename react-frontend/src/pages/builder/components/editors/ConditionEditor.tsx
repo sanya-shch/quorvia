@@ -106,7 +106,7 @@ export default function ConditionEditor({
   };
 
   return (
-    <div className="space-y-2.5 animate-in fade-in duration-150">
+    <div className="space-y-2.5 motion-fade-in">
       {!mandatory && (
         <label className="flex items-center gap-2 cursor-pointer select-none w-fit">
           <input

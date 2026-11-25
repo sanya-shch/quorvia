@@ -62,7 +62,7 @@ export default function FormCardMenu({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1 w-48 origin-top-right rounded-xl border border-slate-200 bg-white p-1 shadow-lg ring-1 ring-black/5 z-20 animate-in fade-in slide-in-from-top-1 duration-100">
+        <div className="absolute right-0 mt-1 w-48 origin-top-right rounded-xl border border-slate-200 bg-white p-1 shadow-lg ring-1 ring-black/5 z-20 motion-drop">
           <button
             onClick={(e) => {
               e.stopPropagation();

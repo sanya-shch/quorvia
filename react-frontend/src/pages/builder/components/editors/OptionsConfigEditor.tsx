@@ -88,7 +88,7 @@ export default function OptionsConfigEditor({
   };
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-150">
+    <div className="space-y-4 motion-fade-in">
       <div className="space-y-2">
         <label className="text-xs font-semibold text-slate-500 block">
           {t("builder.editors.options.label")}

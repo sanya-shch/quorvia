@@ -1,5 +1,6 @@
 import type { AnalyticsSummaryDto } from "@quorvia/shared-types";
 import { useTranslation } from "react-i18next";
+import AnimatedNumber from "../../../components/ui/AnimatedNumber";
 import AppIcon, { type AppIconName } from "../../../components/ui/AppIcon";
 import { Skeleton } from "./Card";
 import { percentChange } from "./period";
@@ -10,6 +11,13 @@ interface KpiCardsProps {
   questionCount: number;
   // Show the change against the previous period (not for "all time").
   compare: boolean;
+}
+
+interface KpiCard {
+  key: string;
+  icon: AppIconName;
+  value: React.ReactNode;
+  note: React.ReactNode;
 }
 
 const Delta = ({ value, unit }: { value: number | null; unit: "%" | "pts" }) => {
@@ -36,11 +44,11 @@ export default function KpiCards({ summary, isLoading, questionCount, compare }:
   const current = summary?.current;
   const previous = compare ? summary?.previous : null;
 
-  const cards: { key: string; icon: AppIconName; value: string; note: React.ReactNode }[] = [
+  const cards: KpiCard[] = [
     {
       key: "attempts",
       icon: "pulse",
-      value: String(current?.started ?? 0),
+      value: <AnimatedNumber value={current?.started ?? 0} />,
       note: previous ? (
         <Delta value={percentChange(current!.started, previous.started)} unit="%" />
       ) : (
@@ -50,7 +58,7 @@ export default function KpiCards({ summary, isLoading, questionCount, compare }:
     {
       key: "responses",
       icon: "checkCircle",
-      value: String(current?.responses ?? 0),
+      value: <AnimatedNumber value={current?.responses ?? 0} />,
       note: previous ? (
         <Delta value={percentChange(current!.responses, previous.responses)} unit="%" />
       ) : (
@@ -60,7 +68,12 @@ export default function KpiCards({ summary, isLoading, questionCount, compare }:
     {
       key: "completion",
       icon: "trend",
-      value: current && current.started > 0 ? `${(current.completionRate * 100).toFixed(1)}%` : "-",
+      value:
+        current && current.started > 0 ? (
+          <AnimatedNumber value={current.completionRate * 100} decimals={1} suffix="%" />
+        ) : (
+          "-"
+        ),
       note:
         previous && current && current.started > 0 && previous.started > 0 ? (
           <Delta value={(current.completionRate - previous.completionRate) * 100} unit="pts" />
@@ -94,7 +107,9 @@ export default function KpiCards({ summary, isLoading, questionCount, compare }:
           {isLoading && card.key !== "questions" ? (
             <Skeleton className="mt-3 h-9 w-24" />
           ) : (
-            <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900">{card.value}</p>
+            <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900 tabular-nums">
+              {card.value}
+            </p>
           )}
           <p className="mt-1 text-xs">{card.note}</p>
         </article>

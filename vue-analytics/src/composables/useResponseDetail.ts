@@ -12,19 +12,29 @@ export function useResponseDetail(apiBaseUrl: string, formId: string) {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
 
+  // Only the answer to the latest load() may land: clicking A and then B quickly must never end
+  // with A's late response on screen while B is selected.
+  let latest = 0;
+
   const load = async (responseId: string) => {
+    const request = ++latest;
     isLoading.value = true;
     error.value = null;
-    data.value = null;
+    // `data` is deliberately kept: the view keeps showing the previous response (and dims it if the
+    // wait is noticeable) instead of blanking out to a loader and back, which reads as a flicker.
     try {
-      data.value = await apiGet<ResponseDetailsDto>(
+      const result = await apiGet<ResponseDetailsDto>(
         apiBaseUrl,
         `/forms/${formId}/responses/${responseId}`,
       );
+      if (request === latest) data.value = result;
     } catch (e) {
-      error.value = getResponseDetailErrorMessage(e);
+      if (request === latest) {
+        data.value = null;
+        error.value = getResponseDetailErrorMessage(e);
+      }
     } finally {
-      isLoading.value = false;
+      if (request === latest) isLoading.value = false;
     }
   };
 

@@ -16,7 +16,7 @@ export default function BooleanConfigEditor({ config, onChange }: BooleanConfigE
   };
 
   return (
-    <div className="space-y-3 animate-in fade-in duration-150">
+    <div className="space-y-3 motion-fade-in">
       <label className="text-xs font-semibold text-slate-500 block">
         {t("builder.editors.boolean.defaultValueLabel")}
       </label>

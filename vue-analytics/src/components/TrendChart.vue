@@ -49,6 +49,9 @@ const labelIndexes = computed(() => {
   return [...new Set([0, Math.floor((n - 1) / 2), n - 1])];
 });
 
+// A new series (another period) redraws the chart from the start.
+const seriesKey = computed(() => `${props.daily[0]?.date ?? ""}:${props.daily.length}`);
+
 const shortDate = (iso: string) => iso.slice(5).replace("-", "/");
 const totals = computed(() => ({
   started: props.daily.reduce((s, d) => s + d.started, 0),
@@ -57,7 +60,7 @@ const totals = computed(() => ({
 </script>
 
 <template>
-  <figure class="trend">
+  <figure :key="seriesKey" class="trend">
     <figcaption class="head">
       <div>
         <h3 class="title">{{ t("analytics.trend.title") }}</h3>
@@ -88,9 +91,9 @@ const totals = computed(() => ({
         </text>
       </g>
 
-      <path :d="area" class="area" />
-      <path :d="line('started')" class="line line--started" />
-      <path :d="line('submitted')" class="line line--submitted" />
+      <path :d="area" class="area va-fade" />
+      <path :d="line('started')" class="line line--started va-draw" pathLength="1" />
+      <path :d="line('submitted')" class="line line--submitted va-draw" pathLength="1" />
 
       <text
         v-for="i in labelIndexes"

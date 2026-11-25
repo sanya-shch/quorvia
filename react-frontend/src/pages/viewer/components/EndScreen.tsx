@@ -33,7 +33,7 @@ export default function EndScreen({ screen }: EndScreenProps) {
   }, [redirectUrl, secondsLeft]);
 
   return (
-    <div className="w-full rounded-2xl border border-slate-200 bg-surface p-8 text-center shadow-sm animate-in fade-in zoom-in-95 duration-200 sm:p-10">
+    <div className="w-full rounded-2xl border border-slate-200 bg-surface p-8 text-center shadow-sm motion-pop sm:p-10">
       <div className="h-12 w-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
         <svg
           className="h-6 w-6"

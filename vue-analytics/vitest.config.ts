@@ -6,6 +6,8 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    // CSS is empty in tests by default, even for ?raw; motion.tokens.test.ts reads two stylesheets as text.
+    css: { include: [/\.css\?raw$/] },
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],

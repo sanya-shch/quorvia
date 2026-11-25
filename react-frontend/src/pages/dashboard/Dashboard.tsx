@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { formsApi } from "../../api/forms";
 import { workspaceApi } from "../../api/workspaceApi";
+import AnimatedNumber from "../../components/ui/AnimatedNumber";
 import AppIcon, { type AppIconName } from "../../components/ui/AppIcon";
 import AppShell from "../../components/layout/AppShell";
 import ConfirmModal from "../../components/ui/ConfirmModal";
@@ -20,6 +21,13 @@ import { useFormsActions } from "./useFormsActions";
 import { useDemoLimits } from "../../store/useDemoLimits";
 
 const PRESETS: OverviewPreset[] = ["7d", "30d", "90d"];
+
+interface KpiCard {
+  key: string;
+  icon: AppIconName;
+  value: React.ReactNode;
+  note: React.ReactNode;
+}
 
 const Delta = ({ value, unit }: { value: number | null; unit: "%" | "pts" }) => {
   const { t } = useTranslation();
@@ -60,23 +68,27 @@ export default function Dashboard() {
   const { maxForms } = useDemoLimits();
   const formLimitReached = list.length >= maxForms;
 
-  const cards: { key: string; icon: AppIconName; value: string; note: React.ReactNode }[] = [
+  const cards: KpiCard[] = [
     {
       key: "forms",
       icon: "layers",
-      value: String(summary.data?.forms.total ?? list.length),
+      value: <AnimatedNumber value={summary.data?.forms.total ?? list.length} />,
       note: t("dashboard.kpi.createdInPeriod", { count: summary.data?.forms.createdInPeriod ?? 0 }),
     },
     {
       key: "active",
       icon: "checkCircle",
-      value: String(summary.data?.forms.published ?? list.filter((f) => f.isPublished).length),
+      value: (
+        <AnimatedNumber
+          value={summary.data?.forms.published ?? list.filter((f) => f.isPublished).length}
+        />
+      ),
       note: t("dashboard.kpi.acceptingResponses"),
     },
     {
       key: "responses",
       icon: "inbox",
-      value: String(current?.responses ?? 0),
+      value: <AnimatedNumber value={current?.responses ?? 0} />,
       note: previous ? (
         <Delta value={percentChange(current!.responses, previous.responses)} unit="%" />
       ) : (
@@ -86,7 +98,12 @@ export default function Dashboard() {
     {
       key: "completion",
       icon: "pulse",
-      value: current && current.started > 0 ? `${(current.completionRate * 100).toFixed(1)}%` : "-",
+      value:
+        current && current.started > 0 ? (
+          <AnimatedNumber value={current.completionRate * 100} decimals={1} suffix="%" />
+        ) : (
+          "-"
+        ),
       note:
         previous && current && current.started > 0 && previous.started > 0 ? (
           <Delta value={(current.completionRate - previous.completionRate) * 100} unit="pts" />
@@ -114,7 +131,7 @@ export default function Dashboard() {
         </button>
       }
     >
-      <div className="mx-auto max-w-[1180px] space-y-6">
+      <div className="motion-stagger mx-auto max-w-[1180px] space-y-6">
         <header>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">
             {t("dashboard.eyebrow")}
@@ -142,7 +159,7 @@ export default function Dashboard() {
               {summary.isLoading && card.key !== "forms" && card.key !== "active" ? (
                 <Skeleton className="mt-3 h-9 w-24" />
               ) : (
-                <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
+                <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900 tabular-nums">
                   {card.value}
                 </p>
               )}

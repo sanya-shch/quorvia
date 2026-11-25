@@ -53,6 +53,18 @@ describe("KpiCards", () => {
     expect(cards[3].text()).toContain("14.5% of started attempts");
   });
 
+  it("картки з'являються каскадом: порядковий номер у --motion-index", () => {
+    const wrapper = render(summary(totals({ responses: 5, started: 5 }), null));
+
+    const indexes = wrapper.findAll(".card").map((card) => card.attributes("style"));
+    expect(indexes).toEqual([
+      expect.stringContaining("--motion-index: 0"),
+      expect.stringContaining("--motion-index: 1"),
+      expect.stringContaining("--motion-index: 2"),
+      expect.stringContaining("--motion-index: 3"),
+    ]);
+  });
+
   it("без попереднього періоду пише 'за весь час', а не вигадані зміни", () => {
     const wrapper = render(summary(totals({ responses: 5, started: 5 }), null));
 

@@ -21,6 +21,10 @@ export default function FormWorkspaceLayout() {
   // The Builder is a full-screen editor with its own header; every other section sits in the app
   // shell under the workspace header.
   const isBuilder = pathname.endsWith("/builder");
+  // /forms/:formId/<section>/...: the section (overview, analytics, settings...) keys the page
+  // transition, so it replays when the section changes but not on in-section navigation
+  // (a question inside analytics, a response in the list).
+  const section = pathname.split("/")[3] ?? "";
 
   useEffect(() => {
     if (!isDirty) return;
@@ -122,7 +126,9 @@ export default function FormWorkspaceLayout() {
         >
           <div className="mx-auto max-w-[1180px] space-y-6">
             <WorkspaceHeader formId={formId} />
-            <Outlet />
+            <div key={section} className="motion-page">
+              <Outlet />
+            </div>
           </div>
         </AppShell>
       )}

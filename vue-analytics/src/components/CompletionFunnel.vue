@@ -148,7 +148,7 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
               t("analytics.funnel.continued", { value: formatPercent(row.percentOfTotal) })
             }}</span>
             <div class="track">
-              <div class="fill" :style="{ width: `${row.percentOfTotal * 100}%` }" />
+              <div class="fill va-grow-x" :style="{ width: `${row.percentOfTotal * 100}%` }" />
             </div>
           </div>
 

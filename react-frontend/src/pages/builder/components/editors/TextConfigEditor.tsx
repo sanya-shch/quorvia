@@ -37,7 +37,7 @@ export default function TextConfigEditor({ config, onChange }: TextConfigEditorP
   };
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-150">
+    <div className="space-y-4 motion-fade-in">
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 flex flex-col gap-1.5">
           <label className="text-xs font-semibold text-slate-500">

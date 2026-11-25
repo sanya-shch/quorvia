@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import "./motion.css";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useFormAnalytics } from "./composables/useFormAnalytics";
@@ -231,11 +232,15 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
         <KpiCards :summary="summary" :is-loading="summaryLoading" :error="summaryError" />
       </section>
 
-      <section v-if="summary && summary.daily.length > 1" class="block-section">
+      <section
+        v-if="summary && summary.daily.length > 1"
+        class="block-section va-reveal"
+        style="--motion-index: 2"
+      >
         <TrendChart :daily="summary.daily" />
       </section>
 
-      <section class="card-section">
+      <section class="card-section va-reveal" style="--motion-index: 3">
         <h2 class="section-title">{{ t("analytics.funnel.sectionTitle") }}</h2>
 
         <div v-if="funnelLoading && !funnel" class="state-msg">
@@ -258,7 +263,11 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
       </section>
 
       <template v-else-if="analytics">
-        <section v-if="analytics.totalResponses === 0" class="empty-state">
+        <section
+          v-if="analytics.totalResponses === 0"
+          class="empty-state va-reveal"
+          style="--motion-index: 4"
+        >
           {{
             hasPeriodFilter
               ? t("analytics.analyticsSection.emptyPeriod")
@@ -267,13 +276,17 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
         </section>
 
         <template v-else>
-          <section v-if="analytics.scoring" class="score-section">
+          <section
+            v-if="analytics.scoring"
+            class="score-section va-reveal"
+            style="--motion-index: 4"
+          >
             <h2 class="section-title">{{ t("analytics.scoring.sectionTitle") }}</h2>
             <p class="section-hint">{{ t("analytics.scoring.sectionHint") }}</p>
             <ScoreSummary :scoring="analytics.scoring" />
           </section>
 
-          <section class="questions-section">
+          <section class="questions-section va-reveal" style="--motion-index: 5">
             <div class="section-head">
               <div>
                 <h2 class="section-title">{{ t("analytics.questions.sectionTitle") }}</h2>
@@ -309,7 +322,7 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
         </template>
       </template>
 
-      <section class="card-section">
+      <section class="card-section va-reveal" style="--motion-index: 6">
         <div class="section-head">
           <div>
             <h2 class="section-title">{{ t("analytics.paths.sectionTitle") }}</h2>

@@ -71,3 +71,15 @@ describe("ResponsesList with scores", () => {
     expect(wrapper.findAll('[data-test="item-score"]')).toHaveLength(1);
   });
 });
+
+describe("ResponsesList: поява рядків", () => {
+  it("рядки зʼявляються каскадом: порядковий номер у --motion-index", () => {
+    const items = render(list(undefined, undefined, undefined)).findAll(".item");
+
+    expect(items).toHaveLength(3);
+    items.forEach((item, index) => {
+      expect(item.classes()).toContain("va-reveal");
+      expect(item.attributes("style")).toContain(`--motion-index: ${index}`);
+    });
+  });
+});

@@ -38,7 +38,7 @@ export default function MyFormsPage() {
         </button>
       }
     >
-      <div className="mx-auto max-w-[1180px] space-y-6">
+      <div className="motion-stagger mx-auto max-w-[1180px] space-y-6">
         <header>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             {t("shell.nav.forms")}

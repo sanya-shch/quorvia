@@ -46,8 +46,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="overlay" role="presentation" @click.self="$emit('close')">
-    <aside class="panel" role="dialog" aria-modal="true" aria-labelledby="question-detail-title">
+  <div class="overlay va-overlay" role="presentation" @click.self="$emit('close')">
+    <aside
+      class="panel va-drawer"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="question-detail-title"
+    >
       <button
         ref="closeButtonRef"
         type="button"

@@ -76,12 +76,24 @@ const scoreLine = computed(() => {
 </script>
 
 <template>
-  <div v-if="isLoading" class="state-card state-card--muted">
+  <!-- Nothing to show yet (the first open): the loader fades in after a short delay, so a fast
+       load never flashes it. -->
+  <div v-if="isLoading && !data" class="state-card state-card--muted state-card--delayed">
     {{ t("analytics.common.loading") }}
   </div>
   <div v-else-if="error" class="state-card state-card--error">{{ t(error) }}</div>
 
-  <div v-else-if="data" class="detail">
+  <!-- Another response is loading: the previous one stays on screen, untouchable, and dims only if
+       the wait is noticeable (see .detail--stale). `inert` is bound through an object on purpose:
+       :inert="false" would render inert="false", and the mere presence of the attribute makes the
+       element inert. -->
+  <div
+    v-else-if="data"
+    class="detail va-reveal"
+    :class="{ 'detail--stale': isLoading }"
+    :aria-busy="isLoading"
+    v-bind="isLoading ? { inert: true } : {}"
+  >
     <div class="detail-header">
       <div>
         <h3 class="detail-title">{{ t("analytics.responseDetail.title") }}</h3>
@@ -172,6 +184,11 @@ const scoreLine = computed(() => {
 .state-card--error {
   color: #e11d48;
 }
+/* "backwards" keeps it invisible during the delay, then it fades in: a load that finishes within
+   ~200ms removes it while it is still transparent, so it never flashes. */
+.state-card--delayed {
+  animation: va-fade-in var(--motion-duration-fast, 160ms) ease-out 200ms backwards;
+}
 .files {
   list-style: none;
   margin: 0;
@@ -230,6 +247,15 @@ const scoreLine = computed(() => {
   border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 24px;
+  transition: opacity 120ms ease;
+}
+/* The transition of the state being entered is the one that plays: dimming starts only after a
+   150ms delay (a fast load swaps the content with no visible change at all), and coming back to
+   full opacity uses the plain rule above, with no delay. */
+.detail--stale {
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity var(--motion-duration-base, 260ms) ease 150ms;
 }
 .detail-header {
   border-bottom: 1px solid #e2e8f0;

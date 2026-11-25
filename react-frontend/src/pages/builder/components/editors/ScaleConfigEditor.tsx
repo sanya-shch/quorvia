@@ -33,7 +33,7 @@ export default function ScaleConfigEditor({ config, onChange }: ScaleConfigEdito
   };
 
   return (
-    <div className="flex flex-col gap-4 animate-in fade-in duration-150">
+    <div className="flex flex-col gap-4 motion-fade-in">
       <div className="flex flex-wrap gap-4">
         <div className="flex flex-col gap-1.5">
           <label htmlFor={`${id}-min`} className="text-xs font-semibold text-slate-500">
