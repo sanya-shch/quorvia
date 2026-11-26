@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "../ui/LanguageSwitcher";
+import ThemeToggle from "../ui/ThemeToggle";
 import AppIcon from "../ui/AppIcon";
 
 function Logo() {
@@ -9,7 +10,7 @@ function Logo() {
     <Link to="/" className="flex items-center gap-2.5 font-bold text-slate-900">
       <span
         aria-hidden="true"
-        className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-sm text-white"
+        className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-sm text-on-solid"
       >
         <AppIcon name="layers" className="h-5 w-5" />
       </span>
@@ -50,6 +51,7 @@ export default function AuthLayout({
             {t("auth.backToHome")}
           </Link>
           <LanguageSwitcher size="lg" />
+          <ThemeToggle />
         </div>
       </header>
 

@@ -235,8 +235,8 @@ const maxDistributionCount = computed(() =>
   display: block;
   width: 100%;
   text-align: left;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--color-slate-200, #e2e8f0);
   border-radius: 16px;
   padding: 20px;
   cursor: pointer;
@@ -244,17 +244,17 @@ const maxDistributionCount = computed(() =>
   font-family: inherit;
 }
 .card:hover {
-  border-color: #cbd5e1;
+  border-color: var(--color-slate-300, #cbd5e1);
 }
 .card--static,
 .card--static:hover {
   cursor: default;
-  border-color: #e2e8f0;
+  border-color: var(--color-slate-200, #e2e8f0);
 }
 .file-count {
   margin: 0;
   font-size: 13px;
-  color: #475569;
+  color: var(--color-slate-600, #475569);
 }
 .card-header {
   display: flex;
@@ -266,14 +266,14 @@ const maxDistributionCount = computed(() =>
 .card-title {
   font-size: 15px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-slate-800, #1e293b);
 }
 .card-type {
   flex-shrink: 0;
   font-size: 10px;
   font-weight: 700;
-  color: #94a3b8;
-  background: #f1f5f9;
+  color: var(--color-slate-400, #94a3b8);
+  background: var(--color-slate-100, #f1f5f9);
   padding: 2px 8px;
   border-radius: 999px;
 }
@@ -290,12 +290,12 @@ const maxDistributionCount = computed(() =>
   border-radius: 999px;
 }
 .badge--hidden {
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--color-slate-100, #f1f5f9);
+  color: var(--color-slate-500, #64748b);
 }
 .badge--skipped {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-amber-100, #fef3c7);
+  color: var(--color-amber-800, #92400e);
 }
 .card-body {
   margin-top: 12px;
@@ -311,11 +311,11 @@ const maxDistributionCount = computed(() =>
 .stat-value {
   font-size: 20px;
   font-weight: 700;
-  color: #4f46e5;
+  color: var(--color-indigo-600, #4f46e5);
 }
 .stat-label {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .histogram {
   display: flex;
@@ -340,28 +340,28 @@ const maxDistributionCount = computed(() =>
 .hist-bar {
   width: 100%;
   min-height: 2px;
-  background: #4f46e5;
+  background: var(--color-indigo-600, #4f46e5);
   border-radius: 3px 3px 0 0;
 }
 .hist-label {
   font-size: 10px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .bool-bar {
   height: 8px;
-  background: #fee2e2;
+  background: var(--color-red-100, #fee2e2);
   border-radius: 999px;
   overflow: hidden;
 }
 .bool-bar-fill {
   height: 100%;
-  background: #4f46e5;
+  background: var(--color-indigo-600, #4f46e5);
 }
 .bool-legend {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
   margin-top: 4px;
 }
 .dist-row {
@@ -376,40 +376,40 @@ const maxDistributionCount = computed(() =>
   width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #475569;
+  var(--color-white, #fff)-space: nowrap;
+  color: var(--color-slate-600, #475569);
 }
 .dist-bar {
   flex: 1;
   height: 8px;
-  background: #f1f5f9;
+  background: var(--color-slate-100, #f1f5f9);
   border-radius: 999px;
   overflow: hidden;
 }
 .dist-bar-fill {
   height: 100%;
-  background: #4f46e5;
+  background: var(--color-indigo-600, #4f46e5);
 }
 .dist-count {
   flex-shrink: 0;
   width: 24px;
   text-align: right;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-size: 11px;
 }
 .preview-row {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #475569;
+  color: var(--color-slate-600, #475569);
   margin-bottom: 4px;
 }
 .preview-count {
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .no-data {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-style: italic;
 }
 </style>

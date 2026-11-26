@@ -31,7 +31,7 @@ export default function MyFormsPage() {
           onClick={() => actions.create.mutate()}
           disabled={actions.create.isPending || formLimitReached}
           title={formLimitReached ? t("dashboard.demoFormLimit") : undefined}
-          className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60 cursor-pointer"
+          className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-on-solid hover:bg-indigo-500 disabled:opacity-60 cursor-pointer"
         >
           <AppIcon name="plus" />
           <span className="hidden sm:inline">{t("dashboard.createButton")}</span>

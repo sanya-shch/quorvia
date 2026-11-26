@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { authApi } from "../../api/auth";
 import { useAuthStore } from "../../store/useAuthStore";
 import { LanguageSwitcher } from "../ui/LanguageSwitcher";
+import ThemeToggle from "../ui/ThemeToggle";
 import AppIcon, { type AppIconName } from "../ui/AppIcon";
 import DemoBanner from "./DemoBanner";
 
@@ -43,7 +44,7 @@ export default function AppShell({ topBarStart, topBarEnd, children }: AppShellP
       <div className="flex items-center gap-2.5 px-6 py-6">
         <span
           aria-hidden="true"
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white"
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-on-solid"
         >
           <AppIcon name="layers" className="h-5 w-5" />
         </span>
@@ -107,7 +108,7 @@ export default function AppShell({ topBarStart, topBarEnd, children }: AppShellP
 
       {drawerOpen && (
         <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true">
-          <div className="absolute inset-0 bg-slate-900/40" onClick={() => setDrawerOpen(false)} />
+          <div className="absolute inset-0 bg-scrim/40" onClick={() => setDrawerOpen(false)} />
           <div className="absolute inset-y-0 left-0 w-[260px] bg-white shadow-xl">{sidebar}</div>
         </div>
       )}
@@ -126,6 +127,7 @@ export default function AppShell({ topBarStart, topBarEnd, children }: AppShellP
             </button>
             <div className="min-w-0 flex-1">{topBarStart}</div>
             <LanguageSwitcher />
+            <ThemeToggle />
             {topBarEnd}
           </div>
         </header>

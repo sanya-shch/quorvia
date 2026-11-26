@@ -395,7 +395,7 @@ export function LanguagesMock() {
           <span
             key={name}
             className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
-              i === 0 ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"
+              i === 0 ? "bg-indigo-600 text-on-solid" : "bg-slate-100 text-slate-600"
             }`}
           >
             {name}
@@ -413,7 +413,7 @@ export function ExportsMock() {
     <Frame>
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-slate-800">{t("landing.mock.exportData")}</p>
-        <span className="rounded-lg bg-indigo-600 px-3 py-1 text-[11px] font-semibold text-white">
+        <span className="rounded-lg bg-indigo-600 px-3 py-1 text-[11px] font-semibold text-on-solid">
           {t("landing.mock.createExport")}
         </span>
       </div>

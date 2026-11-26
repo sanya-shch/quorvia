@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./palette.css";
 
 @theme {
   --color-brand-primary: #4f46e5; /* indigo-600 */
@@ -33,6 +34,7 @@
   --motion-duration-slow: 420ms;
   --motion-duration-count: 800ms; /* a number counting up (AnimatedNumber) */
   --motion-duration-draw: 800ms; /* a chart line drawing itself */
+  --motion-duration-theme: 650ms; /* the circle that reveals the other theme */
   --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --motion-offset: 12px;
   --motion-stagger: 45ms;
@@ -166,6 +168,31 @@
       animation-delay: 0ms;
     }
   }
+}
+
+/* The theme is <html data-theme>; it decides which side of light-dark() in palette.css is used. */
+:root {
+  color-scheme: light;
+}
+:root[data-theme="dark"]:not([data-theme-lock]) {
+  color-scheme: dark;
+}
+/* A pinned subtree (the public form, the theme preview) stays light inside a dark app. */
+[data-theme-lock="light"] {
+  color-scheme: light;
+}
+
+/* Switching the theme: the new page grows as a circle over the old one (see theme/theme.ts). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
 }
 
 @layer base {

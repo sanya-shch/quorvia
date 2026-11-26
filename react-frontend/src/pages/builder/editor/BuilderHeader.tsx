@@ -84,7 +84,7 @@ export default function BuilderHeader({
         <span aria-hidden="true" className="hidden h-8 w-px bg-slate-200 sm:block" />
         <span
           aria-hidden="true"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-sm font-bold text-white"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-sm font-bold text-on-solid"
         >
           <AppIcon name="layers" className="h-5 w-5" />
         </span>
@@ -204,7 +204,7 @@ export default function BuilderHeader({
                   ? t("builder.editor.header.saveFirst")
                   : undefined
             }
-            className="h-9 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
+            className="h-9 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-on-solid shadow-sm hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
           >
             {t("workspace.header.publish")}
           </button>

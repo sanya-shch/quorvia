@@ -128,8 +128,8 @@ const totals = computed(() => ({
 <style scoped>
 .trend {
   margin: 0;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--color-slate-200, #e2e8f0);
   border-radius: 20px;
   padding: 20px 24px;
 }
@@ -144,12 +144,12 @@ const totals = computed(() => ({
   margin: 0;
   font-size: 16px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-slate-800, #1e293b);
 }
 .hint {
   margin: 2px 0 0;
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .legend {
   list-style: none;
@@ -159,7 +159,7 @@ const totals = computed(() => ({
   gap: 14px;
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .legend li {
   display: flex;
@@ -172,10 +172,10 @@ const totals = computed(() => ({
   border-radius: 50%;
 }
 .dot--started {
-  background: #4f46e5;
+  background: var(--color-indigo-600, #4f46e5);
 }
 .dot--submitted {
-  background: #059669;
+  background: var(--color-emerald-600, #059669);
 }
 .svg {
   width: 100%;
@@ -184,12 +184,12 @@ const totals = computed(() => ({
   display: block;
 }
 .grid {
-  stroke: #e2e8f0;
+  stroke: var(--color-slate-200, #e2e8f0);
   stroke-width: 1;
 }
 .axis {
   font-size: 10px;
-  fill: #94a3b8;
+  fill: var(--color-slate-400, #94a3b8);
 }
 .axis--y {
   text-anchor: end;
@@ -201,19 +201,19 @@ const totals = computed(() => ({
   stroke-linecap: round;
 }
 .line--started {
-  stroke: #4f46e5;
+  stroke: var(--color-indigo-600, #4f46e5);
 }
 .line--submitted {
-  stroke: #059669;
+  stroke: var(--color-emerald-600, #059669);
 }
 .area {
-  fill: #059669;
+  fill: var(--color-emerald-600, #059669);
   opacity: 0.1;
 }
 .hit {
   fill: transparent;
 }
 .hit:hover {
-  fill: rgba(79, 70, 229, 0.06);
+  fill: color-mix(in srgb, var(--color-indigo-600, #4f46e5) 6%, transparent);
 }
 </style>

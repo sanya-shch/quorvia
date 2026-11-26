@@ -69,7 +69,7 @@ export default function OverviewPage({ formId }: { formId: string }) {
             </p>
             <Link
               to={`/forms/${formId}/builder`}
-              className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-500"
+              className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-on-solid hover:bg-indigo-500"
             >
               <AppIcon name="plus" />
               {t("workspace.overview.noQuestions.action")}
@@ -104,7 +104,7 @@ export default function OverviewPage({ formId }: { formId: string }) {
                     <button
                       type="button"
                       onClick={() => setDialog("share")}
-                      className="h-9 rounded-lg bg-emerald-600 px-3 text-sm font-semibold text-white hover:bg-emerald-500 cursor-pointer"
+                      className="h-9 rounded-lg bg-emerald-600 px-3 text-sm font-semibold text-on-solid hover:bg-emerald-500 cursor-pointer"
                     >
                       {t("workspace.overview.actions.share")}
                     </button>

@@ -229,7 +229,7 @@ export default function PreviewWorkspace({ form, selectedId, language }: Preview
                 <button
                   type="button"
                   onClick={reset}
-                  className="mt-5 h-10 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-500 cursor-pointer"
+                  className="mt-5 h-10 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-on-solid hover:bg-indigo-500 cursor-pointer"
                 >
                   {t("builder.editor.preview.startAgain")}
                 </button>

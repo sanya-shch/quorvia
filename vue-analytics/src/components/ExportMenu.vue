@@ -177,16 +177,16 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
   align-items: center;
   gap: 6px;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-slate-200, #e2e8f0);
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 700;
-  color: #334155;
-  background: white;
+  color: var(--color-slate-700, #334155);
+  background: var(--color-white, #fff);
   cursor: pointer;
 }
 .trigger:hover {
-  background: #f8fafc;
+  background: var(--color-slate-50, #f8fafc);
 }
 .trigger svg {
   height: 16px;
@@ -198,8 +198,8 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
   margin-top: 6px;
   width: 288px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  background: white;
+  border: 1px solid var(--color-slate-200, #e2e8f0);
+  background: var(--color-white, #fff);
   padding: 12px;
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
   z-index: 30;
@@ -210,7 +210,7 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   margin: 0;
 }
 .format-grid {
@@ -221,18 +221,18 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
 }
 .format-btn {
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid var(--color-slate-200, #e2e8f0);
+  background: var(--color-slate-50, #f8fafc);
   padding: 8px 0;
   font-size: 12px;
   font-weight: 700;
-  color: #334155;
+  color: var(--color-slate-700, #334155);
   cursor: pointer;
 }
 .format-btn:hover:not(:disabled) {
-  background: #eef2ff;
-  border-color: #c7d2fe;
-  color: #4f46e5;
+  background: var(--color-indigo-50, #eef2ff);
+  border-color: var(--color-indigo-200, #c7d2fe);
+  color: var(--color-indigo-600, #4f46e5);
 }
 .format-btn:disabled {
   opacity: 0.5;
@@ -242,17 +242,17 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
   margin-top: 8px;
   font-size: 11px;
   font-weight: 500;
-  color: #dc2626;
+  color: var(--color-red-600, #dc2626);
 }
 .divider {
   margin: 12px 0;
   border: none;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-slate-100, #f1f5f9);
 }
 .empty-text {
   padding: 12px 4px;
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .history-list {
   margin-top: 6px;
@@ -269,7 +269,7 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
   padding: 6px;
 }
 .history-row:hover {
-  background: #f8fafc;
+  background: var(--color-slate-50, #f8fafc);
 }
 .history-info {
   display: flex;
@@ -282,8 +282,8 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
   width: 14px;
   flex-shrink: 0;
   border-radius: 999px;
-  border: 2px solid #e2e8f0;
-  border-top-color: #6366f1;
+  border: 2px solid var(--color-slate-200, #e2e8f0);
+  border-top-color: var(--color-indigo-500, #6366f1);
   animation: spin 0.6s linear infinite;
 }
 @keyframes spin {
@@ -297,16 +297,16 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
   flex-shrink: 0;
 }
 .status-completed {
-  color: #059669;
+  color: var(--color-emerald-600, #059669);
 }
 .status-failed {
-  color: #dc2626;
+  color: var(--color-red-600, #dc2626);
 }
 .status-pending {
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .status-processing {
-  color: #d97706;
+  color: var(--color-amber-600, #d97706);
 }
 .history-text {
   min-width: 0;
@@ -314,7 +314,7 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
 .history-format {
   font-size: 12px;
   font-weight: 700;
-  color: #334155;
+  color: var(--color-slate-700, #334155);
   margin: 0;
 }
 .history-status {
@@ -323,7 +323,7 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  var(--color-white, #fff)-space: nowrap;
 }
 .download-btn {
   flex-shrink: 0;
@@ -331,12 +331,12 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
   padding: 6px;
   border: none;
   background: transparent;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   cursor: pointer;
 }
 .download-btn:hover {
-  background: #eef2ff;
-  color: #4f46e5;
+  background: var(--color-indigo-50, #eef2ff);
+  color: var(--color-indigo-600, #4f46e5);
 }
 .download-btn svg {
   height: 16px;

@@ -16,6 +16,8 @@ export default function ThemePreview({ theme }: ThemePreviewProps) {
       <div
         className="rounded-xl bg-slate-50 p-4 border border-slate-200"
         data-testid="theme-preview"
+        // The form is shown to respondents in the light theme, whatever the app is set to.
+        data-theme-lock="light"
         aria-label={t("builder.theme.preview.label")}
         role="group"
       >

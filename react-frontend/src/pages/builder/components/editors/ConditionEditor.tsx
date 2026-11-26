@@ -136,7 +136,7 @@ export default function ConditionEditor({
                     onClick={() => onChange({ ...condition, logic })}
                     className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-colors cursor-pointer ${
                       condition.logic === logic
-                        ? "bg-indigo-600 text-white"
+                        ? "bg-indigo-600 text-on-solid"
                         : "text-slate-500 hover:text-slate-800"
                     }`}
                   >
@@ -248,7 +248,7 @@ function ConditionValueInput({ target, operator, value, onChange }: ConditionVal
           type="button"
           onClick={() => onChange(false)}
           className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-colors cursor-pointer ${
-            value === false ? "bg-slate-700 text-white" : "text-slate-500 hover:text-slate-800"
+            value === false ? "bg-slate-700 text-on-solid" : "text-slate-500 hover:text-slate-800"
           }`}
         >
           {t("builder.editors.condition.booleanNo")}
@@ -257,7 +257,7 @@ function ConditionValueInput({ target, operator, value, onChange }: ConditionVal
           type="button"
           onClick={() => onChange(true)}
           className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-colors cursor-pointer ${
-            value === true ? "bg-indigo-600 text-white" : "text-slate-500 hover:text-slate-800"
+            value === true ? "bg-indigo-600 text-on-solid" : "text-slate-500 hover:text-slate-800"
           }`}
         >
           {t("builder.editors.condition.booleanYes")}

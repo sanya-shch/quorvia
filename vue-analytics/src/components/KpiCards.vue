@@ -132,15 +132,20 @@ const cards = computed(() => {
   }
 }
 .card {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--color-slate-200, #e2e8f0);
   border-radius: 16px;
   padding: 16px 18px;
   min-width: 0;
 }
 .card--skeleton {
   height: 104px;
-  background: linear-gradient(90deg, #f1f5f9, #f8fafc, #f1f5f9);
+  background: linear-gradient(
+    90deg,
+    var(--color-slate-100, #f1f5f9),
+    var(--color-slate-50, #f8fafc),
+    var(--color-slate-100, #f1f5f9)
+  );
 }
 .card-head {
   display: flex;
@@ -154,13 +159,13 @@ const cards = computed(() => {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .icon {
   width: 18px;
   height: 18px;
   fill: none;
-  stroke: #4f46e5;
+  stroke: var(--color-indigo-600, #4f46e5);
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -171,34 +176,34 @@ const cards = computed(() => {
   font-size: 30px;
   line-height: 1.1;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--color-slate-900, #0f172a);
   font-variant-numeric: tabular-nums;
 }
 .delta {
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .delta--up {
-  color: #059669;
+  color: var(--color-emerald-600, #059669);
 }
 .delta--down,
 .delta--bad {
-  color: #dc2626;
+  color: var(--color-red-600, #dc2626);
 }
 .note {
   margin: 2px 0 0;
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .state {
   text-align: center;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-size: 14px;
   padding: 24px;
 }
 .state--error {
-  color: #dc2626;
+  color: var(--color-red-600, #dc2626);
 }
 </style>

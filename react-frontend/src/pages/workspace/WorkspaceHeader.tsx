@@ -114,7 +114,7 @@ export default function WorkspaceHeader({ formId }: { formId: string }) {
                   type="button"
                   disabled={isSaving || saveState === "conflict"}
                   onClick={() => save()}
-                  className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-500 disabled:opacity-50 cursor-pointer"
+                  className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-on-solid hover:bg-amber-500 disabled:opacity-50 cursor-pointer"
                 >
                   {t("workspace.save.action")}
                 </button>
@@ -123,7 +123,7 @@ export default function WorkspaceHeader({ formId }: { formId: string }) {
 
             <Link
               to={`/forms/${formId}/builder`}
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-on-solid shadow-sm hover:bg-indigo-500"
             >
               <AppIcon name="edit" />
               {status === "draft"

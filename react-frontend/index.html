@@ -2,6 +2,21 @@
 <html lang="uk">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // The theme before the first paint, so the page never flashes the wrong one. Keep in step with
+      // src/theme/theme.ts (the storage key; the public form is pinned to the light theme).
+      (function () {
+        var root = document.documentElement;
+        try {
+          var stored = localStorage.getItem("quorvia-theme");
+          var dark =
+            stored === "dark" ||
+            (stored !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+          root.dataset.theme = dark ? "dark" : "light";
+        } catch (e) {}
+        if (/^\/public\/forms\//.test(location.pathname)) root.dataset.themeLock = "light";
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/x-icon" sizes="48x48" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

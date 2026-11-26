@@ -19,5 +19,9 @@
     "uk": "Українська",
     "en": "English",
     "switchLabel": "Мова"
+  },
+  "theme": {
+    "switchToDark": "Увімкнути темну тему",
+    "switchToLight": "Увімкнути світлу тему"
   }
 }

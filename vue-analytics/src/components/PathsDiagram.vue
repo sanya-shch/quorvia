@@ -95,7 +95,7 @@ const svgHeight = computed(
         :key="edge.key"
         :d="edge.d"
         fill="none"
-        stroke="#4f46e5"
+        style="stroke: var(--color-indigo-600, #4f46e5)"
         :stroke-width="edge.strokeWidth"
         :stroke-opacity="edge.opacity"
         stroke-linecap="round"
@@ -154,29 +154,29 @@ const svgHeight = computed(
 .start-label {
   font-size: 11px;
   font-weight: 700;
-  fill: #94a3b8;
+  fill: var(--color-slate-400, #94a3b8);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 .node-box {
-  fill: white;
-  stroke: #e2e8f0;
+  fill: var(--color-white, #fff);
+  stroke: var(--color-slate-200, #e2e8f0);
   stroke-width: 1.5;
   opacity: 0.5;
 }
 .node-text {
   font-size: 13px;
   font-weight: 700;
-  fill: #1e293b;
+  fill: var(--color-slate-800, #1e293b);
 }
 .node-meta {
   font-size: 11px;
-  fill: #94a3b8;
+  fill: var(--color-slate-400, #94a3b8);
 }
 .edge-label {
   font-size: 10px;
   font-weight: 700;
-  fill: #4f46e5;
+  fill: var(--color-indigo-600, #4f46e5);
 }
 .edge-label--skip {
   fill: #7c6ff0;
@@ -184,7 +184,7 @@ const svgHeight = computed(
 .hint {
   margin-top: 8px;
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   text-align: center;
 }
 </style>

@@ -62,7 +62,7 @@ export default function FormWorkspaceLayout() {
             <button
               type="button"
               onClick={() => draft.refetch()}
-              className="h-10 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-500 cursor-pointer"
+              className="h-10 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-on-solid hover:bg-indigo-500 cursor-pointer"
             >
               {t("workspace.loadError.retry")}
             </button>

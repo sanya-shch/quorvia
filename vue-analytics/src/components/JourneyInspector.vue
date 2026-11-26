@@ -119,8 +119,8 @@ const canInspect = computed(
 
 <style scoped>
 .inspector {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--color-slate-200, #e2e8f0);
   border-radius: 14px;
   padding: 16px;
   min-width: 0;
@@ -129,18 +129,18 @@ const canInspect = computed(
   margin: 0 0 10px;
   font-size: 14px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-slate-800, #1e293b);
 }
 .selected {
   margin: 0 0 12px;
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .help {
   margin: 0 0 12px;
   font-size: 12px;
   line-height: 1.5;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .facts {
   margin: 0;
@@ -149,24 +149,24 @@ const canInspect = computed(
   gap: 10px;
 }
 .fact {
-  border-left: 3px solid #4f46e5;
+  border-left: 3px solid var(--color-indigo-600, #4f46e5);
   padding-left: 10px;
 }
 .fact--bad {
-  border-color: #dc2626;
+  border-color: var(--color-red-600, #dc2626);
 }
 .fact--ok {
-  border-color: #059669;
+  border-color: var(--color-emerald-600, #059669);
 }
 .fact dt {
   font-size: 15px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--color-slate-900, #0f172a);
 }
 .fact dd {
   margin: 2px 0 0;
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .flows {
   margin-top: 16px;
@@ -177,7 +177,7 @@ const canInspect = computed(
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .flows ul {
   list-style: none;
@@ -192,20 +192,20 @@ const canInspect = computed(
   justify-content: space-between;
   gap: 10px;
   font-size: 12px;
-  color: #334155;
+  color: var(--color-slate-700, #334155);
 }
 .flow-label {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  var(--color-white, #fff)-space: nowrap;
 }
 .inspect {
   margin-top: 16px;
   width: 100%;
-  border: 1px solid #c7d2fe;
-  background: white;
-  color: #4f46e5;
+  border: 1px solid var(--color-indigo-200, #c7d2fe);
+  background: var(--color-white, #fff);
+  color: var(--color-indigo-600, #4f46e5);
   font-size: 13px;
   font-weight: 700;
   padding: 9px 12px;
@@ -213,6 +213,6 @@ const canInspect = computed(
   cursor: pointer;
 }
 .inspect:hover {
-  background: #eef2ff;
+  background: var(--color-indigo-50, #eef2ff);
 }
 </style>

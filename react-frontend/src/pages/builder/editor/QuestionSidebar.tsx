@@ -157,7 +157,7 @@ export default function QuestionSidebar({
                                     hasError
                                       ? "bg-rose-100 text-rose-700"
                                       : selected
-                                        ? "bg-indigo-600 text-white"
+                                        ? "bg-indigo-600 text-on-solid"
                                         : "bg-slate-100 text-slate-600"
                                   }`}
                                 >
@@ -283,7 +283,7 @@ export default function QuestionSidebar({
           type="button"
           onClick={() => setPickerAt(questions.length)}
           disabled={atLimit}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-semibold text-on-solid shadow-sm hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
         >
           <AppIcon name="plus" />
           {t("builder.editor.sidebar.add")}

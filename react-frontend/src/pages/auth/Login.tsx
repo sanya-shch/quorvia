@@ -77,7 +77,7 @@ export default function Login() {
         <button
           type="submit"
           disabled={loginMutation.isPending}
-          className="w-full h-12 flex items-center justify-center rounded-xl bg-indigo-600 text-base font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-50 cursor-pointer"
+          className="w-full h-12 flex items-center justify-center rounded-xl bg-indigo-600 text-base font-semibold text-on-solid shadow-sm transition-colors hover:bg-indigo-700 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-50 cursor-pointer"
         >
           {loginMutation.isPending ? t("auth.login.submitting") : t("auth.login.submit")}
         </button>

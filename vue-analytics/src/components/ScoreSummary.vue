@@ -127,8 +127,8 @@ const categoryRows = computed(() => [
 
 <style scoped>
 .score-summary {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--color-slate-200, #e2e8f0);
   border-radius: 16px;
   padding: 20px;
 }
@@ -136,13 +136,13 @@ const categoryRows = computed(() => [
   margin: 0 0 12px;
   padding: 8px 12px;
   border-radius: 10px;
-  background: #fffbeb;
-  color: #92400e;
+  background: var(--color-amber-50, #fffbeb);
+  color: var(--color-amber-800, #92400e);
   font-size: 13px;
 }
 .state {
   margin: 0;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
   font-size: 14px;
 }
 .stats {
@@ -157,20 +157,20 @@ const categoryRows = computed(() => [
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-slate-800, #1e293b);
 }
 .stat-value--accent {
-  color: #4f46e5;
+  color: var(--color-indigo-600, #4f46e5);
 }
 .stat-label {
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .sub-title {
   margin: 20px 0 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #475569;
+  color: var(--color-slate-600, #475569);
 }
 .histogram {
   display: flex;
@@ -189,14 +189,14 @@ const categoryRows = computed(() => [
 }
 .bucket-bar {
   width: 100%;
-  background: #6366f1;
+  background: var(--color-indigo-500, #6366f1);
   border-radius: 4px 4px 0 0;
   min-height: 0;
 }
 .bucket-count,
 .bucket-label {
   font-size: 11px;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .categories {
   list-style: none;
@@ -214,24 +214,24 @@ const categoryRows = computed(() => [
 }
 .category-name {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-slate-800, #1e293b);
 }
 .category-range {
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .category-count {
   margin-left: auto;
-  color: #475569;
+  color: var(--color-slate-600, #475569);
 }
 .category-track {
   height: 6px;
   margin-top: 4px;
   border-radius: 999px;
-  background: #e2e8f0;
+  background: var(--color-slate-200, #e2e8f0);
   overflow: hidden;
 }
 .category-fill {
   height: 100%;
-  background: #6366f1;
+  background: var(--color-indigo-500, #6366f1);
 }
 </style>

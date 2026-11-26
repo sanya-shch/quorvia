@@ -254,7 +254,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 .bar--sub {
   margin: 14px 0;
   padding-top: 14px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-slate-200, #e2e8f0);
 }
 .chips,
 .views,
@@ -271,9 +271,9 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 .reset,
 .zoom-btn,
 .select select {
-  border: 1px solid #e2e8f0;
-  background: white;
-  color: #334155;
+  border: 1px solid var(--color-slate-200, #e2e8f0);
+  background: var(--color-white, #fff);
+  color: var(--color-slate-700, #334155);
   font-size: 12px;
   font-weight: 700;
   border-radius: 10px;
@@ -284,17 +284,17 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 .seg:hover,
 .toggle:hover,
 .reset:hover {
-  border-color: #c7d2fe;
+  border-color: var(--color-indigo-200, #c7d2fe);
 }
 .chip--active,
 .seg--active {
-  background: #4f46e5;
-  border-color: #4f46e5;
-  color: white;
+  background: var(--color-indigo-600, #4f46e5);
+  border-color: var(--color-indigo-600, #4f46e5);
+  color: var(--color-on-solid, #fff);
 }
 .views,
 .modes {
-  background: #f1f5f9;
+  background: var(--color-slate-100, #f1f5f9);
   padding: 3px;
   border-radius: 12px;
   gap: 2px;
@@ -306,14 +306,14 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 }
 .views .seg--active,
 .modes .seg--active {
-  background: white;
-  color: #4f46e5;
+  background: var(--color-white, #fff);
+  color: var(--color-indigo-600, #4f46e5);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 .toggle--on {
-  background: #eef2ff;
-  border-color: #818cf8;
-  color: #4338ca;
+  background: var(--color-indigo-50, #eef2ff);
+  border-color: var(--color-indigo-400, #818cf8);
+  color: var(--color-indigo-700, #4338ca);
 }
 .chip:disabled {
   opacity: 0.45;
@@ -325,7 +325,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 .reset:focus-visible,
 .zoom-btn:focus-visible,
 .select select:focus-visible {
-  outline: 2px solid #4f46e5;
+  outline: 2px solid var(--color-indigo-600, #4f46e5);
   outline-offset: 2px;
 }
 .layout {
@@ -348,7 +348,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   justify-content: flex-end;
   margin-bottom: 8px;
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .legend span {
   display: inline-flex;
@@ -362,13 +362,13 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   display: inline-block;
 }
 .dot--main {
-  background: #4f46e5;
+  background: var(--color-indigo-600, #4f46e5);
 }
 .dot--branch {
-  background: #059669;
+  background: var(--color-emerald-600, #059669);
 }
 .dot--exit {
-  background: #dc2626;
+  background: var(--color-red-600, #dc2626);
 }
 .zoom {
   display: flex;
@@ -377,7 +377,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   gap: 8px;
   margin-top: 8px;
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .zoom-btn {
   width: 30px;
@@ -397,17 +397,17 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 }
 .state {
   text-align: center;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-size: 14px;
   padding: 36px 0;
 }
 .state--error {
-  color: #dc2626;
+  color: var(--color-red-600, #dc2626);
 }
 .flow-hint {
   margin: 14px 0;
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .sr-only {
   position: absolute;
@@ -415,6 +415,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   height: 1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
-  white-space: nowrap;
+  var(--color-white, #fff)-space: nowrap;
 }
 </style>

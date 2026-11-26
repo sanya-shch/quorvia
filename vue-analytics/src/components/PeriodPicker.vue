@@ -65,8 +65,8 @@ const update = (key: "from" | "to", event: Event) =>
 }
 .presets {
   display: inline-flex;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--color-slate-200, #e2e8f0);
   border-radius: 12px;
   padding: 3px;
   gap: 2px;
@@ -78,20 +78,20 @@ const update = (key: "from" | "to", event: Event) =>
   border-radius: 9px;
   font-size: 12px;
   font-weight: 700;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
   cursor: pointer;
-  white-space: nowrap;
+  var(--color-white, #fff)-space: nowrap;
 }
 .preset:hover {
-  color: #1e293b;
+  color: var(--color-slate-800, #1e293b);
 }
 .preset--active {
-  background: #4f46e5;
-  color: white;
+  background: var(--color-indigo-600, #4f46e5);
+  color: var(--color-on-solid, #fff);
 }
 .preset:focus-visible,
 .date input:focus-visible {
-  outline: 2px solid #4f46e5;
+  outline: 2px solid var(--color-indigo-600, #4f46e5);
   outline-offset: 2px;
 }
 .custom {
@@ -107,22 +107,22 @@ const update = (key: "from" | "to", event: Event) =>
   gap: 6px;
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .date input {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-slate-200, #e2e8f0);
   border-radius: 8px;
   padding: 5px 8px;
   font-size: 12px;
-  color: #1e293b;
-  background: white;
+  color: var(--color-slate-800, #1e293b);
+  background: var(--color-white, #fff);
 }
 .invalid {
   flex-basis: 100%;
   text-align: right;
   margin: 0;
   font-size: 12px;
-  color: #dc2626;
+  color: var(--color-red-600, #dc2626);
 }
 @media (max-width: 640px) {
   .picker {

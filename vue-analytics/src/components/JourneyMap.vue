@@ -55,10 +55,10 @@ const isRelated = (node: PlacedNode) =>
 
 const linkColor = (link: PlacedLink) =>
   link.targetKind === "exit"
-    ? "#dc2626"
+    ? "var(--color-red-600, #dc2626)"
     : link.targetKind === "submitted" || link.route === "conditional"
-      ? "#059669"
-      : "#4f46e5";
+      ? "var(--color-emerald-600, #059669)"
+      : "var(--color-indigo-600, #4f46e5)";
 
 const linkTitle = (link: PlacedLink) => {
   const from = nodeById.value.get(link.source)!;
@@ -117,7 +117,7 @@ const innerHeight = computed(() => layout.value.height + HEADER + 12);
               v-for="link in layout.links"
               :key="link.key"
               :d="link.path"
-              :stroke="linkColor(link)"
+              :style="{ stroke: linkColor(link) }"
               :stroke-width="link.thickness"
               :opacity="isLit(link) ? (focusId === null ? 0.24 : 0.55) : 0.06"
               class="ribbon"
@@ -174,8 +174,8 @@ const innerHeight = computed(() => layout.value.height + HEADER + 12);
 <style scoped>
 .viewport {
   overflow: auto;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--color-slate-50, #f8fafc);
+  border: 1px solid var(--color-slate-200, #e2e8f0);
   border-radius: 14px;
   padding: 12px;
   max-height: 640px;
@@ -197,7 +197,7 @@ const innerHeight = computed(() => layout.value.height + HEADER + 12);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .ribbons {
   position: absolute;
@@ -216,8 +216,8 @@ const innerHeight = computed(() => layout.value.height + HEADER + 12);
   box-sizing: border-box;
   padding: 6px 10px;
   text-align: left;
-  background: white;
-  border: 2px solid #4f46e5;
+  background: var(--color-white, #fff);
+  border: 2px solid var(--color-indigo-600, #4f46e5);
   border-radius: 10px;
   cursor: pointer;
   transition:
@@ -227,30 +227,30 @@ const innerHeight = computed(() => layout.value.height + HEADER + 12);
 }
 .node:hover,
 .node:focus-visible {
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-indigo-600, #4f46e5) 25%, transparent);
   outline: none;
 }
 .node:focus-visible {
-  outline: 2px solid #1e1b4b;
+  outline: 2px solid var(--color-indigo-950, #1e1b4b);
   outline-offset: 2px;
 }
 .node--conditional,
 .node--submitted {
-  border-color: #059669;
+  border-color: var(--color-emerald-600, #059669);
 }
 .node--exit {
-  border-color: #dc2626;
+  border-color: var(--color-red-600, #dc2626);
 }
 .node--start {
-  border-color: #4f46e5;
-  background: #eef2ff;
+  border-color: var(--color-indigo-600, #4f46e5);
+  background: var(--color-indigo-50, #eef2ff);
 }
 .node--more {
-  border-color: #94a3b8;
+  border-color: var(--color-slate-400, #94a3b8);
   border-style: dashed;
 }
 .node--selected {
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-indigo-600, #4f46e5) 30%, transparent);
 }
 .node--dim {
   opacity: 0.35;
@@ -260,25 +260,25 @@ const innerHeight = computed(() => layout.value.height + HEADER + 12);
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #4f46e5;
-  white-space: nowrap;
+  color: var(--color-indigo-600, #4f46e5);
+  var(--color-white, #fff)-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .node--conditional .eyebrow,
 .node--submitted .eyebrow {
-  color: #059669;
+  color: var(--color-emerald-600, #059669);
 }
 .node--exit .eyebrow {
-  color: #dc2626;
+  color: var(--color-red-600, #dc2626);
 }
 .node--more .eyebrow {
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .title {
   font-size: 12px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-slate-800, #1e293b);
   line-height: 1.25;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -293,23 +293,23 @@ const innerHeight = computed(() => layout.value.height + HEADER + 12);
 }
 .count strong {
   font-size: 13px;
-  color: #0f172a;
+  color: var(--color-slate-900, #0f172a);
 }
 .count small {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .empty {
   text-align: center;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-size: 14px;
   padding: 40px 0;
-  border: 1px dashed #e2e8f0;
+  border: 1px dashed var(--color-slate-200, #e2e8f0);
   border-radius: 14px;
 }
 .hidden-note {
   margin: 8px 0 0;
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 </style>

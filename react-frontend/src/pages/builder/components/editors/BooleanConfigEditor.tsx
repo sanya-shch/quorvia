@@ -39,7 +39,7 @@ export default function BooleanConfigEditor({ config, onChange }: BooleanConfigE
           onClick={() => handleValueChange(true)}
           className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
             defaultValue
-              ? "bg-indigo-600 text-white shadow-sm"
+              ? "bg-indigo-600 text-on-solid shadow-sm"
               : "text-slate-600 hover:text-slate-800"
           }`}
         >

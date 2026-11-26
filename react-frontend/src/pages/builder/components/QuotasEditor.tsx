@@ -239,7 +239,7 @@ function QuotaCard({
           type="button"
           disabled={!complete || !changed || busy}
           onClick={() => saveMutation.mutate()}
-          className={`${buttonClass} border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-700`}
+          className={`${buttonClass} border-indigo-600 bg-indigo-600 text-on-solid hover:bg-indigo-700`}
         >
           {t("builder.quotas.save")}
         </button>

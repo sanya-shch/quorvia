@@ -133,7 +133,7 @@ export default function OptionsConfigEditor({
                             questionType === "CHOICE_SINGLE" ? "rounded-full" : "rounded-md"
                           } ${
                             option.isDefault
-                              ? "bg-indigo-600 border-indigo-600 text-white"
+                              ? "bg-indigo-600 border-indigo-600 text-on-solid"
                               : "bg-white border-slate-300 hover:border-slate-400"
                           }`}
                           title={

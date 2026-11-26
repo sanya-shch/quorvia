@@ -93,8 +93,8 @@ const scoreText = (score: ResponseScoreDto) => {
 
 <style scoped>
 .list-panel {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--color-slate-200, #e2e8f0);
   border-radius: 16px;
   padding: 16px;
   display: flex;
@@ -104,7 +104,7 @@ const scoreText = (score: ResponseScoreDto) => {
 .list-title {
   font-size: 13px;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 0 4px;
@@ -113,11 +113,11 @@ const scoreText = (score: ResponseScoreDto) => {
 .state-text {
   text-align: center;
   padding: 24px 0;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-size: 12px;
 }
 .state-text--error {
-  color: #e11d48;
+  color: var(--color-rose-600, #e11d48);
 }
 .items {
   display: flex;
@@ -129,68 +129,68 @@ const scoreText = (score: ResponseScoreDto) => {
   text-align: left;
   padding: 12px;
   border-radius: 12px;
-  border: 1px solid #e2e8f099;
-  background: #f8fafc;
+  border: 1px solid color-mix(in srgb, var(--color-slate-200, #e2e8f0) 60%, transparent);
+  background: var(--color-slate-50, #f8fafc);
   font-size: 12px;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-slate-700, #334155);
   cursor: pointer;
   transition: all 0.15s;
 }
 .item:hover {
-  background: #f1f5f9;
-  border-color: #4f46e5;
+  background: var(--color-slate-100, #f1f5f9);
+  border-color: var(--color-indigo-600, #4f46e5);
 }
 .item:hover .item-id,
 .item:hover .item-date,
 .item:hover .item-score {
-  color: #334155;
+  color: var(--color-slate-700, #334155);
 }
 .item--selected {
-  background: #4f46e5;
-  border-color: #4f46e5;
-  color: white;
+  background: var(--color-indigo-600, #4f46e5);
+  border-color: var(--color-indigo-600, #4f46e5);
+  color: var(--color-on-solid, #fff);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 .item-id {
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  var(--color-white, #fff)-space: nowrap;
 }
 .item-date {
   margin-top: 4px;
   font-size: 10px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .item-lang {
   margin-left: 6px;
   padding: 0 4px;
   border-radius: 4px;
-  background: #e2e8f0;
-  color: #475569;
+  background: var(--color-slate-200, #e2e8f0);
+  color: var(--color-slate-600, #475569);
   font-weight: 600;
 }
 .item--selected .item-lang {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  background: color-mix(in srgb, var(--color-on-solid, #fff) 20%, transparent);
+  color: var(--color-on-solid, #fff);
 }
 .item--selected .item-date {
-  color: #c7d2fe;
+  color: var(--color-indigo-200, #c7d2fe);
 }
 .pagination {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding-top: 8px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-slate-200, #e2e8f0);
   font-size: 12px;
 }
 .page-btn {
   padding: 4px 10px;
   border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  background: white;
+  border: 1px solid var(--color-slate-200, #e2e8f0);
+  background: var(--color-white, #fff);
   font-weight: 700;
   cursor: pointer;
 }
@@ -199,13 +199,13 @@ const scoreText = (score: ResponseScoreDto) => {
   cursor: default;
 }
 .page-label {
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-weight: 500;
 }
 .item-score {
   margin-top: 2px;
   font-size: 12px;
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--color-indigo-600, #4f46e5);
 }
 </style>

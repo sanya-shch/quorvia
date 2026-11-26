@@ -4,8 +4,10 @@ import "./index.css";
 import { i18nReady } from "./i18n";
 import App from "./App.tsx";
 import { preloadRouteChunk } from "./routes";
+import { initTheme } from "./theme/theme";
 
 preloadRouteChunk(window.location.pathname);
+initTheme();
 
 // The first render waits for the active language bundle; the route chunk
 // download started above runs in parallel with it.

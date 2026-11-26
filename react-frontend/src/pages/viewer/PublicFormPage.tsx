@@ -14,6 +14,7 @@ import QuotaFullScreen from "./components/QuotaFullScreen";
 import { QuotaWarningContext, type QuotaFullInfo } from "./quotaWarning";
 import { CLOSED_ERROR_CODES, type FormClosedReason } from "@quorvia/shared-types";
 import ThemeScope from "./theme/ThemeScope";
+import { useLightThemeLock } from "../../theme/useLightThemeLock";
 import WelcomeScreen from "./components/WelcomeScreen";
 import EndScreen from "./components/EndScreen";
 import UploadedFilesProvider from "./UploadedFilesProvider";
@@ -45,6 +46,7 @@ interface ExpectedError {
 }
 
 export default function PublicFormPage() {
+  useLightThemeLock();
   const { t } = useTranslation();
   const { shareId } = useParams<{ shareId: string }>();
   // The respondent has pressed the button on the welcome screen.

@@ -22,7 +22,9 @@ interface LanguageBarProps {
 
 const tabClass = (active: boolean) =>
   `inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-    active ? "bg-indigo-600 text-white" : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+    active
+      ? "bg-indigo-600 text-on-solid"
+      : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
   }`;
 
 const selectClass =

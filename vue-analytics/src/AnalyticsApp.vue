@@ -383,7 +383,7 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
 <style scoped>
 .analytics-root {
   min-height: 100vh;
-  background: #f8fafc;
+  background: var(--color-slate-50, #f8fafc);
   padding: 28px 20px 64px;
   font-family:
     ui-sans-serif,
@@ -420,27 +420,27 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
   border-radius: 999px;
 }
 .status--published {
-  background: #059669;
-  color: white;
+  background: var(--color-emerald-600, #059669);
+  color: var(--color-on-solid, #fff);
 }
 .status--draft {
-  background: #e2e8f0;
-  color: #475569;
+  background: var(--color-slate-200, #e2e8f0);
+  color: var(--color-slate-600, #475569);
 }
 .meta-text {
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .page-title {
   font-size: 28px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--color-slate-900, #0f172a);
   margin: 0;
   letter-spacing: -0.01em;
 }
 .page-subtitle {
   font-size: 14px;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
   margin: 4px 0 0;
 }
 .header--embedded {
@@ -455,7 +455,7 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
 .tabs {
   display: flex;
   gap: 4px;
-  background: #f1f5f9;
+  background: var(--color-slate-100, #f1f5f9);
   padding: 4px;
   border-radius: 12px;
   width: fit-content;
@@ -468,20 +468,20 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
   border-radius: 8px;
   font-size: 13px;
   font-weight: 700;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
   cursor: pointer;
   transition: all 0.15s;
 }
 .tab-btn:hover {
-  color: #334155;
+  color: var(--color-slate-700, #334155);
 }
 .tab-btn:focus-visible {
-  outline: 2px solid #4f46e5;
+  outline: 2px solid var(--color-indigo-600, #4f46e5);
   outline-offset: 2px;
 }
 .tab-btn--active {
-  background: white;
-  color: #4f46e5;
+  background: var(--color-white, #fff);
+  color: var(--color-indigo-600, #4f46e5);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
 }
 .kpi-section {
@@ -491,8 +491,8 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
   margin-bottom: 16px;
 }
 .card-section {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--color-slate-200, #e2e8f0);
   border-radius: 20px;
   padding: 22px;
   margin-top: 24px;
@@ -508,21 +508,21 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
 .section-title {
   font-size: 18px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-slate-800, #1e293b);
   margin: 0 0 4px;
 }
 .section-hint {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   margin: 0 0 20px;
 }
 .section-hint--tight {
   margin: 0;
 }
 .outline-btn {
-  border: 1px solid #c7d2fe;
-  background: white;
-  color: #4f46e5;
+  border: 1px solid var(--color-indigo-200, #c7d2fe);
+  background: var(--color-white, #fff);
+  color: var(--color-indigo-600, #4f46e5);
   font-size: 13px;
   font-weight: 700;
   padding: 8px 14px;
@@ -530,10 +530,10 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
   cursor: pointer;
 }
 .outline-btn:hover {
-  background: #eef2ff;
+  background: var(--color-indigo-50, #eef2ff);
 }
 .outline-btn:focus-visible {
-  outline: 2px solid #4f46e5;
+  outline: 2px solid var(--color-indigo-600, #4f46e5);
   outline-offset: 2px;
 }
 .questions-section {
@@ -550,16 +550,16 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
 .state-msg {
   margin: 40px auto;
   text-align: center;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-size: 14px;
 }
 .state-msg--error {
-  color: #dc2626;
+  color: var(--color-red-600, #dc2626);
 }
 .empty-state {
   margin: 48px auto;
   text-align: center;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-size: 14px;
 }
 .responses-grid {
@@ -575,13 +575,13 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
 }
 .placeholder {
   height: 192px;
-  border: 2px dashed #e2e8f0;
-  background: white;
+  border: 2px dashed var(--color-slate-200, #e2e8f0);
+  background: var(--color-white, #fff);
   border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-weight: 500;
   font-size: 13px;
   text-align: center;

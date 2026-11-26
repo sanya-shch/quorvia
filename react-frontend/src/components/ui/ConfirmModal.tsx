@@ -47,7 +47,7 @@ export default function ConfirmModal({
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm motion-overlay"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-scrim/40 backdrop-blur-sm motion-overlay"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -71,7 +71,7 @@ export default function ConfirmModal({
           </button>
           <button
             onClick={onConfirm}
-            className="inline-flex h-10 items-center justify-center rounded-xl bg-rose-600 px-4 text-sm font-semibold text-white hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-sm"
+            className="inline-flex h-10 items-center justify-center rounded-xl bg-rose-600 px-4 text-sm font-semibold text-on-solid hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-sm"
           >
             {confirmLabel ?? t("common.confirm")}
           </button>

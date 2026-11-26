@@ -55,8 +55,20 @@ export default function ActivityChart({ daily }: { daily: AnalyticsDailyPoint[] 
           const value = (max / 4) * i;
           return (
             <g key={i}>
-              <line x1={PAD.left} x2={W - PAD.right} y1={y(value)} y2={y(value)} stroke="#e2e8f0" />
-              <text x={PAD.left - 6} y={y(value) + 3} fontSize="10" textAnchor="end" fill="#94a3b8">
+              <line
+                x1={PAD.left}
+                x2={W - PAD.right}
+                y1={y(value)}
+                y2={y(value)}
+                className="stroke-slate-200"
+              />
+              <text
+                x={PAD.left - 6}
+                y={y(value) + 3}
+                fontSize="10"
+                textAnchor="end"
+                className="fill-slate-400"
+              >
                 {Math.round(value * 10) / 10}
               </text>
             </g>
@@ -64,27 +76,24 @@ export default function ActivityChart({ daily }: { daily: AnalyticsDailyPoint[] 
         })}
         <path
           d={`${line("submitted")} L${x(daily.length - 1)},${y(0)} L${x(0)},${y(0)} Z`}
-          fill="#6366f1"
+          className="fill-indigo-500 motion-fade"
           opacity="0.1"
-          className="motion-fade"
         />
         <path
           d={line("started")}
           fill="none"
-          stroke="#a5b4fc"
+          className="stroke-indigo-300 motion-draw"
           strokeWidth="2"
           strokeLinejoin="round"
           pathLength={1}
-          className="motion-draw"
         />
         <path
           d={line("submitted")}
           fill="none"
-          stroke="#4f46e5"
+          className="stroke-indigo-600 motion-draw"
           strokeWidth="2.5"
           strokeLinejoin="round"
           pathLength={1}
-          className="motion-draw"
         />
         {labels.map((i) => (
           <text
@@ -92,7 +101,7 @@ export default function ActivityChart({ daily }: { daily: AnalyticsDailyPoint[] 
             x={x(i)}
             y={H - 6}
             fontSize="10"
-            fill="#94a3b8"
+            className="fill-slate-400"
             textAnchor={i === 0 ? "start" : i === daily.length - 1 ? "end" : "middle"}
           >
             {shortDate(daily[i].date)}

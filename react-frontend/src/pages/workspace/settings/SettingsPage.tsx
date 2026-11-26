@@ -131,7 +131,7 @@ export default function SettingsPage({ formId }: { formId: string }) {
                   onClick={() => updateFormMeta({ responseMode: opt.value })}
                   className={`rounded-md px-3 py-1.5 text-xs font-semibold cursor-pointer ${
                     form.responseMode === opt.value
-                      ? "bg-indigo-600 text-white"
+                      ? "bg-indigo-600 text-on-solid"
                       : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
@@ -253,7 +253,7 @@ export default function SettingsPage({ formId }: { formId: string }) {
                 disabled={!readiness.canPublish || actions.publish.isPending}
                 onClick={() => actions.publish.mutate()}
                 title={readiness.canPublish ? undefined : t("workspace.header.publishBlocked")}
-                className="h-9 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                className="h-9 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-on-solid hover:bg-emerald-500 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
               >
                 {status === "unpublished"
                   ? t("workspace.header.publishAgain")

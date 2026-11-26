@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { MAX_ADDITIONAL_LANGUAGES } from "@quorvia/shared-types";
 import { LanguageSwitcher } from "../../components/ui/LanguageSwitcher";
+import ThemeToggle from "../../components/ui/ThemeToggle";
 import { useAuthStore } from "../../store/useAuthStore";
 import { IS_FOR_PORTFOLIO } from "../../config/portfolio";
 import { translateErrorCode } from "../../i18n/errorCodes";
@@ -30,7 +31,7 @@ import AppIcon from "../../components/ui/AppIcon";
 const QUESTION_TYPE_COUNT = AVAILABLE_TYPES.length;
 
 const buttonPrimary =
-  "inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2";
+  "inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-on-solid shadow-sm transition-colors hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2";
 const buttonSecondary =
   "inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2";
 
@@ -135,7 +136,7 @@ function DemoStatus({ demo, light = false }: { demo: Demo; light?: boolean }) {
       className={`mt-4 text-sm font-medium ${
         demo.status === "failed"
           ? light
-            ? "text-white"
+            ? "text-on-solid"
             : "text-rose-600"
           : light
             ? "text-indigo-100"
@@ -152,7 +153,7 @@ function Logo() {
     <Link to="/" className="flex items-center gap-2.5 font-bold text-slate-900">
       <span
         aria-hidden="true"
-        className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-sm text-white"
+        className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-sm text-on-solid"
       >
         <AppIcon name="layers" className="h-5 w-5" />
       </span>
@@ -187,6 +188,7 @@ function Header({ demo }: { demo: Demo }) {
 
         <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitcher />
+          <ThemeToggle />
           {isAuthenticated ? (
             <Link to="/dashboard" className={`${buttonPrimary} h-10`}>
               {t("landing.nav.dashboard")}
@@ -392,7 +394,7 @@ export default function LandingPage() {
                 <ScoringMock />
               </div>
             </div>
-            <div className="rounded-3xl bg-indigo-600 p-6 text-white sm:p-8">
+            <div className="rounded-3xl bg-indigo-600 p-6 text-on-solid sm:p-8">
               <Eyebrow light>{t("landing.scoring.endEyebrow")}</Eyebrow>
               <h2 className="mt-3 text-2xl font-bold sm:text-3xl">
                 {t("landing.scoring.endTitle")}
@@ -504,7 +506,7 @@ export default function LandingPage() {
               <li key={key}>
                 <span
                   aria-hidden="true"
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-on-solid"
                 >
                   {index + 1}
                 </span>
@@ -526,7 +528,7 @@ export default function LandingPage() {
 
         {/* Final call to action */}
         <section className="bg-white px-4 py-16 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-5xl rounded-3xl bg-indigo-600 px-6 py-14 text-center text-white sm:px-12">
+          <div className="mx-auto max-w-5xl rounded-3xl bg-indigo-600 px-6 py-14 text-center text-on-solid sm:px-12">
             <Eyebrow light>{t("landing.cta.eyebrow")}</Eyebrow>
             <h2 className="mt-3 text-3xl font-bold sm:text-4xl">{t("landing.cta.title")}</h2>
             <p className="mx-auto mt-4 max-w-2xl text-indigo-100">{t("landing.cta.text")}</p>

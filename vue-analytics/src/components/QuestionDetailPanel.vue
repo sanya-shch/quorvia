@@ -109,7 +109,7 @@ onUnmounted(() => {
                   v-for="(count, i) in row.counts"
                   :key="data.matrix.columns[i].id"
                   :style="{
-                    backgroundColor: `rgba(79, 70, 229, ${(row.answered ? count / row.answered : 0) * 0.35})`,
+                    backgroundColor: `color-mix(in srgb, var(--color-indigo-600, #4f46e5) ${(row.answered ? count / row.answered : 0) * 35}%, transparent)`,
                   }"
                 >
                   <strong>{{ count }}</strong>
@@ -206,7 +206,7 @@ onUnmounted(() => {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.35);
+  background: color-mix(in srgb, var(--color-scrim, #0f172a) 35%, transparent);
   display: flex;
   justify-content: flex-end;
   z-index: 50;
@@ -214,7 +214,7 @@ onUnmounted(() => {
 .panel {
   width: min(420px, 90vw);
   height: 100%;
-  background: white;
+  background: var(--color-white, #fff);
   padding: 28px 24px;
   overflow-y: auto;
   position: relative;
@@ -225,38 +225,38 @@ onUnmounted(() => {
   top: 16px;
   right: 16px;
   border: none;
-  background: #f1f5f9;
+  background: var(--color-slate-100, #f1f5f9);
   width: 28px;
   height: 28px;
   border-radius: 999px;
   cursor: pointer;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
   font-size: 12px;
 }
 .state-msg {
   margin-top: 60px;
   text-align: center;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-size: 13px;
 }
 .state-msg--error {
-  color: #dc2626;
+  color: var(--color-red-600, #dc2626);
 }
 .title {
   font-size: 18px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-slate-800, #1e293b);
   margin: 0 0 4px;
   padding-right: 32px;
 }
 .description {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   margin: 0 0 12px;
 }
 .total {
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
   margin-bottom: 20px;
 }
 .stats-row {
@@ -271,17 +271,17 @@ onUnmounted(() => {
 .stat-value {
   font-size: 22px;
   font-weight: 700;
-  color: #4f46e5;
+  color: var(--color-indigo-600, #4f46e5);
 }
 .stat-label {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .bool-legend {
   display: flex;
   gap: 16px;
   font-size: 13px;
-  color: #475569;
+  color: var(--color-slate-600, #475569);
   margin-bottom: 20px;
 }
 .distribution {
@@ -300,22 +300,22 @@ onUnmounted(() => {
 .matrix td {
   padding: 8px;
   text-align: center;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-slate-100, #f1f5f9);
 }
 .matrix th[scope="row"] {
   text-align: left;
   font-weight: 500;
-  color: #334155;
+  color: var(--color-slate-700, #334155);
 }
 .matrix th[scope="col"] {
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
   border-top: 0;
 }
 .matrix small {
   display: block;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
   font-size: 11px;
 }
 .dist-row {
@@ -330,30 +330,30 @@ onUnmounted(() => {
   width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #475569;
+  var(--color-white, #fff)-space: nowrap;
+  color: var(--color-slate-600, #475569);
 }
 .dist-bar {
   flex: 1;
   height: 8px;
-  background: #f1f5f9;
+  background: var(--color-slate-100, #f1f5f9);
   border-radius: 999px;
   overflow: hidden;
 }
 .dist-bar-fill {
   height: 100%;
-  background: #4f46e5;
+  background: var(--color-indigo-600, #4f46e5);
 }
 .dist-count {
   width: 28px;
   text-align: right;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-size: 11px;
 }
 .answers-title {
   font-size: 12px;
   font-weight: 700;
-  color: #475569;
+  color: var(--color-slate-600, #475569);
   margin-bottom: 8px;
 }
 .answers-list ul {
@@ -365,8 +365,8 @@ onUnmounted(() => {
 }
 .answers-list li {
   font-size: 12px;
-  color: #475569;
+  color: var(--color-slate-600, #475569);
   padding: 6px 0;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-slate-100, #f1f5f9);
 }
 </style>

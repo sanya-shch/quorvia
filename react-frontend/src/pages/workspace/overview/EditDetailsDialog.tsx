@@ -70,7 +70,7 @@ export default function EditDetailsDialog({
           <button
             type="submit"
             disabled={invalid || isSaving}
-            className="h-10 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 cursor-pointer"
+            className="h-10 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-on-solid hover:bg-indigo-500 disabled:opacity-50 cursor-pointer"
           >
             {isSaving ? t("workspace.save.saving") : t("workspace.details.save")}
           </button>

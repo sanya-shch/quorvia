@@ -102,7 +102,7 @@ const value = (count: number) =>
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .nodes {
   list-style: none;
@@ -118,27 +118,27 @@ const value = (count: number) =>
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: white;
-  border: 2px solid #4f46e5;
+  background: var(--color-white, #fff);
+  border: 2px solid var(--color-indigo-600, #4f46e5);
   border-radius: 10px;
   padding: 8px 12px;
   cursor: pointer;
 }
 .row--submitted {
-  border-color: #059669;
+  border-color: var(--color-emerald-600, #059669);
 }
 .row--exit {
-  border-color: #dc2626;
+  border-color: var(--color-red-600, #dc2626);
 }
 .row--more {
-  border-color: #94a3b8;
+  border-color: var(--color-slate-400, #94a3b8);
   border-style: dashed;
 }
 .row--selected {
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-indigo-600, #4f46e5) 30%, transparent);
 }
 .row:focus-visible {
-  outline: 2px solid #1e1b4b;
+  outline: 2px solid var(--color-indigo-950, #1e1b4b);
   outline-offset: 2px;
 }
 .row-head {
@@ -151,49 +151,49 @@ const value = (count: number) =>
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #4f46e5;
+  color: var(--color-indigo-600, #4f46e5);
 }
 .row--submitted .row-eyebrow {
-  color: #059669;
+  color: var(--color-emerald-600, #059669);
 }
 .row--exit .row-eyebrow {
-  color: #dc2626;
+  color: var(--color-red-600, #dc2626);
 }
 .row-value {
   font-size: 13px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--color-slate-900, #0f172a);
   font-variant-numeric: tabular-nums;
 }
 .row-title {
   font-size: 13px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-slate-800, #1e293b);
 }
 .track {
   display: block;
   height: 6px;
   border-radius: 999px;
-  background: #e2e8f0;
+  background: var(--color-slate-200, #e2e8f0);
   overflow: hidden;
 }
 .fill {
   display: block;
   height: 100%;
-  background: #4f46e5;
+  background: var(--color-indigo-600, #4f46e5);
 }
 .row--submitted .fill {
-  background: #059669;
+  background: var(--color-emerald-600, #059669);
 }
 .row--exit .fill {
-  background: #dc2626;
+  background: var(--color-red-600, #dc2626);
 }
 .empty {
   text-align: center;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-size: 14px;
   padding: 40px 0;
-  border: 1px dashed #e2e8f0;
+  border: 1px dashed var(--color-slate-200, #e2e8f0);
   border-radius: 14px;
 }
 </style>

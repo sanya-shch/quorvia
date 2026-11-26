@@ -171,18 +171,18 @@ const scoreLine = computed(() => {
 
 <style scoped>
 .state-card {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--color-slate-200, #e2e8f0);
   border-radius: 16px;
   padding: 24px;
   text-align: center;
   font-size: 13px;
 }
 .state-card--muted {
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .state-card--error {
-  color: #e11d48;
+  color: var(--color-rose-600, #e11d48);
 }
 /* "backwards" keeps it invisible during the delay, then it fades in: a load that finishes within
    ~200ms removes it while it is still transparent, so it never flashes. */
@@ -202,7 +202,7 @@ const scoreLine = computed(() => {
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-slate-200, #e2e8f0);
   border-radius: 10px;
   font-size: 13px;
 }
@@ -211,18 +211,18 @@ const scoreLine = computed(() => {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #0f172a;
+  var(--color-white, #fff)-space: nowrap;
+  color: var(--color-slate-900, #0f172a);
   font-weight: 600;
 }
 .file-size {
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
   font-size: 12px;
 }
 .file-download {
-  border: 1px solid #c7d2fe;
-  background: #eef2ff;
-  color: #3730a3;
+  border: 1px solid var(--color-indigo-200, #c7d2fe);
+  background: var(--color-indigo-50, #eef2ff);
+  color: var(--color-indigo-800, #3730a3);
   border-radius: 8px;
   padding: 4px 10px;
   font-size: 12px;
@@ -234,17 +234,17 @@ const scoreLine = computed(() => {
   cursor: default;
 }
 .file-empty {
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
   font-size: 12px;
 }
 .file-error {
-  color: #be123c;
+  color: var(--color-rose-700, #be123c);
   font-size: 12px;
   font-weight: 600;
 }
 .detail {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--color-white, #fff);
+  border: 1px solid var(--color-slate-200, #e2e8f0);
   border-radius: 16px;
   padding: 24px;
   transition: opacity 120ms ease;
@@ -258,7 +258,7 @@ const scoreLine = computed(() => {
   transition: opacity var(--motion-duration-base, 260ms) ease 150ms;
 }
 .detail-header {
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-slate-200, #e2e8f0);
   padding-bottom: 12px;
   margin-bottom: 16px;
   display: flex;
@@ -269,23 +269,23 @@ const scoreLine = computed(() => {
 .detail-title {
   font-size: 15px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-slate-800, #1e293b);
   margin: 0;
 }
 .detail-subtitle {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   margin: 2px 0 0;
 }
 .detail-id {
   flex-shrink: 0;
   font-size: 10px;
   font-family: ui-monospace, monospace;
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--color-slate-100, #f1f5f9);
+  color: var(--color-slate-500, #64748b);
   padding: 4px 8px;
   border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-slate-200, #e2e8f0);
 }
 .answers {
   display: flex;
@@ -293,7 +293,7 @@ const scoreLine = computed(() => {
   gap: 16px;
 }
 .answer-row {
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid var(--color-slate-50, #f8fafc);
   padding-bottom: 12px;
 }
 .answer-row:last-child {
@@ -303,18 +303,18 @@ const scoreLine = computed(() => {
 .answer-label {
   font-size: 15px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--color-slate-800, #1e293b);
   display: flex;
   align-items: center;
   gap: 4px;
 }
 .required-mark {
-  color: #f43f5e;
+  color: var(--color-rose-500, #f43f5e);
 }
 .answer-description {
   font-size: 12px;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   display: block;
 }
 .answer-value {
@@ -327,9 +327,9 @@ const scoreLine = computed(() => {
   gap: 6px;
 }
 .chip {
-  background: #eef2ff;
-  border: 1px solid #e0e7ff;
-  color: #4338ca;
+  background: var(--color-indigo-50, #eef2ff);
+  border: 1px solid var(--color-indigo-100, #e0e7ff);
+  color: var(--color-indigo-700, #4338ca);
   font-size: 12px;
   font-weight: 700;
   padding: 4px 10px;
@@ -341,22 +341,22 @@ const scoreLine = computed(() => {
   border: 1px solid;
   padding: 8px 12px;
   font-weight: 500;
-  color: #475569;
+  color: var(--color-slate-600, #475569);
 }
 .value-box--default {
-  background: #f8fafc;
-  border-color: #e2e8f0cc;
+  background: var(--color-slate-50, #f8fafc);
+  border-color: color-mix(in srgb, var(--color-slate-200, #e2e8f0) 80%, transparent);
 }
 .value-box--true {
-  background: #ecfdf599;
-  border-color: #d1fae5;
+  background: color-mix(in srgb, var(--color-emerald-50, #ecfdf5) 60%, transparent);
+  border-color: var(--color-emerald-100, #d1fae5);
 }
 .value-box--false {
-  background: #fff1f299;
-  border-color: #ffe4e6;
+  background: color-mix(in srgb, var(--color-rose-50, #fff1f2) 60%, transparent);
+  border-color: var(--color-rose-100, #ffe4e6);
 }
 .detail-score {
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--color-indigo-600, #4f46e5);
 }
 </style>

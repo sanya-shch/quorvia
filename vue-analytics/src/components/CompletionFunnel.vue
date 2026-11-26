@@ -187,7 +187,7 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
   }
 }
 .tile {
-  background: #f8fafc;
+  background: var(--color-slate-50, #f8fafc);
   border-radius: 12px;
   padding: 12px 14px;
   display: flex;
@@ -196,38 +196,38 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
   min-width: 0;
 }
 .tile--accent {
-  background: #eef2ff;
+  background: var(--color-indigo-50, #eef2ff);
 }
 .tile-label {
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .tile-value {
   font-size: 22px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--color-slate-900, #0f172a);
   font-variant-numeric: tabular-nums;
 }
 .tile-value small {
   font-size: 12px;
   font-weight: 700;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .ok {
-  color: #059669 !important;
+  color: var(--color-emerald-600, #059669) !important;
 }
 .bad {
-  color: #dc2626 !important;
+  color: var(--color-red-600, #dc2626) !important;
 }
 .hint {
   margin: 14px 0 0;
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .empty {
   margin-top: 20px;
   text-align: center;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-size: 14px;
   padding: 24px 0;
 }
@@ -239,8 +239,8 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
   margin: 14px 0 6px;
 }
 .badge {
-  background: #eef2ff;
-  color: #4338ca;
+  background: var(--color-indigo-50, #eef2ff);
+  color: var(--color-indigo-700, #4338ca);
   font-size: 12px;
   font-weight: 700;
   padding: 3px 10px;
@@ -248,20 +248,20 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
 }
 .sort {
   margin-left: auto;
-  border: 1px solid #e2e8f0;
-  background: white;
+  border: 1px solid var(--color-slate-200, #e2e8f0);
+  background: var(--color-white, #fff);
   border-radius: 10px;
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 700;
-  color: #334155;
+  color: var(--color-slate-700, #334155);
   cursor: pointer;
 }
 .sort:hover {
-  border-color: #c7d2fe;
+  border-color: var(--color-indigo-200, #c7d2fe);
 }
 .table {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-slate-200, #e2e8f0);
 }
 .thead,
 .tr {
@@ -276,15 +276,15 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   padding-top: 10px;
   padding-bottom: 6px;
 }
 .tr {
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-slate-100, #f1f5f9);
 }
 .tr--highest {
-  background: #eef2ff;
+  background: var(--color-indigo-50, #eef2ff);
   border-radius: 10px;
 }
 .num {
@@ -300,12 +300,12 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
 .qnum {
   font-size: 12px;
   font-weight: 800;
-  color: #4f46e5;
+  color: var(--color-indigo-600, #4f46e5);
 }
 .qtext {
   font-size: 14px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-slate-800, #1e293b);
   background: none;
   border: none;
   padding: 0;
@@ -315,17 +315,17 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
   cursor: pointer;
 }
 .qtext--link:hover {
-  color: #4f46e5;
+  color: var(--color-indigo-600, #4f46e5);
   text-decoration: underline;
 }
 .flag {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--color-red-50, #fef2f2);
+  color: var(--color-red-600, #dc2626);
   font-size: 11px;
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 999px;
-  white-space: nowrap;
+  var(--color-white, #fff)-space: nowrap;
 }
 .cell-reached,
 .cell-exits {
@@ -338,15 +338,15 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
 }
 .strong {
   font-weight: 800;
-  color: #0f172a;
+  color: var(--color-slate-900, #0f172a);
 }
 .muted {
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
   font-size: 12px;
 }
 .lost {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--color-slate-400, #94a3b8);
 }
 .cell-bar {
   display: flex;
@@ -355,17 +355,17 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
 }
 .bar-label {
   font-size: 11px;
-  color: #64748b;
+  color: var(--color-slate-500, #64748b);
 }
 .track {
   height: 8px;
-  background: #e2e8f0;
+  background: var(--color-slate-200, #e2e8f0);
   border-radius: 999px;
   overflow: hidden;
 }
 .fill {
   height: 100%;
-  background: #4f46e5;
+  background: var(--color-indigo-600, #4f46e5);
   border-radius: 999px;
 }
 .more {
@@ -373,7 +373,7 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
   margin: 12px auto 0;
   border: none;
   background: none;
-  color: #4f46e5;
+  color: var(--color-indigo-600, #4f46e5);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -410,7 +410,7 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
   }
   .cell-exits::before {
     content: "↳";
-    color: #94a3b8;
+    color: var(--color-slate-400, #94a3b8);
   }
 }
 </style>
