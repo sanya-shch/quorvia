@@ -110,7 +110,7 @@ export default function FormCardMenu({
               onDelete();
               setIsOpen(false);
             }}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-rose-600 hover:bg-rose-50 cursor-pointer"
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-rose-700 hover:bg-rose-50 cursor-pointer"
           >
             {t("dashboard.menu.delete")}
           </button>

@@ -296,7 +296,7 @@ export default function PublicFormPage() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="max-w-md w-full bg-surface rounded-2xl border border-slate-200 p-6 text-center shadow-sm">
-          <div className="h-12 w-12 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="h-12 w-12 bg-rose-50 text-rose-700 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
               className="h-6 w-6"
               fill="none"

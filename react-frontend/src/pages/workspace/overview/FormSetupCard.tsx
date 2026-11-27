@@ -43,7 +43,7 @@ export default function FormSetupCard({
           {others.length > 0 ? others.map(toName).join(", ") : t("workspace.overview.setup.none")}
         </Row>
         <Row label={t("workspace.overview.setup.status")}>
-          <span className={status === "published" ? "text-emerald-600" : "text-slate-700"}>
+          <span className={status === "published" ? "text-emerald-700" : "text-slate-700"}>
             {t(`workspace.status.${status}`)}
           </span>
         </Row>

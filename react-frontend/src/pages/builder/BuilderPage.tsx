@@ -207,73 +207,75 @@ export default function BuilderPage() {
         onPublish={() => actions.publish.mutate()}
       />
 
-      {/* On a phone one pane is shown at a time. */}
-      <div
-        role="tablist"
-        aria-label={t("builder.editor.panes.label")}
-        className="flex shrink-0 border-b border-slate-200 bg-white xl:hidden"
-      >
-        {(["questions", "preview", "settings"] as Pane[]).map((name) => (
-          <button
-            key={name}
-            role="tab"
-            type="button"
-            aria-selected={pane === name}
-            onClick={() => setPane(name)}
-            className={`flex-1 border-b-2 px-3 py-2.5 text-sm font-semibold cursor-pointer ${
-              pane === name
-                ? "border-indigo-600 text-indigo-700"
-                : "border-transparent text-slate-500"
-            }`}
-          >
-            {t(`builder.editor.panes.${name}`)}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex min-h-0 flex-1">
-        <div className={`${paneClass("questions")} min-h-0 w-full xl:flex xl:w-auto`}>
-          <QuestionSidebar
-            questions={form.questions}
-            selectedId={selectedId}
-            errorIds={errorIds}
-            onSelect={select}
-            onAdd={add}
-            maxQuestions={maxQuestions}
-            onDuplicate={duplicate}
-            onDelete={requestDelete}
-            onMove={move}
-            collapsed={sidebarCollapsed}
-            onToggleCollapsed={() => setSidebarCollapsed((c) => !c)}
-          />
-        </div>
-
-        <div className={`${paneClass("preview")} min-h-0 min-w-0 flex-1 xl:flex`}>
-          <PreviewWorkspace
-            key={previewResetKey}
-            form={form}
-            selectedId={selectedId}
-            language={language}
-          />
-        </div>
-
+      <main className="flex min-h-0 flex-1 flex-col">
+        {/* On a phone one pane is shown at a time. */}
         <div
-          className={`${paneClass("settings")} min-h-0 w-full xl:flex xl:w-auto ${pane === "settings" ? "" : "max-xl:hidden"}`}
+          role="tablist"
+          aria-label={t("builder.editor.panes.label")}
+          className="flex shrink-0 border-b border-slate-200 bg-white xl:hidden"
         >
-          <QuestionInspector
-            formId={formId}
-            form={form}
-            question={question}
-            index={selectedIndex}
-            errors={errorTexts}
-            onUpdate={(patch) => updateQuestion(selectedIndex, patch)}
-            onChangeType={requestTypeChange}
-            onUpdateForm={updateForm}
-            collapsed={inspectorCollapsed}
-            onToggleCollapsed={() => setInspectorCollapsed((c) => !c)}
-          />
+          {(["questions", "preview", "settings"] as Pane[]).map((name) => (
+            <button
+              key={name}
+              role="tab"
+              type="button"
+              aria-selected={pane === name}
+              onClick={() => setPane(name)}
+              className={`flex-1 border-b-2 px-3 py-2.5 text-sm font-semibold cursor-pointer ${
+                pane === name
+                  ? "border-indigo-600 text-indigo-700"
+                  : "border-transparent text-slate-500"
+              }`}
+            >
+              {t(`builder.editor.panes.${name}`)}
+            </button>
+          ))}
         </div>
-      </div>
+
+        <div className="flex min-h-0 flex-1">
+          <div className={`${paneClass("questions")} min-h-0 w-full xl:flex xl:w-auto`}>
+            <QuestionSidebar
+              questions={form.questions}
+              selectedId={selectedId}
+              errorIds={errorIds}
+              onSelect={select}
+              onAdd={add}
+              maxQuestions={maxQuestions}
+              onDuplicate={duplicate}
+              onDelete={requestDelete}
+              onMove={move}
+              collapsed={sidebarCollapsed}
+              onToggleCollapsed={() => setSidebarCollapsed((c) => !c)}
+            />
+          </div>
+
+          <div className={`${paneClass("preview")} min-h-0 min-w-0 flex-1 xl:flex`}>
+            <PreviewWorkspace
+              key={previewResetKey}
+              form={form}
+              selectedId={selectedId}
+              language={language}
+            />
+          </div>
+
+          <div
+            className={`${paneClass("settings")} min-h-0 w-full xl:flex xl:w-auto ${pane === "settings" ? "" : "max-xl:hidden"}`}
+          >
+            <QuestionInspector
+              formId={formId}
+              form={form}
+              question={question}
+              index={selectedIndex}
+              errors={errorTexts}
+              onUpdate={(patch) => updateQuestion(selectedIndex, patch)}
+              onChangeType={requestTypeChange}
+              onUpdateForm={updateForm}
+              collapsed={inspectorCollapsed}
+              onToggleCollapsed={() => setInspectorCollapsed((c) => !c)}
+            />
+          </div>
+        </div>
+      </main>
 
       <ConfirmModal
         isOpen={pendingDelete !== null}

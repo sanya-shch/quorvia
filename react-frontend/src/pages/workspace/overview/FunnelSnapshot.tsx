@@ -82,7 +82,7 @@ export default function FunnelSnapshot({
 
           {topExits.length > 0 && (
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 {t("workspace.overview.funnel.dropOff")}
               </h3>
               <ul className="mt-2 space-y-1.5">
@@ -95,7 +95,7 @@ export default function FunnelSnapshot({
                       <b className="mr-1.5 text-indigo-600">Q{number}</b>
                       {node.text || t("workspace.overview.funnel.untitled")}
                     </span>
-                    <span className="shrink-0 font-semibold text-rose-600">
+                    <span className="shrink-0 font-semibold text-rose-700">
                       {t("workspace.overview.funnel.exits", { count: node.exitedCount })}
                     </span>
                   </li>

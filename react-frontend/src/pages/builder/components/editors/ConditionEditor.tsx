@@ -200,7 +200,7 @@ export default function ConditionEditor({
                   <button
                     type="button"
                     onClick={() => removeRule(index)}
-                    className="ml-auto text-slate-300 hover:text-rose-500 transition-colors cursor-pointer p-1"
+                    className="ml-auto text-slate-300 hover:text-rose-700 transition-colors cursor-pointer p-1"
                     title={t("builder.editors.condition.removeRule")}
                     aria-label={t("builder.editors.condition.removeRule")}
                   >
@@ -221,7 +221,7 @@ export default function ConditionEditor({
         </div>
       )}
 
-      {error && <p className="text-[11px] text-rose-600 font-medium">{error}</p>}
+      {error && <p className="text-[11px] text-rose-700 font-medium">{error}</p>}
     </div>
   );
 }

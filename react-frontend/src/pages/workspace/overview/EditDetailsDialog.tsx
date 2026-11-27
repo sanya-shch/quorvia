@@ -45,7 +45,7 @@ export default function EditDetailsDialog({
             className={field}
           />
           {invalid && (
-            <span role="alert" className="mt-1 block text-xs font-medium text-rose-600">
+            <span role="alert" className="mt-1 block text-xs font-medium text-rose-700">
               {t("workspace.details.titleRequired")}
             </span>
           )}

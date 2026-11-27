@@ -93,7 +93,7 @@ function ColorField({ id, label, value, isCustom, onCommit, onReset }: ColorFiel
         )}
       </div>
       {!isValid && (
-        <p role="alert" className="mt-1 text-xs font-medium text-rose-600">
+        <p role="alert" className="mt-1 text-xs font-medium text-rose-700">
           {t("builder.theme.colorInvalid")}
         </p>
       )}
@@ -198,7 +198,7 @@ export default function ThemeEditor({ theme, onChange }: ThemeEditorProps) {
             type="button"
             disabled={!theme}
             onClick={() => onChange(null)}
-            className="text-xs font-bold text-rose-600 hover:text-rose-700 disabled:text-slate-500 disabled:cursor-not-allowed cursor-pointer"
+            className="text-xs font-bold text-rose-700 hover:text-rose-700 disabled:text-slate-500 disabled:cursor-not-allowed cursor-pointer"
           >
             {t("builder.theme.reset")}
           </button>

@@ -38,7 +38,7 @@ const scoreText = (score: ResponseScoreDto) => {
 
 <template>
   <div class="list-panel">
-    <h3 class="list-title">{{ t("analytics.responsesList.title") }}</h3>
+    <h2 class="list-title">{{ t("analytics.responsesList.title") }}</h2>
 
     <div v-if="isLoading" class="state-text">{{ t("analytics.responsesList.loading") }}</div>
     <div v-else-if="error" class="state-text state-text--error">{{ t(error) }}</div>
@@ -104,7 +104,7 @@ const scoreText = (score: ResponseScoreDto) => {
 .list-title {
   font-size: 13px;
   font-weight: 700;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 0 4px;
@@ -113,11 +113,11 @@ const scoreText = (score: ResponseScoreDto) => {
 .state-text {
   text-align: center;
   padding: 24px 0;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-size: 12px;
 }
 .state-text--error {
-  color: var(--color-rose-600, #e11d48);
+  color: var(--color-rose-700, #be123c);
 }
 .items {
   display: flex;
@@ -156,12 +156,12 @@ const scoreText = (score: ResponseScoreDto) => {
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
-  var(--color-white, #fff)-space: nowrap;
+  white-space: nowrap;
 }
 .item-date {
   margin-top: 4px;
   font-size: 10px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .item-lang {
   margin-left: 6px;
@@ -199,7 +199,7 @@ const scoreText = (score: ResponseScoreDto) => {
   cursor: default;
 }
 .page-label {
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-weight: 500;
 }
 .item-score {

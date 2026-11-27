@@ -154,7 +154,7 @@ const svgHeight = computed(
 .start-label {
   font-size: 11px;
   font-weight: 700;
-  fill: var(--color-slate-400, #94a3b8);
+  fill: var(--color-slate-500, #64748b);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -171,7 +171,7 @@ const svgHeight = computed(
 }
 .node-meta {
   font-size: 11px;
-  fill: var(--color-slate-400, #94a3b8);
+  fill: var(--color-slate-500, #64748b);
 }
 .edge-label {
   font-size: 10px;
@@ -184,7 +184,7 @@ const svgHeight = computed(
 .hint {
   margin-top: 8px;
   font-size: 12px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   text-align: center;
 }
 </style>

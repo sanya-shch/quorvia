@@ -32,9 +32,9 @@ interface KpiCard {
 const Delta = ({ value, unit }: { value: number | null; unit: "%" | "pts" }) => {
   const { t } = useTranslation();
   if (value === null)
-    return <span className="text-slate-400">{t("workspace.overview.kpi.noPrior")}</span>;
+    return <span className="text-slate-500">{t("workspace.overview.kpi.noPrior")}</span>;
   const rounded = Math.abs(value) < 0.05 ? 0 : value;
-  const tone = rounded > 0 ? "text-emerald-600" : rounded < 0 ? "text-rose-600" : "text-slate-500";
+  const tone = rounded > 0 ? "text-emerald-700" : rounded < 0 ? "text-rose-700" : "text-slate-500";
   return (
     <span className={tone}>
       {rounded > 0 ? "+" : rounded < 0 ? "-" : ""}

@@ -23,7 +23,7 @@ export default function QuestionDetailsPage() {
     return (
       <div className="flex items-center justify-center py-16">
         <div className="text-center bg-white p-6 border rounded-2xl max-w-sm">
-          <p className="text-sm font-semibold text-rose-500">{t("analytics.detail.loadError")}</p>
+          <p className="text-sm font-semibold text-rose-700">{t("analytics.detail.loadError")}</p>
           <button
             onClick={() => navigate(`/forms/${formId}/analytics`)}
             className="mt-4 text-xs font-bold text-indigo-600 underline"
@@ -50,7 +50,7 @@ export default function QuestionDetailsPage() {
 
   return (
     <div className="flex flex-col">
-      <main className="motion-stagger w-full max-w-3xl mx-auto space-y-4">
+      <div className="motion-stagger w-full max-w-3xl mx-auto space-y-4">
         <Link
           to={`/forms/${formId}/analytics`}
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:underline"
@@ -80,9 +80,9 @@ export default function QuestionDetailsPage() {
 
           {(question.type === "TEXT" || question.type === "DATE") && answers && (
             <div className="space-y-3">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 {t("analytics.detail.allAnswers")}
-              </h3>
+              </h2>
               <div className="flex flex-col gap-2 max-h-[500px] overflow-y-auto pr-1">
                 {answers.map((ans, idx) => (
                   <div
@@ -123,9 +123,9 @@ export default function QuestionDetailsPage() {
 
               {distribution && (
                 <div className="space-y-3">
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     {t("analytics.detail.distribution")}
-                  </h3>
+                  </h2>
                   <div className="space-y-2">
                     {distribution.map((dist, idx) => {
                       const percentage = totalAnswers > 0 ? (dist.count / totalAnswers) * 100 : 0;
@@ -152,9 +152,9 @@ export default function QuestionDetailsPage() {
 
               {question.type === "NPS" && nps && (
                 <div className="space-y-3">
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     {t("analytics.detail.nps.title")}
-                  </h3>
+                  </h2>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border">
                     <div className="text-center">
                       <span className="text-xs font-bold text-slate-500 uppercase">
@@ -168,7 +168,7 @@ export default function QuestionDetailsPage() {
                       <span className="text-xs font-bold text-slate-500 uppercase">
                         {t("analytics.detail.nps.promoters")}
                       </span>
-                      <p className="text-2xl font-black text-emerald-600 mt-1">{nps.promoters}</p>
+                      <p className="text-2xl font-black text-emerald-700 mt-1">{nps.promoters}</p>
                     </div>
                     <div className="text-center">
                       <span className="text-xs font-bold text-slate-500 uppercase">
@@ -180,7 +180,7 @@ export default function QuestionDetailsPage() {
                       <span className="text-xs font-bold text-slate-500 uppercase">
                         {t("analytics.detail.nps.detractors")}
                       </span>
-                      <p className="text-2xl font-black text-rose-600 mt-1">{nps.detractors}</p>
+                      <p className="text-2xl font-black text-rose-700 mt-1">{nps.detractors}</p>
                     </div>
                   </div>
                 </div>
@@ -193,9 +193,9 @@ export default function QuestionDetailsPage() {
             question.type === "IMAGE_CHOICE") &&
             distribution && (
               <div className="space-y-4">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   {t("analytics.detail.optionsRanking")}
-                </h3>
+                </h2>
 
                 <div className="flex flex-col gap-3">
                   {distribution.map((dist, idx) => {
@@ -228,9 +228,9 @@ export default function QuestionDetailsPage() {
 
                 {otherAnswers && otherAnswers.length > 0 && (
                   <div className="space-y-2">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                       {t("analytics.detail.otherAnswers")}
-                    </h3>
+                    </h2>
                     <ul className="flex flex-col gap-1.5 text-sm text-slate-700">
                       {otherAnswers.map((item, idx) => (
                         <li key={idx} className="flex justify-between gap-4">
@@ -246,9 +246,9 @@ export default function QuestionDetailsPage() {
 
           {question.type === "MATRIX" && matrix && (
             <div className="space-y-4">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 {t("analytics.detail.matrix.title")}
-              </h3>
+              </h2>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-sm border-separate border-spacing-0">
@@ -305,9 +305,9 @@ export default function QuestionDetailsPage() {
           {question.type === "RANKING" && ranking && (
             <div className="space-y-4">
               <div className="flex items-baseline justify-between">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   {t("analytics.detail.ranking.title")}
-                </h3>
+                </h2>
                 <span className="text-xs text-slate-500">
                   {t("analytics.detail.ranking.ranked", { count: rankedCount ?? 0 })}
                 </span>
@@ -363,9 +363,9 @@ export default function QuestionDetailsPage() {
 
           {question.type === "BOOLEAN" && (
             <div className="space-y-4">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 {t("analytics.detail.options")}
-              </h3>
+              </h2>
               <div className="flex flex-col gap-3">
                 <div className="bg-emerald-50/40 border border-emerald-100 rounded-xl p-4 flex items-center justify-between">
                   <div className="space-y-1 flex-1 pr-6">
@@ -408,7 +408,7 @@ export default function QuestionDetailsPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

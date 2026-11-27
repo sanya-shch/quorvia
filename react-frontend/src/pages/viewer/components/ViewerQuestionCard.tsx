@@ -70,7 +70,7 @@ export default function ViewerQuestionCard({
             >
               <span>{text}</span>
               {required && (
-                <span className="text-rose-500" aria-label={requiredAriaLabel}>
+                <span className="text-rose-700" aria-label={requiredAriaLabel}>
                   *
                 </span>
               )}

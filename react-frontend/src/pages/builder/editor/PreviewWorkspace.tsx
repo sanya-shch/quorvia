@@ -193,6 +193,8 @@ export default function PreviewWorkspace({ form, selectedId, language }: Preview
           )}
 
           <div
+            // The respondent sees the form in the light theme, whatever the app is set to.
+            data-theme-lock="light"
             className={`overflow-hidden bg-white ${
               device === "desktop"
                 ? "rounded-2xl border border-slate-200 shadow-sm"

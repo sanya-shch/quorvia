@@ -22,7 +22,7 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
       }}
       aria-label={label}
       title={label}
-      className={`inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${className}`.trim()}
+      className={`inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${className}`.trim()}
     >
       <AppIcon name={theme === "dark" ? "sun" : "moon"} className="h-4 w-4" />
     </button>

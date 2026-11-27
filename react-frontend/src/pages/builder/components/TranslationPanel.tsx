@@ -133,7 +133,7 @@ export default function TranslationPanel({
             <button
               type="button"
               onClick={onRemoveLanguage}
-              className="rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 cursor-pointer"
+              className="rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-50 cursor-pointer"
             >
               {t("builder.languages.remove")}
             </button>

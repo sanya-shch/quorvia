@@ -57,7 +57,7 @@ export function HeroMock() {
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div className="space-y-2 rounded-xl border border-slate-200 p-3">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
             {t("landing.mock.singleChoice")}
           </p>
           <p className="text-xs font-semibold text-slate-800">{t("landing.mock.companySize")}</p>
@@ -84,7 +84,7 @@ export function HeroMock() {
               {t("landing.mock.qualificationRoute")}
             </div>
           </div>
-          <p className="text-[10px] text-slate-400">{t("landing.mock.matchAll")}</p>
+          <p className="text-[10px] text-slate-500">{t("landing.mock.matchAll")}</p>
         </div>
       </div>
 
@@ -94,7 +94,7 @@ export function HeroMock() {
             {t("landing.mock.qualified")}
           </p>
           <p className="text-2xl font-bold text-slate-900">82</p>
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] text-slate-500">
             {t("landing.mock.score")} {t("landing.mock.outOf")}
           </p>
         </div>
@@ -103,7 +103,7 @@ export function HeroMock() {
             {t("landing.mock.notQualified")}
           </p>
           <p className="text-2xl font-bold text-slate-900">34</p>
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] text-slate-500">
             {t("landing.mock.score")} {t("landing.mock.outOf")}
           </p>
         </div>
@@ -120,7 +120,7 @@ export function StaticFormMock() {
       {(["static1", "static2", "static3"] as const).map((key, i) => (
         <div
           key={key}
-          className="rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-400"
+          className="rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-500"
         >
           0{i + 1} · {t(`landing.mock.${key}`)}
         </div>
@@ -154,7 +154,7 @@ export function OutcomeMock() {
 
   return (
     <div className="rounded-lg bg-slate-50 p-3">
-      <p className="text-[10px] font-bold uppercase text-slate-400">
+      <p className="text-[10px] font-bold uppercase text-slate-500">
         {t("landing.mock.advancedResult")}
       </p>
       <p className="mt-1 text-xl font-bold text-slate-900">82 {t("landing.mock.outOf")}</p>
@@ -169,7 +169,7 @@ export function BuilderMock() {
   return (
     <Frame className="grid gap-3 sm:grid-cols-[1fr_1.6fr_1fr]">
       <div className="space-y-2">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
           {t("landing.mock.questions")}
         </p>
         <div className="rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700">
@@ -201,7 +201,7 @@ export function BuilderMock() {
         </div>
       </div>
       <div className="space-y-2">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
           {t("landing.mock.settings")}
         </p>
         <div className="flex justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs">
@@ -233,7 +233,7 @@ export function LogicMapMock() {
             {t("landing.mock.start")}
           </p>
           <p className="mt-1 font-semibold text-slate-800">{t("landing.mock.usingProduct")}</p>
-          <p className="mt-2 text-[10px] text-slate-400">1,204 {t("landing.mock.reached")}</p>
+          <p className="mt-2 text-[10px] text-slate-500">1,204 {t("landing.mock.reached")}</p>
         </div>
         <div className={`${node} border-indigo-200`}>
           <p className="text-[10px] font-bold uppercase text-indigo-600">
@@ -242,7 +242,7 @@ export function LogicMapMock() {
           <p className="mt-1 font-semibold text-slate-800">{t("landing.mock.satisfaction")}</p>
         </div>
         <div className={`${node} border-slate-200`}>
-          <p className="text-[10px] font-bold uppercase text-slate-400">{t("landing.mock.ifNo")}</p>
+          <p className="text-[10px] font-bold uppercase text-slate-500">{t("landing.mock.ifNo")}</p>
           <p className="mt-1 font-semibold text-slate-800">{t("landing.mock.discovery")}</p>
         </div>
         <div className={`${node} border-indigo-200 sm:row-span-2`}>
@@ -250,7 +250,7 @@ export function LogicMapMock() {
             {t("landing.mock.resultA")}
           </p>
           <p className="mt-1 font-semibold text-slate-800">{t("landing.mock.thankYou")}</p>
-          <p className="mt-4 text-[10px] font-bold uppercase text-slate-400">
+          <p className="mt-4 text-[10px] font-bold uppercase text-slate-500">
             {t("landing.mock.resultB")}
           </p>
           <p className="mt-1 font-semibold text-slate-800">{t("landing.mock.recommendation")}</p>
@@ -334,28 +334,28 @@ export function AnalyticsMock() {
           </div>
         ))}
       </div>
-      <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+      <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-slate-500">
         {t("landing.mock.funnel")}
       </p>
       <div className="mt-2 space-y-2">
         {bars.map((width, i) => (
           <div key={width} className="flex items-center gap-2">
-            <span className="w-5 text-[10px] font-semibold text-slate-400">Q{i + 1}</span>
+            <span className="w-5 text-[10px] font-semibold text-slate-500">Q{i + 1}</span>
             <div className="h-2 flex-1 rounded-full bg-slate-100">
               <div className="h-2 rounded-full bg-indigo-600" style={{ width: `${width}%` }} />
             </div>
           </div>
         ))}
       </div>
-      <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+      <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-slate-500">
         {t("landing.mock.paths")}
       </p>
       <div className="mt-2 grid grid-cols-2 gap-2">
         <div className="rounded-lg border-2 border-emerald-500 p-2 text-xs font-semibold text-slate-700">
-          {t("landing.mock.small")} <span className="text-slate-400">· 389</span>
+          {t("landing.mock.small")} <span className="text-slate-500">· 389</span>
         </div>
         <div className="rounded-lg border-2 border-emerald-500 p-2 text-xs font-semibold text-slate-700">
-          {t("landing.mock.medium")} <span className="text-slate-400">· 275</span>
+          {t("landing.mock.medium")} <span className="text-slate-500">· 275</span>
         </div>
       </div>
     </Frame>
@@ -381,7 +381,7 @@ export function LanguagesMock() {
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 p-3">
-          <p className="text-[10px] font-bold uppercase text-slate-400">
+          <p className="text-[10px] font-bold uppercase text-slate-500">
             Deutsch · {t("landing.mock.translation")}
           </p>
           <p className="mt-1 text-xs font-semibold text-slate-800">Was möchten Sie erreichen?</p>

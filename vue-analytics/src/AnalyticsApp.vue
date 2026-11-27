@@ -513,7 +513,7 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
 }
 .section-hint {
   font-size: 12px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   margin: 0 0 20px;
 }
 .section-hint--tight {
@@ -550,16 +550,16 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
 .state-msg {
   margin: 40px auto;
   text-align: center;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-size: 14px;
 }
 .state-msg--error {
-  color: var(--color-red-600, #dc2626);
+  color: var(--color-red-700, #b91c1c);
 }
 .empty-state {
   margin: 48px auto;
   text-align: center;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-size: 14px;
 }
 .responses-grid {
@@ -581,7 +581,7 @@ const hasPeriodFilter = computed(() => preset.value !== "all");
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-weight: 500;
   font-size: 13px;
   text-align: center;

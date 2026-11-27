@@ -149,7 +149,7 @@ const totals = computed(() => ({
 .hint {
   margin: 2px 0 0;
   font-size: 12px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .legend {
   list-style: none;
@@ -189,7 +189,7 @@ const totals = computed(() => ({
 }
 .axis {
   font-size: 10px;
-  fill: var(--color-slate-400, #94a3b8);
+  fill: var(--color-slate-500, #64748b);
 }
 .axis--y {
   text-anchor: end;
@@ -207,7 +207,7 @@ const totals = computed(() => ({
   stroke: var(--color-emerald-600, #059669);
 }
 .area {
-  fill: var(--color-emerald-600, #059669);
+  fill: var(--color-emerald-700, #047857);
   opacity: 0.1;
 }
 .hit {

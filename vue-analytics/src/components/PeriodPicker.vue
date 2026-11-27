@@ -80,7 +80,7 @@ const update = (key: "from" | "to", event: Event) =>
   font-weight: 700;
   color: var(--color-slate-500, #64748b);
   cursor: pointer;
-  var(--color-white, #fff)-space: nowrap;
+  white-space: nowrap;
 }
 .preset:hover {
   color: var(--color-slate-800, #1e293b);
@@ -122,7 +122,7 @@ const update = (key: "from" | "to", event: Event) =>
   text-align: right;
   margin: 0;
   font-size: 12px;
-  color: var(--color-red-600, #dc2626);
+  color: var(--color-red-700, #b91c1c);
 }
 @media (max-width: 640px) {
   .picker {

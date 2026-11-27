@@ -52,7 +52,7 @@ export default function Register() {
     >
       <form className="mt-8 space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
         {errors.root && (
-          <div className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600 motion-fade-in">
+          <div className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-700 motion-fade-in">
             {errors.root.message}
           </div>
         )}

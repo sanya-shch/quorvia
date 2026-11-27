@@ -39,7 +39,7 @@ function Eyebrow({ children, light = false }: { children: ReactNode; light?: boo
   return (
     <p
       className={`text-xs font-bold uppercase tracking-[0.18em] ${
-        light ? "text-indigo-200" : "text-indigo-600"
+        light ? "text-on-solid/80" : "text-indigo-600"
       }`}
     >
       {children}
@@ -137,9 +137,9 @@ function DemoStatus({ demo, light = false }: { demo: Demo; light?: boolean }) {
         demo.status === "failed"
           ? light
             ? "text-on-solid"
-            : "text-rose-600"
+            : "text-rose-700"
           : light
-            ? "text-indigo-100"
+            ? "text-on-solid/90"
             : "text-slate-600"
       }`}
     >
@@ -249,7 +249,7 @@ function CheckList({ items }: { items: string[] }) {
         <li key={item} className="flex items-center gap-2">
           <svg
             aria-hidden="true"
-            className="h-4 w-4 shrink-0 text-emerald-600"
+            className="h-4 w-4 shrink-0 text-emerald-700"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth="2.5"
@@ -399,7 +399,7 @@ export default function LandingPage() {
               <h2 className="mt-3 text-2xl font-bold sm:text-3xl">
                 {t("landing.scoring.endTitle")}
               </h2>
-              <p className="mt-3 text-indigo-100">{t("landing.scoring.endText")}</p>
+              <p className="mt-3 text-on-solid/90">{t("landing.scoring.endText")}</p>
               <div className="mt-6">
                 <EndScreensMock />
               </div>
@@ -531,7 +531,7 @@ export default function LandingPage() {
           <div className="mx-auto max-w-5xl rounded-3xl bg-indigo-600 px-6 py-14 text-center text-on-solid sm:px-12">
             <Eyebrow light>{t("landing.cta.eyebrow")}</Eyebrow>
             <h2 className="mt-3 text-3xl font-bold sm:text-4xl">{t("landing.cta.title")}</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-indigo-100">{t("landing.cta.text")}</p>
+            <p className="mx-auto mt-4 max-w-2xl text-on-solid/90">{t("landing.cta.text")}</p>
             {startsDemo ? (
               <DemoButton
                 demo={demo}
@@ -549,7 +549,7 @@ export default function LandingPage() {
               </Link>
             )}
             {startsDemo && <DemoStatus demo={demo} light />}
-            <p className="mt-6 text-sm text-indigo-200">{t("landing.cta.note")}</p>
+            <p className="mt-6 text-sm text-on-solid/80">{t("landing.cta.note")}</p>
           </div>
         </section>
       </main>

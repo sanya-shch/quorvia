@@ -96,7 +96,7 @@ const scoreLine = computed(() => {
   >
     <div class="detail-header">
       <div>
-        <h3 class="detail-title">{{ t("analytics.responseDetail.title") }}</h3>
+        <h2 class="detail-title">{{ t("analytics.responseDetail.title") }}</h2>
         <p class="detail-subtitle">
           {{ t("analytics.responseDetail.submittedAt", { date: formatDate(data.createdAt) }) }}
         </p>
@@ -179,10 +179,10 @@ const scoreLine = computed(() => {
   font-size: 13px;
 }
 .state-card--muted {
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .state-card--error {
-  color: var(--color-rose-600, #e11d48);
+  color: var(--color-rose-700, #be123c);
 }
 /* "backwards" keeps it invisible during the delay, then it fades in: a load that finishes within
    ~200ms removes it while it is still transparent, so it never flashes. */
@@ -211,7 +211,7 @@ const scoreLine = computed(() => {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  var(--color-white, #fff)-space: nowrap;
+  white-space: nowrap;
   color: var(--color-slate-900, #0f172a);
   font-weight: 600;
 }
@@ -274,7 +274,7 @@ const scoreLine = computed(() => {
 }
 .detail-subtitle {
   font-size: 11px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   margin: 2px 0 0;
 }
 .detail-id {
@@ -309,12 +309,12 @@ const scoreLine = computed(() => {
   gap: 4px;
 }
 .required-mark {
-  color: var(--color-rose-500, #f43f5e);
+  color: var(--color-rose-700, #be123c);
 }
 .answer-description {
   font-size: 12px;
   font-weight: 700;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   display: block;
 }
 .answer-value {

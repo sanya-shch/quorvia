@@ -63,3 +63,44 @@ describe("кольори ремоута йдуть за темою хоста", 
     expect([...used].filter((name) => !hostVariables.has(name))).toEqual([]);
   });
 });
+
+describe("розбір стилів: конвертація кольорів нічого не зламала", () => {
+  it("жодна назва CSS-властивості не містить var(...): так вийшло, коли white у white-space був замінений", () => {
+    // A property name is what stands before the colon of a declaration; `var(` there is garbage.
+    const broken = entries.flatMap(([file, source]) =>
+      styleBlocks(source).flatMap((css) =>
+        css
+          .split("\n")
+          .filter((line) => line.includes(":") && /var\(/.test(line.split(":")[0]))
+          .map((line) => `${file}: ${line.trim()}`),
+      ),
+    );
+
+    expect(broken).toEqual([]);
+  });
+
+  it("white-space лишився white-space", () => {
+    const withWhiteSpace = entries.filter(([, source]) => /white-space:/.test(source));
+
+    expect(withWhiteSpace.length).toBeGreaterThan(5);
+    expect(entries.filter(([, source]) => /#fff\)-space/.test(source))).toEqual([]);
+  });
+});
+
+describe("текст ремоута: лише відтінки, що проходять AA", () => {
+  it("color: не бере slate-400 та акценти 400/500/600 (контраст на білому 1.7-4.5)", () => {
+    // Same rule as in the host (react-frontend/src/theme/theme.contract.test.ts): those shades are for
+    // fills, borders and icons. Text is slate-500+, indigo-600, and emerald/rose/red/amber/green-700.
+    const offenders = entries.flatMap(([file, source]) =>
+      styleBlocks(source).flatMap((css) =>
+        [
+          ...css.matchAll(
+            /(?<![\w-])(?:color|fill):\s*var\(--color-(?:slate-400|(?:emerald|amber|green|rose|red)-[456]00)\b/g,
+          ),
+        ].map((match) => `${file}: ${match[0]}`),
+      ),
+    );
+
+    expect(offenders).toEqual([]);
+  });
+});

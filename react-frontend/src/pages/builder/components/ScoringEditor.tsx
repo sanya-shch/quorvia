@@ -120,7 +120,7 @@ export default function ScoringEditor({ scoring, onChange }: ScoringEditorProps)
                     }
                     aria-label={t("builder.scoring.removeCategory")}
                     title={t("builder.scoring.removeCategory")}
-                    className="h-9 w-9 cursor-pointer rounded-lg border border-slate-200 bg-white text-xs text-slate-500 hover:border-rose-300 hover:text-rose-600"
+                    className="h-9 w-9 cursor-pointer rounded-lg border border-slate-200 bg-white text-xs text-slate-500 hover:border-rose-300 hover:text-rose-700"
                   >
                     <span aria-hidden="true">✕</span>
                   </button>
@@ -129,7 +129,7 @@ export default function ScoringEditor({ scoring, onChange }: ScoringEditorProps)
                 {issue && (
                   <p
                     role="alert"
-                    className={`text-xs font-medium ${issue === "incomplete" ? "text-amber-700" : "text-rose-600"}`}
+                    className={`text-xs font-medium ${issue === "incomplete" ? "text-amber-700" : "text-rose-700"}`}
                   >
                     {t(`builder.scoring.issues.${issue}`)}
                   </p>

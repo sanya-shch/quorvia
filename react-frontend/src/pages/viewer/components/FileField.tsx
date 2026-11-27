@@ -170,7 +170,7 @@ export default function FileField({
                   disabled={busy}
                   onClick={() => void handleRemove(id)}
                   aria-label={t("viewer.file.remove", { name: file?.name ?? id })}
-                  className="rounded-lg px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-60 cursor-pointer"
+                  className="rounded-lg px-2 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-60 cursor-pointer"
                 >
                   {t("viewer.file.removeShort")}
                 </button>
@@ -202,7 +202,7 @@ export default function FileField({
 
       <div aria-live="polite" className="space-y-1">
         {messages.map((message) => (
-          <p key={message} role="alert" className="text-xs font-medium text-rose-600">
+          <p key={message} role="alert" className="text-xs font-medium text-rose-700">
             {message}
           </p>
         ))}

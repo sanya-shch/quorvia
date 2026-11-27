@@ -210,7 +210,7 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   margin: 0;
 }
 .format-grid {
@@ -242,7 +242,7 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
   margin-top: 8px;
   font-size: 11px;
   font-weight: 500;
-  color: var(--color-red-600, #dc2626);
+  color: var(--color-red-700, #b91c1c);
 }
 .divider {
   margin: 12px 0;
@@ -252,7 +252,7 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
 .empty-text {
   padding: 12px 4px;
   font-size: 12px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .history-list {
   margin-top: 6px;
@@ -297,16 +297,16 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
   flex-shrink: 0;
 }
 .status-completed {
-  color: var(--color-emerald-600, #059669);
+  color: var(--color-emerald-700, #047857);
 }
 .status-failed {
-  color: var(--color-red-600, #dc2626);
+  color: var(--color-red-700, #b91c1c);
 }
 .status-pending {
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .status-processing {
-  color: var(--color-amber-600, #d97706);
+  color: var(--color-amber-700, #b45309);
 }
 .history-text {
   min-width: 0;
@@ -323,7 +323,7 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  var(--color-white, #fff)-space: nowrap;
+  white-space: nowrap;
 }
 .download-btn {
   flex-shrink: 0;
@@ -331,7 +331,7 @@ onUnmounted(() => document.removeEventListener("mousedown", handleClickOutside))
   padding: 6px;
   border: none;
   background: transparent;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   cursor: pointer;
 }
 .download-btn:hover {

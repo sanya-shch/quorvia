@@ -32,7 +32,7 @@ export default function ActivityChart({ daily }: { daily: AnalyticsDailyPoint[] 
 
   if (daily.length < 2) {
     return (
-      <p className="py-12 text-center text-sm text-slate-400">
+      <p className="py-12 text-center text-sm text-slate-500">
         {t("workspace.overview.activity.noSeries")}
       </p>
     );
@@ -82,7 +82,7 @@ export default function ActivityChart({ daily }: { daily: AnalyticsDailyPoint[] 
         <path
           d={line("started")}
           fill="none"
-          className="stroke-indigo-300 motion-draw"
+          className="stroke-indigo-400 motion-draw"
           strokeWidth="2"
           strokeLinejoin="round"
           pathLength={1}
@@ -132,7 +132,7 @@ export default function ActivityChart({ daily }: { daily: AnalyticsDailyPoint[] 
           {t("workspace.overview.activity.submitted")}
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <i className="h-2 w-2 rounded-full bg-indigo-300" />
+          <i className="h-2 w-2 rounded-full bg-indigo-400" />
           {t("workspace.overview.activity.started")}
         </span>
       </figcaption>

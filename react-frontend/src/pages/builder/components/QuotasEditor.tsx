@@ -205,7 +205,7 @@ function QuotaCard({
       </div>
 
       {isBroken && (
-        <p role="alert" className="text-xs font-medium text-rose-600">
+        <p role="alert" className="text-xs font-medium text-rose-700">
           {t("builder.quotas.broken")}
         </p>
       )}
@@ -260,7 +260,7 @@ function QuotaCard({
           type="button"
           disabled={busy}
           onClick={() => (quota ? setConfirmDelete(true) : onDone())}
-          className={`${buttonClass} ml-auto border-slate-200 bg-white text-rose-600 hover:border-rose-300`}
+          className={`${buttonClass} ml-auto border-slate-200 bg-white text-rose-700 hover:border-rose-300`}
         >
           {quota ? t("builder.quotas.delete") : t("builder.quotas.discard")}
         </button>
@@ -325,7 +325,7 @@ export default function QuotasEditor({ formId, questions }: QuotasEditorProps) {
 
       {isLoading && <p className="text-xs text-slate-500">{t("builder.quotas.loading")}</p>}
       {isError && (
-        <p role="alert" className="text-xs font-medium text-rose-600">
+        <p role="alert" className="text-xs font-medium text-rose-700">
           {getApiErrorMessage(t, error)}
         </p>
       )}

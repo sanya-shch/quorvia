@@ -52,10 +52,10 @@ export default function QuestionTranslations({
     <div className="space-y-2">
       <div className="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-2.5 text-sm">
         <span className="inline-flex items-center gap-2 font-medium text-slate-700">
-          <AppIcon name="globe" className="h-4 w-4 text-slate-400" />
+          <AppIcon name="globe" className="h-4 w-4 text-slate-500" />
           {name(main)}
         </span>
-        <span className="text-xs font-bold text-emerald-600">
+        <span className="text-xs font-bold text-emerald-700">
           {t("builder.editor.inspector.translations.main")}
         </span>
       </div>
@@ -73,11 +73,11 @@ export default function QuestionTranslations({
               className="flex w-full items-center justify-between px-3 py-2.5 text-sm cursor-pointer"
             >
               <span className="inline-flex items-center gap-2 font-medium text-slate-700">
-                <AppIcon name="globe" className="h-4 w-4 text-slate-400" />
+                <AppIcon name="globe" className="h-4 w-4 text-slate-500" />
                 {name(language)}
               </span>
               <span
-                className={`text-xs font-bold ${missing > 0 ? "text-rose-600" : "text-emerald-600"}`}
+                className={`text-xs font-bold ${missing > 0 ? "text-rose-700" : "text-emerald-700"}`}
               >
                 {missing > 0
                   ? t("builder.editor.inspector.translations.missing", { count: missing })
@@ -100,7 +100,7 @@ export default function QuestionTranslations({
                         className="block text-xs font-semibold text-slate-500"
                       >
                         {label}
-                        <span className="ml-1.5 font-normal text-slate-400">{field.source}</span>
+                        <span className="ml-1.5 font-normal text-slate-500">{field.source}</span>
                       </label>
                       <Tag
                         id={`qt-${field.key}`}

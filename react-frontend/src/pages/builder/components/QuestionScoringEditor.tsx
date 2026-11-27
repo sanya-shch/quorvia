@@ -112,7 +112,7 @@ export default function QuestionScoringEditor({
       )}
 
       {error && (
-        <p role="alert" className="text-xs font-medium text-rose-600">
+        <p role="alert" className="text-xs font-medium text-rose-700">
           {error}
         </p>
       )}

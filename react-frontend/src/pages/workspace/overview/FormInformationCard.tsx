@@ -45,7 +45,7 @@ export default function FormInformationCard({
     >
       <p className="whitespace-pre-line text-sm text-slate-600">
         {form.description || (
-          <span className="text-slate-400">{t("workspace.overview.info.noDescription")}</span>
+          <span className="text-slate-500">{t("workspace.overview.info.noDescription")}</span>
         )}
       </p>
       <dl className="mt-4 divide-y divide-slate-100 border-t border-slate-100 text-sm">
@@ -69,7 +69,7 @@ export default function FormInformationCard({
             <div key={code} className="flex justify-between gap-4 py-2">
               <dt className="text-slate-500">{getLanguageName(code, i18n.language)}</dt>
               <dd
-                className={`font-semibold ${missing > 0 ? "text-amber-600" : "text-emerald-600"}`}
+                className={`font-semibold ${missing > 0 ? "text-amber-700" : "text-emerald-700"}`}
               >
                 {missing > 0
                   ? t("workspace.overview.info.missing", { count: missing })

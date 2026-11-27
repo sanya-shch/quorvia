@@ -272,7 +272,7 @@ const maxDistributionCount = computed(() =>
   flex-shrink: 0;
   font-size: 10px;
   font-weight: 700;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   background: var(--color-slate-100, #f1f5f9);
   padding: 2px 8px;
   border-radius: 999px;
@@ -315,7 +315,7 @@ const maxDistributionCount = computed(() =>
 }
 .stat-label {
   font-size: 11px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .histogram {
   display: flex;
@@ -345,7 +345,7 @@ const maxDistributionCount = computed(() =>
 }
 .hist-label {
   font-size: 10px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .bool-bar {
   height: 8px;
@@ -376,7 +376,7 @@ const maxDistributionCount = computed(() =>
   width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
-  var(--color-white, #fff)-space: nowrap;
+  white-space: nowrap;
   color: var(--color-slate-600, #475569);
 }
 .dist-bar {
@@ -394,7 +394,7 @@ const maxDistributionCount = computed(() =>
   flex-shrink: 0;
   width: 24px;
   text-align: right;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-size: 11px;
 }
 .preview-row {
@@ -405,11 +405,11 @@ const maxDistributionCount = computed(() =>
   margin-bottom: 4px;
 }
 .preview-count {
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .no-data {
   font-size: 12px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-style: italic;
 }
 </style>

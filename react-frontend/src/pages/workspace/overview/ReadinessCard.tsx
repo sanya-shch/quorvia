@@ -5,7 +5,7 @@ import type { Readiness } from "../readiness";
 import Card from "./Card";
 
 const ICON = { ok: "checkCircle", warning: "warning", error: "warning" } as const;
-const TONE = { ok: "text-emerald-600", warning: "text-amber-600", error: "text-rose-600" } as const;
+const TONE = { ok: "text-emerald-700", warning: "text-amber-700", error: "text-rose-700" } as const;
 
 // Whether the form can be published. These are the builder's own validation results, so an
 // "error" here is exactly what would also block saving in the builder.

@@ -236,11 +236,11 @@ onUnmounted(() => {
 .state-msg {
   margin-top: 60px;
   text-align: center;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-size: 13px;
 }
 .state-msg--error {
-  color: var(--color-red-600, #dc2626);
+  color: var(--color-red-700, #b91c1c);
 }
 .title {
   font-size: 18px;
@@ -251,7 +251,7 @@ onUnmounted(() => {
 }
 .description {
   font-size: 12px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   margin: 0 0 12px;
 }
 .total {
@@ -275,7 +275,7 @@ onUnmounted(() => {
 }
 .stat-label {
   font-size: 11px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .bool-legend {
   display: flex;
@@ -330,7 +330,7 @@ onUnmounted(() => {
   width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
-  var(--color-white, #fff)-space: nowrap;
+  white-space: nowrap;
   color: var(--color-slate-600, #475569);
 }
 .dist-bar {
@@ -347,7 +347,7 @@ onUnmounted(() => {
 .dist-count {
   width: 28px;
   text-align: right;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-size: 11px;
 }
 .answers-title {

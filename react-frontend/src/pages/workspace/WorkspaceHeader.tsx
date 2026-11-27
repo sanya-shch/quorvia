@@ -96,7 +96,7 @@ export default function WorkspaceHeader({ formId }: { formId: string }) {
           <div className="flex flex-wrap items-center gap-2">
             {saveState === "saved" ? (
               <p aria-live="polite" className="flex items-center gap-1.5 text-sm text-slate-500">
-                <AppIcon name="checkCircle" className="h-4 w-4 text-emerald-600" />
+                <AppIcon name="checkCircle" className="h-4 w-4 text-emerald-700" />
                 {t("builder.allSaved")}
               </p>
             ) : (
@@ -210,7 +210,7 @@ export default function WorkspaceHeader({ formId }: { formId: string }) {
                   <button
                     role="menuitem"
                     type="button"
-                    className={`${menuItem} text-rose-600`}
+                    className={`${menuItem} text-rose-700`}
                     onClick={() => {
                       setMenuOpen(false);
                       setConfirm("delete");

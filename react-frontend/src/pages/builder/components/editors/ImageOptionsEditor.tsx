@@ -193,14 +193,14 @@ export default function ImageOptionsEditor({ formId, options, onChange }: ImageO
                       type="button"
                       disabled={options.length <= IMAGE_CHOICE_LIMITS.minOptions}
                       onClick={() => removeOption(option.id)}
-                      className={`${smallButton} text-rose-600 hover:text-rose-700`}
+                      className={`${smallButton} text-rose-700 hover:text-rose-700`}
                     >
                       {t("builder.imageOptions.remove", { number })}
                     </button>
                   </div>
 
                   {error && (
-                    <p role="alert" className="text-xs font-medium text-rose-600">
+                    <p role="alert" className="text-xs font-medium text-rose-700">
                       {error}
                     </p>
                   )}

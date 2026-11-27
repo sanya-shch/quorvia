@@ -66,7 +66,7 @@ export default function Dialog({
             type="button"
             onClick={onClose}
             aria-label={closeLabel}
-            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+            className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
           >
             <AppIcon name="close" className="h-5 w-5" />
           </button>

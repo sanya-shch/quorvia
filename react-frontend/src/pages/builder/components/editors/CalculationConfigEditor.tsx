@@ -136,7 +136,7 @@ export default function CalculationConfigEditor({
             <p className="text-xs font-medium text-rose-700">
               {t(problem.messageKey)}
               {problem.pos > 0 && (
-                <span className="font-normal text-rose-600">
+                <span className="font-normal text-rose-700">
                   {" · "}
                   {t("builder.editors.calculation.position", { position: range.from + 1 })}
                 </span>
@@ -154,7 +154,7 @@ export default function CalculationConfigEditor({
           </div>
         )}
         {!problem && error && (
-          <p role="alert" className="text-xs font-medium text-rose-600">
+          <p role="alert" className="text-xs font-medium text-rose-700">
             {error}
           </p>
         )}

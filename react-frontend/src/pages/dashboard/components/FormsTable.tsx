@@ -100,7 +100,7 @@ export default function FormsTable({
               }`}
             >
               {t(`dashboard.table.filters.${value}`)}
-              <span className="ml-1.5 text-xs font-medium text-slate-400">{counts[value]}</span>
+              <span className="ml-1.5 text-xs font-medium text-slate-500">{counts[value]}</span>
             </button>
           ))}
         </div>
@@ -166,14 +166,16 @@ export default function FormsTable({
       ) : (
         <div className="-mx-5 mt-5 overflow-x-auto sm:-mx-6">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-5 py-3 font-semibold sm:px-6">{t("dashboard.table.form")}</th>
                 <th className="px-3 py-3 font-semibold">{t("dashboard.table.status")}</th>
                 <th className="px-3 py-3 font-semibold">{t("dashboard.table.questions")}</th>
                 <th className="px-3 py-3 font-semibold">{t("dashboard.table.responses")}</th>
                 <th className="px-3 py-3 font-semibold">{t("dashboard.table.updated")}</th>
-                <th className="px-5 py-3 sm:px-6" />
+                <th className="px-5 py-3 sm:px-6">
+                  <span className="sr-only">{t("dashboard.table.actions")}</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -210,7 +212,7 @@ export default function FormsTable({
                           {form._count.responses}
                         </Link>
                       ) : (
-                        <span className="text-slate-400">-</span>
+                        <span className="text-slate-500">-</span>
                       )}
                     </td>
                     <td className="px-3 py-4 text-slate-500">{date(form.updatedAt)}</td>
@@ -227,7 +229,7 @@ export default function FormsTable({
                         <Link
                           to={`/forms/${form.id}/settings`}
                           aria-label={t("dashboard.table.settings", { title: form.title })}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                          className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
                         >
                           <AppIcon name="settings" />
                         </Link>

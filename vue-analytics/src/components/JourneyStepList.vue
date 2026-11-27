@@ -102,7 +102,7 @@ const value = (count: number) =>
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .nodes {
   list-style: none;
@@ -154,10 +154,10 @@ const value = (count: number) =>
   color: var(--color-indigo-600, #4f46e5);
 }
 .row--submitted .row-eyebrow {
-  color: var(--color-emerald-600, #059669);
+  color: var(--color-emerald-700, #047857);
 }
 .row--exit .row-eyebrow {
-  color: var(--color-red-600, #dc2626);
+  color: var(--color-red-700, #b91c1c);
 }
 .row-value {
   font-size: 13px;
@@ -190,7 +190,7 @@ const value = (count: number) =>
 }
 .empty {
   text-align: center;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-size: 14px;
   padding: 40px 0;
   border: 1px dashed var(--color-slate-200, #e2e8f0);

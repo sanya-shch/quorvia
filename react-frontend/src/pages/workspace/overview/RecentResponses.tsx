@@ -50,20 +50,22 @@ export default function RecentResponses({
       ) : isLoading ? (
         <Skeleton className="h-32 w-full" />
       ) : !data || data.data.length === 0 ? (
-        <p className="py-8 text-center text-sm text-slate-400">
+        <p className="py-8 text-center text-sm text-slate-500">
           {t("workspace.overview.recent.empty")}
         </p>
       ) : (
         <div className="-mx-2 overflow-x-auto">
           <table className="w-full min-w-[420px] text-left text-sm">
             <thead>
-              <tr className="text-xs uppercase tracking-wide text-slate-400">
+              <tr className="text-xs uppercase tracking-wide text-slate-500">
                 <th className="px-2 py-2 font-semibold">{t("workspace.overview.recent.id")}</th>
                 <th className="px-2 py-2 font-semibold">
                   {t("workspace.overview.recent.submitted")}
                 </th>
                 <th className="px-2 py-2 font-semibold">{t("workspace.overview.recent.status")}</th>
-                <th className="px-2 py-2" />
+                <th className="px-2 py-2">
+                  <span className="sr-only">{t("workspace.overview.recent.actions")}</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">

@@ -214,20 +214,20 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
   color: var(--color-slate-500, #64748b);
 }
 .ok {
-  color: var(--color-emerald-600, #059669) !important;
+  color: var(--color-emerald-700, #047857) !important;
 }
 .bad {
-  color: var(--color-red-600, #dc2626) !important;
+  color: var(--color-red-700, #b91c1c) !important;
 }
 .hint {
   margin: 14px 0 0;
   font-size: 12px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .empty {
   margin-top: 20px;
   text-align: center;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-size: 14px;
   padding: 24px 0;
 }
@@ -276,7 +276,7 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   padding-top: 10px;
   padding-bottom: 6px;
 }
@@ -320,12 +320,12 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
 }
 .flag {
   background: var(--color-red-50, #fef2f2);
-  color: var(--color-red-600, #dc2626);
+  color: var(--color-red-700, #b91c1c);
   font-size: 11px;
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 999px;
-  var(--color-white, #fff)-space: nowrap;
+  white-space: nowrap;
 }
 .cell-reached,
 .cell-exits {
@@ -341,12 +341,12 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
   color: var(--color-slate-900, #0f172a);
 }
 .muted {
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-size: 12px;
 }
 .lost {
   font-size: 11px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .cell-bar {
   display: flex;
@@ -410,7 +410,7 @@ const unfinished = computed(() => props.funnel.totalAttempts - props.funnel.tota
   }
   .cell-exits::before {
     content: "↳";
-    color: var(--color-slate-400, #94a3b8);
+    color: var(--color-slate-500, #64748b);
   }
 }
 </style>

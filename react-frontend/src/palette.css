@@ -7,8 +7,10 @@
  * from <html data-theme> (see index.css), and any subtree can pin itself to the light side with
  * data-theme-lock="light" (the public form, the form theme preview).
  *
- * The light side is Tailwind's own value, so the light theme looks exactly as before:
- * palette.contract.test.ts compares them. The dark side:
+ * The light side is Tailwind's own value, so the light theme looks as before, with ONE deliberate
+ * exception: slate-500 is a hair darker (L 55.4% -> 54%), because Tailwind's own reaches only 4.35:1
+ * on slate-100, where small text (a segmented control, a badge) needs 4.5:1. theme.contract.test.ts
+ * compares the rest and checks the contrast of every text shade on every surface it sits on. The dark side:
  *   - slate and white: warm neutral grays (page #262624, panels #30302e), not black;
  *   - accent 50..300 (tints, borders): the accent mixed into the panel color;
  *   - accent 400..950 (text, solid fills): the palette turned over, so the 600 that is text or a
@@ -24,10 +26,10 @@
   --color-slate-200: light-dark(oklch(92.9% 0.013 255.508), #44433f);
   --color-slate-300: light-dark(oklch(86.9% 0.022 252.894), #57554f);
   --color-slate-400: light-dark(oklch(70.4% 0.04 256.788), #7d7b73);
-  --color-slate-500: light-dark(oklch(55.4% 0.046 257.417), #9c9a92);
-  --color-slate-600: light-dark(oklch(44.6% 0.043 257.281), #b4b2a8);
-  --color-slate-700: light-dark(oklch(37.2% 0.044 257.287), #c8c6bc);
-  --color-slate-800: light-dark(oklch(27.9% 0.041 260.031), #e0ded4);
+  --color-slate-500: light-dark(oklch(54% 0.046 257.417), #aeaca3);
+  --color-slate-600: light-dark(oklch(44.6% 0.043 257.281), #bfbdb3);
+  --color-slate-700: light-dark(oklch(37.2% 0.044 257.287), #d0cec4);
+  --color-slate-800: light-dark(oklch(27.9% 0.041 260.031), #e4e2d9);
   --color-slate-900: light-dark(oklch(20.8% 0.042 265.755), #faf9f5);
   --color-slate-950: light-dark(oklch(12.9% 0.042 264.695), #fffefb);
 
@@ -47,9 +49,9 @@
     oklch(78.5% 0.115 274.713),
     color-mix(in srgb, oklch(58.5% 0.233 277.117) 40%, #30302e)
   );
-  --color-indigo-400: light-dark(oklch(67.3% 0.182 276.935), oklch(78.5% 0.115 274.713));
-  --color-indigo-500: light-dark(oklch(58.5% 0.233 277.117), oklch(67.3% 0.182 276.935));
-  --color-indigo-600: light-dark(oklch(51.1% 0.262 276.966), oklch(67.3% 0.182 276.935));
+  --color-indigo-400: light-dark(oklch(67.3% 0.182 276.935), oklch(64% 0.12 277));
+  --color-indigo-500: light-dark(oklch(58.5% 0.233 277.117), oklch(75.5% 0.155 277));
+  --color-indigo-600: light-dark(oklch(51.1% 0.262 276.966), oklch(75.5% 0.155 277));
   --color-indigo-700: light-dark(oklch(45.7% 0.24 277.023), oklch(78.5% 0.115 274.713));
   --color-indigo-800: light-dark(oklch(39.8% 0.195 277.366), oklch(87% 0.065 274.039));
   --color-indigo-900: light-dark(oklch(35.9% 0.144 278.697), oklch(93% 0.034 272.788));

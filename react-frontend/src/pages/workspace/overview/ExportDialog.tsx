@@ -63,13 +63,13 @@ export default function ExportDialog({ formId, onClose }: { formId: string; onCl
         ))}
       </div>
 
-      <h3 className="mt-6 text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <h3 className="mt-6 text-xs font-semibold uppercase tracking-wide text-slate-500">
         {t("workspace.export.history")}
       </h3>
       {jobs.isLoading ? (
-        <p className="py-6 text-center text-sm text-slate-400">{t("workspace.loading")}</p>
+        <p className="py-6 text-center text-sm text-slate-500">{t("workspace.loading")}</p>
       ) : (jobs.data ?? []).length === 0 ? (
-        <p className="py-6 text-center text-sm text-slate-400">{t("workspace.export.empty")}</p>
+        <p className="py-6 text-center text-sm text-slate-500">{t("workspace.export.empty")}</p>
       ) : (
         <ul className="mt-2 divide-y divide-slate-100">
           {(jobs.data ?? []).slice(0, 6).map((job) => (
@@ -78,15 +78,15 @@ export default function ExportDialog({ formId, onClose }: { formId: string; onCl
                 <p className="font-semibold text-slate-800">
                   {t(`workspace.export.formats.${job.format}`)}
                 </p>
-                <p className="text-xs text-slate-400">{time(job.createdAt)}</p>
+                <p className="text-xs text-slate-500">{time(job.createdAt)}</p>
               </div>
               <span
                 className={`text-xs font-semibold ${
                   job.status === "FAILED"
-                    ? "text-rose-600"
+                    ? "text-rose-700"
                     : job.status === "COMPLETED"
-                      ? "text-emerald-600"
-                      : "text-amber-600"
+                      ? "text-emerald-700"
+                      : "text-amber-700"
                 }`}
               >
                 {t(`workspace.export.status.${job.status}`)}

@@ -54,9 +54,9 @@ export default function ConfirmModal({
       aria-describedby="modal-description"
     >
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl motion-dialog">
-        <h3 id="modal-title" className="text-lg font-semibold text-slate-900">
+        <h2 id="modal-title" className="text-lg font-semibold text-slate-900">
           {title}
-        </h3>
+        </h2>
         <p id="modal-description" className="mt-2 text-sm text-slate-500 leading-relaxed">
           {description}
         </p>

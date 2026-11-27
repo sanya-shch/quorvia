@@ -89,7 +89,7 @@ const cards = computed(() => {
       :style="{ '--motion-index': index }"
     >
       <header class="card-head">
-        <h3 class="label">{{ t(`analytics.kpi.${card.key}`) }}</h3>
+        <h2 class="label">{{ t(`analytics.kpi.${card.key}`) }}</h2>
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
           <template v-if="card.key === 'responses'">
             <path d="M4 13l2.5-7h11L20 13v5H4z" />
@@ -186,24 +186,24 @@ const cards = computed(() => {
   color: var(--color-slate-500, #64748b);
 }
 .delta--up {
-  color: var(--color-emerald-600, #059669);
+  color: var(--color-emerald-700, #047857);
 }
 .delta--down,
 .delta--bad {
-  color: var(--color-red-600, #dc2626);
+  color: var(--color-red-700, #b91c1c);
 }
 .note {
   margin: 2px 0 0;
   font-size: 11px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .state {
   text-align: center;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-size: 14px;
   padding: 24px;
 }
 .state--error {
-  color: var(--color-red-600, #dc2626);
+  color: var(--color-red-700, #b91c1c);
 }
 </style>

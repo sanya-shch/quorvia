@@ -120,7 +120,7 @@ export default function WelcomeScreen({
         <ul className="mt-5 space-y-3">
           {notes.map((note) => (
             <li key={note} className="flex items-start gap-3 text-sm text-slate-700">
-              <span className="mt-0.5 text-emerald-600">
+              <span className="mt-0.5 text-emerald-700">
                 <CheckCircleIcon className="h-5 w-5" />
               </span>
               {note}

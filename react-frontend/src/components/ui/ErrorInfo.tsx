@@ -10,7 +10,7 @@ export const ErrorInfo = ({ errorText, variant = "text" }: ErrorInfoProps) => {
     <div
       role="alert"
       className={`
-        flex items-center text-rose-600 text-xs motion-drop
+        flex items-center text-rose-700 text-xs motion-drop
         ${
           isBlock
             ? "gap-2 font-medium bg-rose-50 border border-rose-100 rounded-xl px-3 py-2"

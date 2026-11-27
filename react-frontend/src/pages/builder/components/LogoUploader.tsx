@@ -99,7 +99,7 @@ export default function LogoUploader({ formId, assetId, onChange }: LogoUploader
               onChange(null);
             }}
             disabled={upload.isPending}
-            className="inline-flex items-center rounded-xl px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 disabled:text-slate-500 cursor-pointer transition-colors"
+            className="inline-flex items-center rounded-xl px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50 disabled:text-slate-500 cursor-pointer transition-colors"
           >
             {t("builder.logo.remove")}
           </button>
@@ -107,7 +107,7 @@ export default function LogoUploader({ formId, assetId, onChange }: LogoUploader
       </div>
 
       {error && (
-        <p role="alert" className="mt-2 text-xs font-medium text-rose-600">
+        <p role="alert" className="mt-2 text-xs font-medium text-rose-700">
           {error}
         </p>
       )}

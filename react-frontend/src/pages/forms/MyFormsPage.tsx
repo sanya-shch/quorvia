@@ -46,6 +46,7 @@ export default function MyFormsPage() {
           <p className="mt-1 text-slate-500">{t("dashboard.forms.subtitle")}</p>
         </header>
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <h2 className="sr-only">{t("dashboard.forms.title")}</h2>
           {forms.isLoading ? (
             <Skeleton className="h-48 w-full" />
           ) : forms.isError ? (

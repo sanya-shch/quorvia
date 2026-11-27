@@ -174,7 +174,7 @@ export default function ScreensEditor({
                 className={`${inputClass} mt-1 ${redirectInvalid ? "border-rose-500" : "border-slate-200"}`}
               />
               {redirectInvalid ? (
-                <p role="alert" className="mt-1 text-xs font-medium text-rose-600">
+                <p role="alert" className="mt-1 text-xs font-medium text-rose-700">
                   {t("builder.screens.end.redirectInvalid")}
                 </p>
               ) : (

@@ -1,6 +1,6 @@
 export const calendarIcon = (
   <svg
-    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    className="h-3.5 w-3.5 text-slate-500 shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth="2"
@@ -16,20 +16,20 @@ export const calendarIcon = (
 
 export const toggleIcon = (
   <svg
-    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    className="h-3.5 w-3.5 text-slate-500 shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth="2"
     stroke="currentColor"
   >
     <rect x="3" y="6" width="18" height="12" rx="6" ry="6" />
-    <circle cx="9" cy="12" r="3" fill="currentColor" className="text-slate-400" />
+    <circle cx="9" cy="12" r="3" fill="currentColor" className="text-slate-500" />
   </svg>
 );
 
 export const textIcon = (
   <svg
-    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    className="h-3.5 w-3.5 text-slate-500 shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth="2"
@@ -45,7 +45,7 @@ export const textIcon = (
 
 export const numberIcon = (
   <svg
-    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    className="h-3.5 w-3.5 text-slate-500 shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth="2"
@@ -61,20 +61,20 @@ export const numberIcon = (
 
 export const choiceSingleIcon = (
   <svg
-    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    className="h-3.5 w-3.5 text-slate-500 shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth="2"
     stroke="currentColor"
   >
     <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    <circle cx="12" cy="12" r="3" fill="currentColor" className="text-slate-400" />
+    <circle cx="12" cy="12" r="3" fill="currentColor" className="text-slate-500" />
   </svg>
 );
 
 export const fileIcon = (
   <svg
-    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    className="h-3.5 w-3.5 text-slate-500 shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth="2"
@@ -91,7 +91,7 @@ export const fileIcon = (
 
 export const imageChoiceIcon = (
   <svg
-    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    className="h-3.5 w-3.5 text-slate-500 shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth="2"
@@ -106,7 +106,7 @@ export const imageChoiceIcon = (
 
 export const choiceMultiIcon = (
   <svg
-    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    className="h-3.5 w-3.5 text-slate-500 shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth="2"
@@ -122,7 +122,7 @@ export const choiceMultiIcon = (
 
 export const ratingIcon = (
   <svg
-    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    className="h-3.5 w-3.5 text-slate-500 shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth="2"
@@ -138,7 +138,7 @@ export const ratingIcon = (
 
 export const scaleIcon = (
   <svg
-    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    className="h-3.5 w-3.5 text-slate-500 shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth="2"
@@ -150,7 +150,7 @@ export const scaleIcon = (
 
 export const npsIcon = (
   <svg
-    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    className="h-3.5 w-3.5 text-slate-500 shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth="2"
@@ -162,7 +162,7 @@ export const npsIcon = (
 
 export const rankingIcon = (
   <svg
-    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    className="h-3.5 w-3.5 text-slate-500 shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth="2"
@@ -178,7 +178,7 @@ export const rankingIcon = (
 
 export const matrixIcon = (
   <svg
-    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    className="h-3.5 w-3.5 text-slate-500 shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth="2"
@@ -190,7 +190,7 @@ export const matrixIcon = (
 
 export const calculationIcon = (
   <svg
-    className="h-3.5 w-3.5 text-slate-400 shrink-0"
+    className="h-3.5 w-3.5 text-slate-500 shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     strokeWidth="2"

@@ -25,11 +25,11 @@ interface BuilderHeaderProps {
 }
 
 const STATE_STYLE: Record<SaveState, string> = {
-  saved: "text-emerald-600",
+  saved: "text-emerald-700",
   saving: "text-slate-500",
-  dirty: "text-amber-600",
-  error: "text-rose-600",
-  conflict: "text-rose-600",
+  dirty: "text-amber-700",
+  error: "text-rose-700",
+  conflict: "text-rose-700",
 };
 
 // The Builder's own header (it is a full-screen editor, so it does not use the workspace shell).
@@ -110,7 +110,7 @@ export default function BuilderHeader({
                   type="button"
                   onClick={() => setEditing(true)}
                   aria-label={t("builder.editor.header.editTitle")}
-                  className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+                  className="rounded-md p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
                 >
                   <AppIcon name="edit" className="h-3.5 w-3.5" />
                 </button>
@@ -134,7 +134,7 @@ export default function BuilderHeader({
             {statusText}
           </p>
           {titleError && (
-            <p role="alert" className="text-xs text-rose-600">
+            <p role="alert" className="text-xs text-rose-700">
               {titleError}
             </p>
           )}
@@ -204,7 +204,7 @@ export default function BuilderHeader({
                   ? t("builder.editor.header.saveFirst")
                   : undefined
             }
-            className="h-9 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-on-solid shadow-sm hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 cursor-pointer"
+            className="h-9 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-on-solid shadow-sm hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 cursor-pointer"
           >
             {t("workspace.header.publish")}
           </button>

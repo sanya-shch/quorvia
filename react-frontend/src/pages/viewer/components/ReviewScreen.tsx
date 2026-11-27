@@ -111,8 +111,8 @@ export default function ReviewScreen({
                       item.answered
                         ? "font-semibold text-slate-900"
                         : item.missingRequired
-                          ? "font-semibold text-rose-600"
-                          : "text-slate-400"
+                          ? "font-semibold text-rose-700"
+                          : "text-slate-500"
                     }`}
                   >
                     {item.missingRequired ? t("viewer.review.requiredMissing") : item.answer}
@@ -148,7 +148,7 @@ export default function ReviewScreen({
       </section>
 
       {errorHint && (
-        <p role="alert" className="text-center text-xs text-rose-600">
+        <p role="alert" className="text-center text-xs text-rose-700">
           {errorHint}
         </p>
       )}

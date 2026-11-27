@@ -177,7 +177,7 @@ const canInspect = computed(
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .flows ul {
   list-style: none;
@@ -198,7 +198,7 @@ const canInspect = computed(
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  var(--color-white, #fff)-space: nowrap;
+  white-space: nowrap;
 }
 .inspect {
   margin-top: 16px;

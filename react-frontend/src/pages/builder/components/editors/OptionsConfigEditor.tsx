@@ -180,7 +180,7 @@ export default function OptionsConfigEditor({
                         onClick={() => handleRemoveOption(index)}
                         disabled={regularOptions.length <= minOptions}
                         aria-label={t("builder.editors.options.removeOption")}
-                        className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer disabled:opacity-0"
+                        className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-700 transition-all cursor-pointer disabled:opacity-0"
                       >
                         <svg
                           className="h-4 w-4"
@@ -226,7 +226,7 @@ export default function OptionsConfigEditor({
               type="button"
               onClick={handleRemoveOther}
               aria-label={t("builder.editors.options.removeOther")}
-              className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer"
+              className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-700 transition-all cursor-pointer"
             >
               <svg
                 className="h-4 w-4"

@@ -30,7 +30,7 @@ export default function SearchField({
       <span className="sr-only">{t("dashboard.search.label")}</span>
       <AppIcon
         name="search"
-        className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+        className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
       />
       <input
         ref={ref}
@@ -40,7 +40,7 @@ export default function SearchField({
         placeholder={t("dashboard.search.placeholder")}
         className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-14 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
       />
-      <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[11px] font-semibold text-slate-400 sm:block">
+      <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[11px] font-semibold text-slate-500 sm:block">
         Ctrl K
       </kbd>
     </label>

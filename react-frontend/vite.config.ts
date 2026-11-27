@@ -2,6 +2,7 @@ import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import federation from "@originjs/vite-plugin-federation";
+import { inlineScriptHashes } from "./src/theme/csp";
 
 const originOf = (url: string): string => {
   try {
@@ -36,7 +37,8 @@ const cspPlugin = (env: Record<string, string>): Plugin => ({
 
     const policy = [
       "default-src 'self'",
-      `script-src 'self' ${remote}`,
+      // The hash admits the inline theme script of index.html (see src/theme/csp.ts), nothing else.
+      `script-src 'self' ${remote} ${inlineScriptHashes(html).join(" ")}`.trim(),
       // 'unsafe-inline' for styles: Tailwind/the Vue remote inject <style>.
       `style-src 'self' 'unsafe-inline' ${remote}`,
       `connect-src 'self' ${api} ${remote}`,

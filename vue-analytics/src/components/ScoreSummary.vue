@@ -217,7 +217,7 @@ const categoryRows = computed(() => [
   color: var(--color-slate-800, #1e293b);
 }
 .category-range {
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .category-count {
   margin-left: auto;

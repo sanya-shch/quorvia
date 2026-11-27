@@ -164,7 +164,7 @@ export default function TestLogicDialog({ questions, selectedId, onClose }: Test
         </p>
       ) : (
         <div className="space-y-3">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             {t("builder.editor.testLogic.values")}
           </h3>
           {sources.map((q) => (
@@ -179,7 +179,7 @@ export default function TestLogicDialog({ questions, selectedId, onClose }: Test
         </div>
       )}
 
-      <h3 className="mt-6 text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <h3 className="mt-6 text-xs font-semibold uppercase tracking-wide text-slate-500">
         {t("builder.editor.testLogic.result", { shown: visible.size, total: withIds.length })}
       </h3>
       <ol className="mt-2 space-y-1">

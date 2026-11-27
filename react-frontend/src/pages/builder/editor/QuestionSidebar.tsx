@@ -74,7 +74,10 @@ export default function QuestionSidebar({
 
   if (collapsed) {
     return (
-      <aside className="hidden w-14 shrink-0 flex-col items-center border-r border-slate-200 bg-white py-3 lg:flex">
+      <section
+        aria-label={t("builder.editor.sidebar.title")}
+        className="hidden w-14 shrink-0 flex-col items-center border-r border-slate-200 bg-white py-3 lg:flex"
+      >
         <button
           type="button"
           onClick={onToggleCollapsed}
@@ -84,12 +87,15 @@ export default function QuestionSidebar({
           <AppIcon name="panelLeft" className="h-5 w-5" />
         </button>
         <span className="mt-3 text-xs font-bold text-slate-500">{questions.length}</span>
-      </aside>
+      </section>
     );
   }
 
   return (
-    <aside className="flex h-full min-h-0 w-full flex-col bg-white lg:w-[270px] lg:shrink-0 lg:border-r lg:border-slate-200">
+    <section
+      aria-label={t("builder.editor.sidebar.title")}
+      className="flex h-full min-h-0 w-full flex-col bg-white lg:w-[270px] lg:shrink-0 lg:border-r lg:border-slate-200"
+    >
       <div className="flex items-center justify-between px-5 py-4">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -186,7 +192,7 @@ export default function QuestionSidebar({
                                   e.stopPropagation();
                                   setMenuFor(menuFor === id ? null : id);
                                 }}
-                                className="rounded-lg p-1.5 text-slate-400 hover:bg-white hover:text-slate-700 cursor-pointer"
+                                className="rounded-lg p-1.5 text-slate-500 hover:bg-white hover:text-slate-700 cursor-pointer"
                               >
                                 <AppIcon name="dots" className="h-4 w-4" />
                               </button>
@@ -233,7 +239,7 @@ export default function QuestionSidebar({
                                         item.run();
                                       }}
                                       className={`block w-full px-3 py-2 text-left text-sm font-medium hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
-                                        item.danger ? "text-rose-600" : "text-slate-700"
+                                        item.danger ? "text-rose-700" : "text-slate-700"
                                       }`}
                                     >
                                       {t(`builder.editor.sidebar.menuItems.${item.key}`)}
@@ -294,6 +300,6 @@ export default function QuestionSidebar({
             : t("builder.editor.sidebar.chooseFrom", { count: AVAILABLE_TYPES.length })}
         </p>
       </div>
-    </aside>
+    </section>
   );
 }

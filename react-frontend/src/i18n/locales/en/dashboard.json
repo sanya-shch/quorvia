@@ -68,6 +68,7 @@
     "text": "Build your next form from scratch."
   },
   "table": {
+    "actions": "Actions",
     "filter": "Filter by status",
     "filters": {
       "all": "All",

@@ -397,17 +397,17 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
 }
 .state {
   text-align: center;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-size: 14px;
   padding: 36px 0;
 }
 .state--error {
-  color: var(--color-red-600, #dc2626);
+  color: var(--color-red-700, #b91c1c);
 }
 .flow-hint {
   margin: 14px 0;
   font-size: 12px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .sr-only {
   position: absolute;
@@ -415,6 +415,6 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
   height: 1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
-  var(--color-white, #fff)-space: nowrap;
+  white-space: nowrap;
 }
 </style>

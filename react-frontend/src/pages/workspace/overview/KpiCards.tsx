@@ -23,11 +23,11 @@ interface KpiCard {
 const Delta = ({ value, unit }: { value: number | null; unit: "%" | "pts" }) => {
   const { t } = useTranslation();
   if (value === null)
-    return <span className="text-slate-400">{t("workspace.overview.kpi.noPrior")}</span>;
+    return <span className="text-slate-500">{t("workspace.overview.kpi.noPrior")}</span>;
 
   const rounded = Math.abs(value) < 0.05 ? 0 : value;
   const sign = rounded > 0 ? "+" : rounded < 0 ? "-" : "";
-  const tone = rounded > 0 ? "text-emerald-600" : rounded < 0 ? "text-rose-600" : "text-slate-500";
+  const tone = rounded > 0 ? "text-emerald-700" : rounded < 0 ? "text-rose-700" : "text-slate-500";
 
   return (
     <span className={tone}>
@@ -97,9 +97,9 @@ export default function KpiCards({ summary, isLoading, questionCount, compare }:
           className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
         >
           <header className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-medium text-slate-500">
+            <h2 className="text-sm font-medium text-slate-500">
               {t(`workspace.overview.kpi.${card.key}`)}
-            </h3>
+            </h2>
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
               <AppIcon name={card.icon} className="h-4 w-4" />
             </span>

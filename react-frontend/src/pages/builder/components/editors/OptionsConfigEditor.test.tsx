@@ -169,9 +169,8 @@ describe("OptionsConfigEditor - RANKING", () => {
   it("не дозволяє опуститися нижче двох варіантів", () => {
     renderRanking();
 
-    const removeButtons = screen
-      .getAllByRole("button")
-      .filter((b) => b.className.includes("hover:text-rose-600"));
+    // By the accessible name, not by a styling class: the class changes with the palette.
+    const removeButtons = screen.getAllByRole("button", { name: /Видалити варіант|Remove option/ });
 
     expect(removeButtons).toHaveLength(2);
     expect(removeButtons.every((b) => (b as HTMLButtonElement).disabled)).toBe(true);

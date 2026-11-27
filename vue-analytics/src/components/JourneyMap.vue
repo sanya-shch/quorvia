@@ -77,9 +77,15 @@ const columnLabel = (column: number) =>
       ? t("analytics.journey.outcome")
       : t("analytics.journey.step", { step: column });
 
+// The accessible name starts with exactly what the button shows (WCAG 2.5.3, Label in Name), words
+// separated by spaces: the three spans of the button have no whitespace between them in the markup.
 const nodeLabel = (node: PlacedNode) => {
   const d = describeNode(node, t);
-  return `${d.eyebrow}: ${d.title}, ${node.count} (${formatPercent(total.value > 0 ? node.count / total.value : 0)})`;
+  const share =
+    props.mode === "counts"
+      ? formatPercent(total.value > 0 ? node.count / total.value : 0)
+      : node.count;
+  return `${d.eyebrow} ${d.title} ${show(node.count)} ${share}`;
 };
 
 const innerWidth = computed(() => layout.value.width);
@@ -154,9 +160,12 @@ const innerHeight = computed(() => layout.value.height + HEADER + 12);
           @keydown.esc="emit('select', null)"
         >
           <span class="eyebrow">{{ describeNode(node, t).eyebrow }}</span>
+          {{ " " }}
           <span class="title">{{ describeNode(node, t).title }}</span>
+          {{ " " }}
           <span class="count">
             <strong>{{ show(node.count) }}</strong>
+            {{ " " }}
             <small>{{
               mode === "counts" ? formatPercent(total > 0 ? node.count / total : 0) : node.count
             }}</small>
@@ -197,7 +206,7 @@ const innerHeight = computed(() => layout.value.height + HEADER + 12);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .ribbons {
   position: absolute;
@@ -261,16 +270,16 @@ const innerHeight = computed(() => layout.value.height + HEADER + 12);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--color-indigo-600, #4f46e5);
-  var(--color-white, #fff)-space: nowrap;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .node--conditional .eyebrow,
 .node--submitted .eyebrow {
-  color: var(--color-emerald-600, #059669);
+  color: var(--color-emerald-700, #047857);
 }
 .node--exit .eyebrow {
-  color: var(--color-red-600, #dc2626);
+  color: var(--color-red-700, #b91c1c);
 }
 .node--more .eyebrow {
   color: var(--color-slate-500, #64748b);
@@ -297,11 +306,11 @@ const innerHeight = computed(() => layout.value.height + HEADER + 12);
 }
 .count small {
   font-size: 11px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 .empty {
   text-align: center;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
   font-size: 14px;
   padding: 40px 0;
   border: 1px dashed var(--color-slate-200, #e2e8f0);
@@ -310,6 +319,6 @@ const innerHeight = computed(() => layout.value.height + HEADER + 12);
 .hidden-note {
   margin: 8px 0 0;
   font-size: 12px;
-  color: var(--color-slate-400, #94a3b8);
+  color: var(--color-slate-500, #64748b);
 }
 </style>

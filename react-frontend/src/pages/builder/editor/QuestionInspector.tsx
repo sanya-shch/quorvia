@@ -66,7 +66,10 @@ export default function QuestionInspector({
 
   if (collapsed) {
     return (
-      <aside className="hidden w-14 shrink-0 flex-col items-center border-l border-slate-200 bg-white py-3 xl:flex">
+      <section
+        aria-label={t("builder.editor.inspector.title")}
+        className="hidden w-14 shrink-0 flex-col items-center border-l border-slate-200 bg-white py-3 xl:flex"
+      >
         <button
           type="button"
           onClick={onToggleCollapsed}
@@ -75,7 +78,7 @@ export default function QuestionInspector({
         >
           <AppIcon name="panel" className="h-5 w-5" />
         </button>
-      </aside>
+      </section>
     );
   }
 
@@ -107,12 +110,15 @@ export default function QuestionInspector({
 
   if (!question) {
     return (
-      <aside className="flex h-full min-h-0 w-full flex-col bg-white xl:w-[340px] xl:shrink-0 xl:border-l xl:border-slate-200">
+      <section
+        aria-label={t("builder.editor.inspector.title")}
+        className="flex h-full min-h-0 w-full flex-col bg-white xl:w-[340px] xl:shrink-0 xl:border-l xl:border-slate-200"
+      >
         {header}
         <p className="p-8 text-center text-sm text-slate-500">
           {t("builder.editor.inspector.empty")}
         </p>
-      </aside>
+      </section>
     );
   }
 
@@ -199,7 +205,10 @@ export default function QuestionInspector({
   })();
 
   return (
-    <aside className="flex h-full min-h-0 w-full flex-col bg-white xl:w-[340px] xl:shrink-0 xl:border-l xl:border-slate-200">
+    <section
+      aria-label={t("builder.editor.inspector.title")}
+      className="flex h-full min-h-0 w-full flex-col bg-white xl:w-[340px] xl:shrink-0 xl:border-l xl:border-slate-200"
+    >
       {header}
 
       <div className="min-h-0 flex-1 overflow-y-auto">
@@ -244,7 +253,7 @@ export default function QuestionInspector({
 
           <label className="block text-sm font-semibold text-slate-700">
             {t("builder.editor.inspector.description")}{" "}
-            <span className="font-normal text-slate-400">
+            <span className="font-normal text-slate-500">
               {t("builder.editor.inspector.optional")}
             </span>
             <textarea
@@ -311,6 +320,6 @@ export default function QuestionInspector({
           />
         </Section>
       </div>
-    </aside>
+    </section>
   );
 }

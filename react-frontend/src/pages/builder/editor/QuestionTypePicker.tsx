@@ -37,7 +37,7 @@ export default function QuestionTypePicker({ onPick, onClose }: QuestionTypePick
 
     return types.length === 0 ? null : (
       <div>
-        <h3 className="px-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+        <h3 className="px-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">
           {title}
         </h3>
         <div className="grid grid-cols-2 gap-1">

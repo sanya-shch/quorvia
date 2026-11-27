@@ -122,7 +122,7 @@ export default function EndRulesEditor({
                 </button>
                 <button
                   type="button"
-                  className={`${iconButtonClass} hover:border-rose-300 hover:text-rose-600`}
+                  className={`${iconButtonClass} hover:border-rose-300 hover:text-rose-700`}
                   onClick={() => emit(list.filter((_, i) => i !== index))}
                   title={t("builder.screens.rules.remove")}
                   aria-label={t("builder.screens.rules.remove")}
@@ -145,7 +145,7 @@ export default function EndRulesEditor({
             />
 
             {isBroken && (
-              <p role="alert" className="text-xs font-medium text-rose-600">
+              <p role="alert" className="text-xs font-medium text-rose-700">
                 {t("builder.screens.rules.broken")}
               </p>
             )}
@@ -196,7 +196,7 @@ export default function EndRulesEditor({
                 className={`${inputClass} mt-1 ${redirectInvalid ? "border-rose-500" : "border-slate-200"}`}
               />
               {redirectInvalid && (
-                <p role="alert" className="mt-1 text-xs font-medium text-rose-600">
+                <p role="alert" className="mt-1 text-xs font-medium text-rose-700">
                   {t("builder.screens.end.redirectInvalid")}
                 </p>
               )}
